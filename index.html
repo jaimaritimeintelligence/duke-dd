@@ -43,6 +43,16 @@ main{padding:14px 16px;max-width:760px;margin:0 auto}
 .tl{position:relative;margin:6px 0 0 6px;padding-left:16px;border-left:2px solid var(--line)}.tl .ev{position:relative;margin:0 0 12px}.tl .ev:before{content:'';position:absolute;left:-23px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--sea)}.tl .ev.mail:before{background:#7a4cc2}.tl .ev.ship:before{background:var(--ok)}.tl .ev .d{font-size:12px;font-weight:700}.tl .ev .w{font-size:12px;color:var(--mut)}.tl .ev .x{font-size:13.5px;white-space:pre-wrap;margin-top:2px}
 .chip.transit{background:#e3f0fb;color:#1f6fa8}
 .hero svg.ship{position:absolute;right:-10px;bottom:38px;width:88%;opacity:.25}
+main{zoom:var(--z,1)}
+.hero.editing{touch-action:none;cursor:grab;outline:3px dashed #f0b257;outline-offset:-3px}.hero.editing .shade,.hero.editing .txt{pointer-events:none}
+.hero img{will-change:transform}.edhint{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;padding:4px 9px;border-radius:99px;pointer-events:none}
+.pick{display:flex;gap:8px;overflow-x:auto;margin:10px 0 4px;padding-bottom:2px}.pk{flex:0 0 auto;width:84px;background:var(--chip);color:var(--ink);border-radius:12px;padding:5px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;font-weight:600;border:2px solid transparent;cursor:pointer}
+.pk img{width:72px;height:52px;object-fit:cover;border-radius:8px;display:block}.pk .gal{width:72px;height:52px;display:flex;align-items:center;justify-content:center;font-size:26px}.pk.on{border-color:var(--sea)}
+.tiles.ts-s .tile{padding:9px 4px;font-size:11.5px}.tiles.ts-s .tile b{font-size:19px}.tiles.ts-l .tile{padding:22px 8px;font-size:15px}.tiles.ts-l .tile b{font-size:34px}
+.tiles.editing .tile{position:relative;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;border-style:dashed}.tiles.editing .tile.drag{opacity:.55;transform:scale(1.06);box-shadow:0 8px 20px rgba(0,0,0,.25);border-color:var(--sea)}
+.tiles.editing .tile.hid{opacity:.4}.tile .eye{position:absolute;top:3px;right:4px;font-size:15px;cursor:pointer;padding:2px}.tile .eye.lock{cursor:default;opacity:.6}
+.icbox{position:relative;width:min(260px,70vw);aspect-ratio:1;margin:8px auto 0;border-radius:22%;overflow:hidden;touch-action:none;cursor:grab;background:#0b2942}.icbox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.icsafe{position:absolute;inset:10%;border:2px dashed rgba(255,255,255,.85);border-radius:50%;pointer-events:none}
 .hero .txt{position:relative}.hero h1{margin:0;font-size:24px;letter-spacing:.3px}.hero p{margin:2px 0 0;opacity:.85;font-size:13.5px}
 .big2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .bigbtn{border-radius:20px;padding:20px 14px;min-height:118px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;text-align:left;font-size:18px;box-shadow:0 6px 18px rgba(11,41,66,.18)}
@@ -107,7 +117,7 @@ table.t{border-collapse:collapse;width:100%;font-size:13px}table.t td,table.t th
 <script>
 "use strict";
 /* ================= constants ================= */
-const VERSION='1.6.0';
+const VERSION='1.7.0';
 const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
 const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
 const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Vessel Manager'];
@@ -131,7 +141,7 @@ const DB={db:null,
 /* ================= state ================= */
 let S={user:null,data:null,entries:[],lastSync:0,since:0,syncing:false,reportHour:18,view:'home'};
 let D=null,J={},O={},IDX=null;
-async function loadState(){await DB.open();S.user=await DB.get('kv','user')||null;S.lastSync=await DB.get('kv','lastSync')||0;S.since=await DB.get('kv','since')||0;S.reportHour=await DB.get('kv','reportHour')||18;S.testMode=!!(await DB.get('kv','testMode'));
+async function loadState(){await DB.open();S.user=await DB.get('kv','user')||null;S.lastSync=await DB.get('kv','lastSync')||0;S.since=await DB.get('kv','since')||0;S.reportHour=await DB.get('kv','reportHour')||18;S.testMode=!!(await DB.get('kv','testMode'));S.layout=await DB.get('kv','layout')||null;applyScale(lay());
  const raw=await DB.get('kv','records');if(raw)setData(raw);S.entries=await DB.all('entries');
  const th=await DB.get('kv','theme');if(th)document.documentElement.setAttribute('data-theme',th)}
 function setData(raw){D=typeof raw==='string'?JSON.parse(raw):raw;J={};O={};D.jobs.forEach(j=>J[j.id]=j);D.orders.forEach(o=>O[o.no]=o);
@@ -207,11 +217,12 @@ async function sendReceive(manual){const saveMode=manual==='save';if(saveMode)ma
   await DB.put('kv',S.since,'since');await DB.put('kv',S.lastSync,'lastSync');await DB.put('kv',S.reportHour,'reportHour');
   S.entries=await DB.all('entries');rebuildEntryIdx();
   if(r.dataStamp&&r.dataStamp!==(await DB.get('kv','dataStamp'))){try{const rr=await api('records',{},120000);await DB.put('kv',rr.data,'records');await DB.put('kv',rr.dataStamp,'dataStamp');setData(rr.data);rebuildEntryIdx();toast('Drydock records updated ✔')}catch(e){}}
+  if(r.layoutStamp!=null&&r.layoutStamp!==((await DB.get('kv','layoutStamp'))||0)){try{await fetchLayout()}catch(e){}}
   const ff=fileFail?`\n⚠ ${fileFail} photo/file not sent yet – it will retry automatically`:'';
   if(manual)toast(`✅ Sent updates to CE Sethu Database successfully\n(${sent} update(s) sent${up?', '+up+' photo/file(s)':''}, ${dn} received)`+ff,4500,true);
   else if(wantMsg)toast('✅ Update sent to CE Sethu Database successfully'+ff,4000,true);
  }catch(err){if(manual||wantMsg)toast('📱 Your update is SAFE on this phone.\nNot sent yet ('+String(err.message||err).slice(0,60)+').\nIt will be sent automatically – or press Send / Receive later.',6000)}
- finally{S.syncing=false;if(['home','timeline','spares','jobs'].includes(S.view)&&!$('#sheet').classList.contains('show'))render();else renderTop();if(S.manualAfter){S.manualAfter=false;setTimeout(()=>sendReceive(true),50)}else if(S.saveAfter){setTimeout(()=>sendReceive('save'),50)}}}
+ finally{S.syncing=false;if(['home','timeline','spares','jobs'].includes(S.view)&&!$('#sheet').classList.contains('show')&&!(S.view==='home'&&ED))render();else renderTop();if(S.manualAfter){S.manualAfter=false;setTimeout(()=>sendReceive(true),50)}else if(S.saveAfter){setTimeout(()=>sendReceive('save'),50)}}}
 function autoSync(){if(Date.now()-S.lastSync>55*60*1000||pending())sendReceive(false)}
 /* ================= media helpers ================= */
 async function compress(file){if(!/^image\//.test(file.type)||/gif|svg/.test(file.type))return file;
@@ -292,19 +303,18 @@ function renderLogin(){const needData=S.user&&!D;
 async function fetchRecords(){const m=$('#lmsg');if(m)m.textContent='Downloading drydock records…';
  try{const r=await api('records',{},120000);await DB.put('kv',r.data,'records');await DB.put('kv',r.dataStamp||0,'dataStamp');setData(r.data);rebuildEntryIdx();S.view='home';render();sendReceive(false)}catch(e){if(m)m.textContent='Could not download records: '+e.message;else toast(e.message)}}
 /* ---------- home ---------- */
-function renderHome(){const t=today();const td=live().filter(e=>e.date===t);const p=pending();
+function renderHome(){if(ED&&isChief())return renderEditHome();const L=lay();applyScale(L);const t=today();const td=live().filter(e=>e.date===t);const p=pending();
  const last=S.lastSync?new Date(S.lastSync):null;
  shell('Front Duke · DD 2026',`${S.user.rank} · ${S.user.name}`,`
- <div class="hero"><img src="duke.jpg" alt="MT Front Duke" onload="this.parentNode.classList.add('hasimg')" onerror="this.remove()"><svg class="ship" viewBox="0 0 400 90" aria-hidden="true"><path fill="#fff" d="M8 52h300l18-14h40l10 14h16l-22 30H40z"/><rect x="300" y="18" width="34" height="22" fill="#fff"/><rect x="314" y="6" width="8" height="12" fill="#fff"/></svg><div class="shade"></div>
- <div class="txt"><h1>MT Front Duke</h1><p>Second Special Survey · COSCO Zhoushan</p></div></div>
+ ${heroHTML(L,false)}
  ${p?`<div class="banner">⚠ ${p} update(s) waiting to be sent. Tap Send / Receive when you have internet.</div>`:''}
- <div class="big2"><button class="bigbtn ask" data-go="ask"><span class="ic">💬</span><span>Ask me anything<small>Jobs, spares, who does what</small></span></button>
- <button class="bigbtn upd" data-go="update"><span class="ic">➕</span><span>Update<small>Voice or text + photos</small></span></button></div>
- <div class="tiles">${canMeeting()?'<button class="tile" data-go="meeting"><b>🎙️</b>Daily meeting</button>':''}<button class="tile" data-go="timeline"><b>🕒</b>Timeline</button><button class="tile" data-go="spares"><b>📦</b>Spares</button>
- <button class="tile" data-go="jobs"><b>🔧</b>Jobs</button><button class="tile" data-go="reports"><b>📄</b>Reports</button>${canReport()?'<button class="tile" data-go="photos"><b>🗂️</b>Extract photos</button>':''}<button class="tile" data-go="settings"><b>⚙️</b>Settings</button></div>
+ ${bigHTML(L)}
+ ${tilesHTML(L,false)}
  <div class="card" style="margin-top:12px"><b>Today ${t}</b><div class="s mut">${td.length} update(s) · Deck ${td.filter(e=>e.dept==='Deck').length} · Engine ${td.filter(e=>e.dept==='Engine').length} · Meetings ${td.filter(e=>e.kind==='meeting').length}</div>
  <div class="xs mut" style="margin-top:4px">Last sync: ${last?last.toLocaleString():'never'} · auto every hour while the app is open</div></div>
- <div class="credit">Conceptualized by CE<br>Powered by Team Front Duke 2026</div>`)}
+ ${isChief()?'<div style="text-align:center;margin-top:10px"><button class="ghost sm" id="edl">✏️ Edit home screen</button></div>':''}
+ ${creditHTML(L)}`);
+ if($('#edl'))$('#edl').onclick=startEdit}
 /* ---------- update wizard ---------- */
 let UPD={step:0};
 function resetUpd(){UPD={step:1,dept:'',perf:'',text:'',job:'',jobTitle:'',status:'',files:[],kind:'update',order:'',temp:null};}
@@ -606,6 +616,7 @@ function renderSettings(){const all=S.entries.length;
  ${isChief()?`<div class="card"><b>🧪 Test mode</b><div class="s mut">${S.testMode?'ON – every new entry is marked TEST on all phones.':'OFF – entries are live drydock records.'}</div><div style="display:flex;gap:8px;margin-top:8px"><button id="tmon" ${S.testMode?'disabled':''}>Turn ON</button><button class="ghost" id="tmoff" ${S.testMode?'':'disabled'}>Turn OFF</button></div>
  <button class="danger" id="purge" style="width:100%;margin-top:10px">🗑 Delete ALL test entries and their photos</button><div class="xs mut" style="margin-top:4px">Removes them from Google Sheet, Drive and every phone, and switches Test mode OFF. Cannot be undone.</div></div>`:''}
  ${isChief()?`<div class="card"><b>Daily email time (ship time)</b><div style="display:flex;gap:8px;margin-top:8px"><select id="rh">${[...Array(24).keys()].map(h=>`<option value="${h}" ${h===S.reportHour?'selected':''}>${pad(h)}:00</option>`).join('')}</select><button id="rhs">Save</button></div></div>`:''}
+ ${isChief()?'<div class="card"><b>✏️ Home screen layout</b><div class="s mut">Ship photo, tile order and size, text size, credit line, app icon. Saved for all phones.</div><button id="edl2" style="width:100%;margin-top:8px">Edit home screen</button></div>':''}
  <div class="card"><b>Appearance</b><div class="seg">${[['','Auto'],['light','Light'],['dark','Dark']].map(([v,l])=>`<button data-th="${v}">${l}</button>`).join('')}</div></div>
  <div class="card"><button class="ghost" id="rr" style="width:100%">⟳ Re-download drydock records</button><button class="ghost" id="bk2" style="width:100%;margin-top:8px">⬇ Backup my entries (file)</button>
  <button class="danger" id="lo" style="width:100%;margin-top:8px">Log out of this phone</button><div class="xs mut" style="margin-top:6px">Log out is blocked while updates are not sent.</div></div>`,{back:()=>go('home')});
@@ -615,9 +626,123 @@ function renderSettings(){const all=S.entries.length;
    b.disabled=true;b.textContent='Deleting…';try{await sendReceive(false);const r=await api('purgeTest',{},300000);for(const e of S.entries.filter(x=>x.test||r.ids.includes(x.id))){for(const f of (e.files||[]))await DB.del('blobs',f.fid);await DB.del('entries',e.id)}
     S.entries=await DB.all('entries');rebuildEntryIdx();S.testMode=false;await DB.put('kv',false,'testMode');toast(`✅ Deleted ${r.deleted} test entries and ${r.files} files. App is now LIVE.`,5000,true);renderSettings()}catch(e){toast(e.message);b.disabled=false}}}
  $('#app').querySelectorAll('[data-th]').forEach(b=>b.onclick=async()=>{const v=b.dataset.th;if(v)document.documentElement.setAttribute('data-theme',v);else document.documentElement.removeAttribute('data-theme');await DB.put('kv',v,'theme')});
- $('#rr').onclick=()=>{S.view='home';fetchRecords()};
+ $('#rr').onclick=()=>{S.view='home';fetchRecords()};if($('#edl2'))$('#edl2').onclick=startEdit;
  $('#bk2').onclick=()=>downloadBlob(new Blob([JSON.stringify({exported:new Date().toISOString(),user:{rank:S.user.rank,name:S.user.name},entries:S.entries},null,1)],{type:'application/json'}),'FrontDuke_DD2026_backup_'+today()+'.json');
- $('#lo').onclick=async()=>{if(pending()){toast('Send / Receive first – '+pending()+' update(s) not sent',4000);return}if(!$('#lo').dataset.c){$('#lo').dataset.c=1;$('#lo').textContent='Tap again to log out';return}await DB.del('kv','user');S.user=null;render()}}
+ $('#lo').onclick=async()=>{if(pending()){toast('Send / Receive first – '+pending()+' update(s) not sent',4000);return}if(!$('#lo').dataset.c){$('#lo').dataset.c=1;$('#lo').textContent='Tap again to log out';return}await DB.del('kv','user');S.user=null;ED=null;render()}}
+/* ================= home-screen layout (Chief edits, all phones get it) ================= */
+const LDEF={photo:'duke.jpg',px:50,py:50,zoom:1,photoH:230,order:['meeting','timeline','spares','jobs','reports','photos','settings'],hidden:[],tileSize:'m',cols:3,textScale:100,creditSize:10.5,creditAlign:'right',swapBig:false};
+const BUILTIN=[['ship1.jpg','Side view'],['duke.jpg','Bow quarter'],['ship3.jpg','Bow-on']];
+const TILEDEF={meeting:['🎙️','Daily meeting',()=>canMeeting()],timeline:['🕒','Timeline'],spares:['📦','Spares'],jobs:['🔧','Jobs'],reports:['📄','Reports'],photos:['🗂️','Extract photos',()=>canReport()],settings:['⚙️','Settings']};
+let ED=null,IC=null;
+function lay(){const L=Object.assign({},LDEF,S.layout||{});const known=Object.keys(TILEDEF);
+ L.order=(L.order||[]).filter(k=>known.includes(k));known.forEach(k=>{if(!L.order.includes(k))L.order.push(k)});
+ L.hidden=(L.hidden||[]).filter(k=>k!=='settings');L.px=Number.isFinite(+L.px)?clamp(+L.px,0,100):50;L.py=Number.isFinite(+L.py)?clamp(+L.py,0,100):50;L.zoom=clamp(+L.zoom||1,1,4);L.photoH=clamp(+L.photoH||230,150,420);
+ if(!['s','m','l'].includes(L.tileSize))L.tileSize='m';if(!['left','center','right'].includes(L.creditAlign))L.creditAlign='right';if(typeof L.photo!=='string'||!(/^data:image\//.test(L.photo)||BUILTIN.some(b=>b[0]===L.photo)))L.photo='duke.jpg';return L}
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+function applyScale(L){document.documentElement.style.setProperty('--z',String(clamp(+L.textScale||100,80,140)/100))}
+function imgStyle(L){return `object-position:${L.px}% ${L.py}%;transform:scale(${L.zoom});transform-origin:${L.px}% ${L.py}%`}
+function heroHTML(L,edit){return `<div class="hero${edit?' editing':''}" id="hero" style="min-height:0;height:${L.photoH}px"><img id="heroimg" src="${esc(L.photo||'duke.jpg')}" alt="MT Front Duke" style="${imgStyle(L)}" onload="this.parentNode.classList.add('hasimg')" onerror="this.remove()"><svg class="ship" viewBox="0 0 400 90" aria-hidden="true"><path fill="#fff" d="M8 52h300l18-14h40l10 14h16l-22 30H40z"/><rect x="300" y="18" width="34" height="22" fill="#fff"/><rect x="314" y="6" width="8" height="12" fill="#fff"/></svg><div class="shade"></div>
+ <div class="txt"><h1>MT Front Duke</h1><p>Second Special Survey · COSCO Zhoushan</p></div>${edit?'<div class="edhint">☝ Drag to move · pinch or slider to zoom</div>':''}</div>`}
+function bigHTML(L){const a='<button class="bigbtn ask" data-go="ask"><span class="ic">💬</span><span>Ask me anything<small>Jobs, spares, who does what</small></span></button>',u='<button class="bigbtn upd" data-go="update"><span class="ic">➕</span><span>Update<small>Voice or text + photos</small></span></button>';
+ return `<div class="big2">${L.swapBig?u+a:a+u}</div>`}
+function tilesHTML(L,edit){const it=L.order.filter(k=>{const d=TILEDEF[k];return !d[2]||d[2]()}).filter(k=>edit||!L.hidden.includes(k));
+ return `<div class="tiles ts-${L.tileSize}${edit?' editing':''}" id="tiles" style="grid-template-columns:repeat(${clamp(+L.cols||3,2,4)},1fr)">${it.map(k=>{const [i,l]=TILEDEF[k];const hid=L.hidden.includes(k);
+  return edit?`<div class="tile${hid?' hid':''}" data-tid="${k}"><b>${i}</b>${l}${k==='settings'?'<span class="eye lock" title="Always shown">🔒</span>':`<span class="eye" data-eye="${k}">${hid?'🚫':'👁'}</span>`}</div>`:`<button class="tile" data-go="${k}"><b>${i}</b>${l}</button>`}).join('')}</div>`}
+function creditHTML(L){return `<div class="credit" style="font-size:${clamp(+L.creditSize||10.5,8,18)}px;text-align:${L.creditAlign||'right'}">Conceptualized by CE<br>Powered by Team Front Duke 2026</div>`}
+async function fetchLayout(){const r=await api('getLayout',{},60000);S.layout=r.layout||null;await DB.put('kv',S.layout,'layout');await DB.put('kv',r.layoutStamp||0,'layoutStamp');applyScale(lay())}
+/* --- pan / pinch helper --- */
+function panZoom(el,get,set,done){const P=new Map();let st=null;
+ el.addEventListener('pointerdown',e=>{if(e.target.closest('button,input'))return;el.setPointerCapture(e.pointerId);P.set(e.pointerId,{x:e.clientX,y:e.clientY});const v=get();const pts=[...P.values()];
+  st={px:v.px,py:v.py,zoom:v.zoom,x:pts[0].x,y:pts[0].y,d:pts.length>1?Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y):0};e.preventDefault()});
+ el.addEventListener('pointermove',e=>{if(!P.has(e.pointerId)||!st)return;P.set(e.pointerId,{x:e.clientX,y:e.clientY});const pts=[...P.values()];const r=el.getBoundingClientRect();
+  if(pts.length>1&&st.d){set({zoom:clamp(st.zoom*Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y)/st.d,1,4)})}
+  else{const k=1.6/Math.max(1,st.zoom);set({px:clamp(st.px-(pts[0].x-st.x)/r.width*100*k,0,100),py:clamp(st.py-(pts[0].y-st.y)/r.height*100*k,0,100)})}});
+ const up=e=>{if(!P.has(e.pointerId))return;P.delete(e.pointerId);if(P.size){const v=get();const p=[...P.values()][0];st={px:v.px,py:v.py,zoom:v.zoom,x:p.x,y:p.y,d:0}}else{st=null;done&&done()}};
+ el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up)}
+/* --- tile drag --- */
+function tileDrag(grid,onDone){let drag=null,sx=0,sy=0,moved=false;
+ grid.addEventListener('pointerdown',e=>{const t=e.target.closest('.tile');if(!t||e.target.closest('[data-eye]'))return;drag=t;sx=e.clientX;sy=e.clientY;moved=false;t.setPointerCapture(e.pointerId);e.preventDefault()});
+ grid.addEventListener('pointermove',e=>{if(!drag)return;if(!moved&&Math.hypot(e.clientX-sx,e.clientY-sy)<6)return;if(!moved){moved=true;drag.classList.add('drag')}
+  const over=document.elementsFromPoint(e.clientX,e.clientY).map(x=>x.closest&&x.closest('.tile')).find(x=>x&&x!==drag&&grid.contains(x));
+  if(over){const all=[...grid.children];if(all.indexOf(over)>all.indexOf(drag))over.after(drag);else over.before(drag)}});
+ const end=()=>{if(!drag)return;drag.classList.remove('drag');drag=null;if(moved)onDone([...grid.children].map(x=>x.dataset.tid))};
+ grid.addEventListener('pointerup',end);grid.addEventListener('pointercancel',end)}
+/* --- read a picked image file as a (compressed) data URL --- */
+async function fileToDataURL(f){const b=await compress(f);return await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(b)})}
+function loadImg(src){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src})}
+/* same maths as CSS object-fit:cover + object-position + scale(z) around that point */
+function drawCover(ctx,img,S2,px,py,z){const s0=Math.max(S2/img.naturalWidth,S2/img.naturalHeight);const W=img.naturalWidth*s0,H=img.naturalHeight*s0;
+ const ox=S2*px/100,oy=S2*py/100,x0=(S2-W)*px/100,y0=(S2-H)*py/100;ctx.drawImage(img,ox+(x0-ox)*z,oy+(y0-oy)*z,W*z,H*z)}
+async function pngBytes(img,size,st){const c=document.createElement('canvas');c.width=c.height=size;const x=c.getContext('2d');x.imageSmoothingQuality='high';drawCover(x,img,size,st.px,st.py,st.zoom);
+ const b=await new Promise(r=>c.toBlob(r,'image/png'));return new Uint8Array(await b.arrayBuffer())}
+/* --- the editor --- */
+function startEdit(){if(!isChief())return;ED={L:JSON.parse(JSON.stringify(lay())),dirty:false};S.view='home';render();window.scrollTo(0,0)}
+function renderEditHome(){const L=ED.L;applyScale(L);
+ shell('Edit home screen','Chief only · seen on all phones after Save',`
+ <div class="banner info">✏️ Edit mode. Nothing changes on other phones until you tap <b>Save for all phones</b>.</div>
+ ${heroHTML(L,true)}
+ <div class="card"><b>🖼️ Ship photo</b>
+  <div class="pick">${BUILTIN.map(([f,l])=>`<button class="pk${L.photo===f?' on':''}" data-pk="${f}"><img src="${f}" alt=""><span>${l}</span></button>`).join('')}<label class="pk${/^data:/.test(L.photo)?' on':''}"><input type="file" accept="image/*" id="pgal" hidden><span class="gal">🖼️</span><span>Gallery</span></label></div>
+  <label class="l">Zoom <span id="zv">${L.zoom.toFixed(1)}×</span></label><input type="range" id="pz" min="1" max="4" step="0.05" value="${L.zoom}">
+  <label class="l">Photo height <span id="hv">${L.photoH}px</span></label><input type="range" id="ph" min="150" max="420" step="5" value="${L.photoH}">
+  <button class="ghost sm" id="pc" style="margin-top:8px">Centre photo</button></div>
+ ${bigHTML(L)}<div style="text-align:right;margin:-6px 0 12px"><button class="ghost sm" id="swp">⇄ Swap Ask / Update</button></div>
+ <div class="xs mut" style="margin:0 2px 6px">☝ Press and drag a tile to move it. 👁 = shown, 🚫 = hidden on all phones.</div>
+ ${tilesHTML(L,true)}
+ <div class="card" style="margin-top:12px"><b>🔲 Tiles</b><label class="l">Tile size</label><div class="seg">${[['s','Small'],['m','Medium'],['l','Large']].map(([v,l])=>`<button data-tsz="${v}" class="${L.tileSize===v?'on':''}">${l}</button>`).join('')}</div>
+  <label class="l">Tiles per row</label><div class="seg">${[2,3,4].map(n=>`<button data-tcol="${n}" class="${+L.cols===n?'on':''}">${n}</button>`).join('')}</div></div>
+ <div class="card"><b>🔠 Text size (whole app)</b><label class="l">Size <span id="tv">${L.textScale}%</span></label><input type="range" id="ts" min="80" max="140" step="5" value="${L.textScale}"><div class="xs mut">Text, buttons and boxes grow together, on every screen.</div></div>
+ <div class="card"><b>✍️ Credit line</b><label class="l">Size <span id="cv">${L.creditSize}px</span></label><input type="range" id="cs" min="8" max="18" step="0.5" value="${L.creditSize}">
+  <label class="l">Position</label><div class="seg">${[['left','Left'],['center','Centre'],['right','Right']].map(([v,l])=>`<button data-cal="${v}" class="${L.creditAlign===v?'on':''}">${l}</button>`).join('')}</div>
+  ${creditHTML(L)}</div>
+ <div class="card"><b>📱 Phone app icon</b><div class="s mut">Makes the 3 icon files for GitHub. Not part of Save.</div><button class="ghost" id="icb" style="width:100%;margin-top:8px">Make app icon files…</button></div>
+ <button class="ghost" id="rst" style="width:100%;margin-bottom:12px">↺ Back to standard layout</button>`,
+ {back:cancelEdit,foot:`<div class="foot"><button class="ghost" id="edc" style="flex:1">Cancel</button><button id="eds" style="flex:2">💾 Save for all phones</button></div>`});
+ const img=$('#heroimg'),hero=$('#hero');const upd=()=>{if(img)img.setAttribute('style',imgStyle(L))};const mark=()=>{ED.dirty=true};
+ panZoom(hero,()=>L,v=>{Object.assign(L,v);upd();mark();if(v.zoom){$('#pz').value=L.zoom;$('#zv').textContent=L.zoom.toFixed(1)+'×'}});
+ $('#pz').oninput=e=>{L.zoom=+e.target.value;$('#zv').textContent=L.zoom.toFixed(1)+'×';upd();mark()};
+ $('#ph').oninput=e=>{L.photoH=+e.target.value;$('#hv').textContent=L.photoH+'px';hero.style.height=L.photoH+'px';mark()};
+ $('#pc').onclick=()=>{L.px=50;L.py=50;L.zoom=1;mark();renderEditHome()};
+ $('#app').querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>{L.photo=b.dataset.pk;L.px=50;L.py=50;L.zoom=1;mark();renderEditHome()});
+ $('#pgal').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{L.photo=await fileToDataURL(f);L.px=50;L.py=50;L.zoom=1;mark();renderEditHome()}catch(err){toast('Could not read that picture')}};
+ $('#swp').onclick=()=>{L.swapBig=!L.swapBig;mark();renderEditHome()};
+ tileDrag($('#tiles'),ids=>{L.order=ids;mark()});
+ $('#app').querySelectorAll('[data-eye]').forEach(s=>s.onclick=e=>{e.stopPropagation();const k=s.dataset.eye;L.hidden=L.hidden.includes(k)?L.hidden.filter(x=>x!==k):L.hidden.concat(k);mark();renderEditHome()});
+ $('#app').querySelectorAll('[data-tsz]').forEach(b=>b.onclick=()=>{L.tileSize=b.dataset.tsz;mark();renderEditHome()});
+ $('#app').querySelectorAll('[data-tcol]').forEach(b=>b.onclick=()=>{L.cols=+b.dataset.tcol;mark();renderEditHome()});
+ $('#ts').oninput=e=>{L.textScale=+e.target.value;$('#tv').textContent=L.textScale+'%';applyScale(L);mark()};
+ $('#cs').oninput=e=>{L.creditSize=+e.target.value;$('#cv').textContent=L.creditSize+'px';const c=$('#app').querySelector('.credit');if(c)c.style.fontSize=L.creditSize+'px';mark()};
+ $('#app').querySelectorAll('[data-cal]').forEach(b=>b.onclick=()=>{L.creditAlign=b.dataset.cal;mark();renderEditHome()});
+ $('#rst').onclick=()=>{ED.L=JSON.parse(JSON.stringify(LDEF));ED.dirty=true;toast('Standard layout loaded – tap Save for all phones to keep it');renderEditHome()};
+ $('#icb').onclick=()=>{IC={src:BUILTIN[1][0],px:50,py:50,zoom:1};openIcon()};
+ $('#edc').onclick=cancelEdit;$('#eds').onclick=saveLayout}
+function cancelEdit(){if(ED&&ED.dirty&&!cancelEdit.c){cancelEdit.c=1;toast('Changes not saved – tap Cancel again to throw them away',3500);setTimeout(()=>cancelEdit.c=0,3500);return}
+ cancelEdit.c=0;ED=null;applyScale(lay());render()}
+async function saveLayout(){const b=$('#eds');if(!navigator.onLine){toast('Needs internet to save the layout for all phones. Your edits stay here – try again when online.',4500);return}
+ b.disabled=true;b.textContent='Saving…';
+ try{const L=ED.L;const r=await api('layout',{layout:L},120000);S.layout=L;await DB.put('kv',L,'layout');await DB.put('kv',r.layoutStamp,'layoutStamp');ED=null;applyScale(lay());render();
+  toast('✅ Layout saved. Other phones get it at their next Send / Receive.',4500,true)}
+ catch(e){toast('Not saved: '+e.message,4500);b.disabled=false;b.textContent='💾 Save for all phones'}}
+/* --- app icon maker (sheet) --- */
+function openIcon(){
+ sheet(`<div class="h2">📱 App icon</div>
+ <div class="pick">${BUILTIN.map(([f,l])=>`<button class="pk${IC.src===f?' on':''}" data-ic="${f}"><img src="${f}" alt=""><span>${l}</span></button>`).join('')}<label class="pk${/^data:/.test(IC.src)?' on':''}"><input type="file" accept="image/*" id="igal" hidden><span class="gal">🖼️</span><span>Gallery</span></label></div>
+ <div class="icbox" id="icbox"><img id="icimg" src="${esc(IC.src)}" alt="" style="${imgStyle(IC)}"><div class="icsafe"></div></div>
+ <div class="xs mut" style="text-align:center;margin-top:4px">☝ Drag to move, pinch to zoom. Keep the ship inside the dotted circle – Android may cut the corners.</div>
+ <label class="l">Zoom</label><input type="range" id="iz" min="1" max="4" step="0.05" value="${IC.zoom}">
+ <button id="icmk" style="width:100%;margin-top:12px">⬇ Create icon files (zip)</button>
+ <div class="xs mut" id="icm" style="margin-top:8px">Then on GitHub: <b>Add file → Upload files</b> → the 3 files from the zip (icon-192.png, icon-512.png, apple-touch-icon.png) → Commit. Android phones change the icon by themselves in about 1–3 days. iPhones: remove the app from the home screen and add it again.</div>
+ <button class="ghost" id="icx" style="width:100%;margin-top:10px">Close</button>`);
+ const sh=$('#sheetIn');const im=$('#icimg');
+ panZoom($('#icbox'),()=>IC,v=>{Object.assign(IC,v);im.setAttribute('style',imgStyle(IC));if(v.zoom)$('#iz').value=IC.zoom});
+ $('#iz').oninput=e=>{IC.zoom=+e.target.value;im.setAttribute('style',imgStyle(IC))};
+ sh.querySelectorAll('[data-ic]').forEach(b=>b.onclick=()=>{IC={src:b.dataset.ic,px:50,py:50,zoom:1};openIcon()});
+ $('#igal').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{IC={src:await fileToDataURL(f),px:50,py:50,zoom:1};openIcon()}catch(err){toast('Could not read that picture')}};
+ $('#icx').onclick=closeSheet;
+ $('#icmk').onclick=async()=>{const b=$('#icmk');b.disabled=true;b.textContent='Creating…';
+  try{const img=await loadImg(IC.src);const files=[];for(const [n,z] of [['icon-512.png',512],['icon-192.png',192],['apple-touch-icon.png',180]])files.push({name:n,data:await pngBytes(img,z,IC)});
+   downloadBlob(makeZip(files),'FrontDuke_App_Icons.zip');$('#icm').insertAdjacentHTML('afterbegin','<b style="color:var(--ok)">✔ FrontDuke_App_Icons.zip downloaded.</b><br>')}
+  catch(e){toast('Could not create icons: '+e.message)}b.disabled=false;b.textContent='⬇ Create icon files (zip)'}}
 /* ================= boot ================= */
 let SWREG=null;
 async function boot(){try{await loadState()}catch(e){$('#app').innerHTML='<div style="padding:20px">This browser blocks offline storage (private mode?). Open the app in normal Safari/Chrome.</div>';return}
