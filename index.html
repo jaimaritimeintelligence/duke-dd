@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b2942">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Duke DD">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<title>Front Duke DD 2026</title>
+<script src="config.js"></script>
+<style>
+:root{--navy:#0b2942;--navy2:#123a5c;--sea:#1f7ab8;--sky:#e8f2fa;--bg:#f2f5f8;--card:#fff;--ink:#13212e;--mut:#5d6d7a;--line:#dce3ea;--ok:#17803f;--okb:#e3f4e9;--warn:#9a5a00;--warnb:#fff1d6;--bad:#b3261e;--badb:#fde7e4;--chip:#eef2f6;--deck:#1f7ab8;--eng:#c2571a;--r:16px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c141c;--card:#152230;--ink:#e7eef5;--mut:#9cadbc;--line:#253546;--sky:#14304a;--chip:#1e2d3c;--okb:#12301e;--warnb:#33270e;--badb:#3a1613;--ok:#5ccf8a;--warn:#f0b257;--bad:#ff8b80}}
+:root[data-theme="dark"]{--bg:#0c141c;--card:#152230;--ink:#e7eef5;--mut:#9cadbc;--line:#253546;--sky:#14304a;--chip:#1e2d3c;--okb:#12301e;--warnb:#33270e;--badb:#3a1613;--ok:#5ccf8a;--warn:#f0b257;--bad:#ff8b80}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif;min-height:100vh;padding-bottom:calc(70px + env(safe-area-inset-bottom))}
+button,input,select,textarea{font:inherit;color:inherit}
+button{border:0;border-radius:12px;padding:12px 16px;background:var(--sea);color:#fff;font-weight:600;cursor:pointer;touch-action:manipulation}
+button:active{transform:scale(.98)}button:disabled{opacity:.45}
+button.ghost{background:var(--chip);color:var(--ink)}button.sm{padding:7px 11px;font-size:14px;border-radius:10px}button.danger{background:var(--bad)}
+input,select,textarea{width:100%;min-width:0;max-width:100%;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:13px 14px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--sea)}
+textarea{min-height:130px;resize:vertical}
+label.l{display:block;font-size:13px;font-weight:600;color:var(--mut);margin:14px 0 6px}
+.top{position:sticky;top:0;z-index:10;background:var(--navy);color:#fff;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:10px}
+.top .t{flex:1;font-weight:700;font-size:17px;line-height:1.2}.top .t small{display:block;font-weight:400;opacity:.75;font-size:12px}
+.top button{background:rgba(255,255,255,.12);padding:8px 10px;font-size:14px}
+.sync{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.14);border-radius:99px;padding:7px 12px;font-size:13px;font-weight:600;color:#fff}
+.badge{background:#ff4d4f;color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;font-weight:700}
+main{padding:14px 16px;max-width:760px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.hero{position:relative;border-radius:22px;overflow:hidden;min-height:230px;background:linear-gradient(160deg,#0b2942 0%,#174d77 55%,#2b85c1 100%);color:#fff;padding:18px;display:flex;flex-direction:column;justify-content:flex-end;margin-bottom:14px}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 30%,rgba(5,20,35,.82))}
+.hero.hasimg svg.ship{display:none}.credit{text-align:right;font-size:10.5px;color:var(--mut);margin:14px 2px 0;line-height:1.5;opacity:.85}
+.login-tabs{display:flex;background:var(--chip);border-radius:12px;padding:4px;gap:4px}.login-tabs button{flex:1;background:none;color:var(--ink);padding:10px}.login-tabs button.on{background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.toast.green{background:#17803f}.banner.test{background:#fff3b0;color:#6b5200;border:1px dashed #c9a400}.chip.test{background:#fff3b0;color:#6b5200}
+.tl{position:relative;margin:6px 0 0 6px;padding-left:16px;border-left:2px solid var(--line)}.tl .ev{position:relative;margin:0 0 12px}.tl .ev:before{content:'';position:absolute;left:-23px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--sea)}.tl .ev.mail:before{background:#7a4cc2}.tl .ev.ship:before{background:var(--ok)}.tl .ev .d{font-size:12px;font-weight:700}.tl .ev .w{font-size:12px;color:var(--mut)}.tl .ev .x{font-size:13.5px;white-space:pre-wrap;margin-top:2px}
+.chip.transit{background:#e3f0fb;color:#1f6fa8}
+.hero svg.ship{position:absolute;right:-10px;bottom:38px;width:88%;opacity:.25}
+.hero .txt{position:relative}.hero h1{margin:0;font-size:24px;letter-spacing:.3px}.hero p{margin:2px 0 0;opacity:.85;font-size:13.5px}
+.big2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.bigbtn{border-radius:20px;padding:20px 14px;min-height:118px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;text-align:left;font-size:18px;box-shadow:0 6px 18px rgba(11,41,66,.18)}
+.bigbtn .ic{font-size:30px}.bigbtn small{display:block;font-weight:400;font-size:12.5px;opacity:.85}
+.bigbtn.ask{background:linear-gradient(150deg,#123a5c,#1f7ab8)}.bigbtn.upd{background:linear-gradient(150deg,#b44c12,#e07a2c)}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:14px 6px;font-size:13px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:4px}
+.tile b{font-size:24px}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;color:var(--mut);border-radius:0;padding:8px 0 9px;font-size:11px;font-weight:600}
+nav button b{display:block;font-size:21px;line-height:1.25}nav button.on{color:var(--sea)}
+.h2{font-size:20px;font-weight:700;margin:4px 0 12px}
+.mut{color:var(--mut)}.s{font-size:13.5px}.xs{font-size:12px}
+.chip{display:inline-block;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:600;background:var(--chip);margin:2px 4px 2px 0}
+.chip.ok{background:var(--okb);color:var(--ok)}.chip.warn{background:var(--warnb);color:var(--warn)}.chip.bad{background:var(--badb);color:var(--bad)}
+.chip.deck{background:#e3f0fb;color:var(--deck)}.chip.eng{background:#fbeadf;color:var(--eng)}
+.choice{display:grid;gap:12px}.choice button{background:var(--card);color:var(--ink);border:2px solid var(--line);padding:18px;text-align:left;font-size:18px;display:flex;align-items:center;gap:14px;border-radius:18px}
+.choice button b{font-size:28px}.choice button small{display:block;font-weight:400;color:var(--mut);font-size:13px}
+.choice button.sel{border-color:var(--sea);background:var(--sky)}
+.steps{display:flex;gap:5px;margin:0 0 14px}.steps i{flex:1;height:5px;border-radius:9px;background:var(--line)}.steps i.on{background:var(--sea)}
+.foot{position:fixed;left:0;right:0;bottom:0;z-index:11;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px}
+.foot button{flex:1;padding:15px;font-size:17px}
+.mic{width:76px;height:76px;border-radius:50%;font-size:32px;padding:0;display:flex;align-items:center;justify-content:center;margin:12px auto 4px;box-shadow:0 6px 18px rgba(31,122,184,.35)}
+.mic.rec{background:var(--bad);animation:pulse 1.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(179,38,30,.5)}70%{box-shadow:0 0 0 18px rgba(179,38,30,0)}100%{box-shadow:0 0 0 0 rgba(179,38,30,0)}}
+.thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.thumb{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:12px;text-align:center;padding:4px}
+.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.thumb .x{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;border-radius:50%;width:26px;height:26px;padding:0;font-size:14px}
+.item{padding:12px 0;border-top:1px solid var(--line)}.item:first-child{border-top:0}
+.jid{font-weight:700;color:var(--sea);font-variant-numeric:tabular-nums}
+.entry{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--sea);border-radius:14px;padding:12px;margin-bottom:10px}
+.entry.Engine{border-left-color:var(--eng)}.entry.meeting{border-left-color:#7a4cc2}
+.entry .who{font-size:13px;color:var(--mut)}.entry .txt{margin:6px 0;white-space:pre-wrap}
+.minis{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.minis .m{width:64px;height:64px;border-radius:10px;overflow:hidden;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:11px;text-align:center}
+.minis .m img{width:100%;height:100%;object-fit:cover}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.seg button{background:var(--chip);color:var(--ink);padding:8px 12px;font-size:14px}.seg button.on{background:var(--sea);color:#fff}
+.banner{background:var(--warnb);color:var(--warn);border-radius:12px;padding:10px 12px;font-size:14px;margin-bottom:12px;font-weight:600}
+.banner.ok{background:var(--okb);color:var(--ok)}.banner.info{background:var(--sky);color:var(--sea)}
+.sheet{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.5);display:none;align-items:flex-end}
+.sheet.show{display:flex}.sheet .in{background:var(--card);width:100%;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom))}
+.viewer{position:fixed;inset:0;z-index:40;background:#000;display:none;align-items:center;justify-content:center}.viewer.show{display:flex}.viewer img{max-width:100%;max-height:100%}
+.viewer button{position:absolute;top:calc(12px + env(safe-area-inset-top));right:12px}
+.kv{display:grid;grid-template-columns:118px 1fr;gap:6px 10px;font-size:14px}.kv>div:nth-child(odd){color:var(--mut)}
+pre.scope{white-space:pre-wrap;font:12.5px/1.45 ui-monospace,Menlo,monospace;background:var(--bg);padding:10px;border-radius:10px;max-height:50vh;overflow:auto}
+.toast{white-space:pre-line;text-align:center;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));background:#13212e;color:#fff;padding:11px 16px;border-radius:12px;z-index:50;font-size:14px;max-width:92%;display:none}
+.timer{font-size:42px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
+.live{min-height:120px;max-height:40vh;overflow:auto;background:var(--bg);border-radius:12px;padding:10px;font-size:14px;white-space:pre-wrap}
+.hidden{display:none!important}
+.login{min-height:100vh;display:flex;flex-direction:column;background:linear-gradient(170deg,#0b2942,#174d77 60%,#2b85c1);color:#fff;padding:calc(30px + env(safe-area-inset-top)) 20px 30px}
+.login .card{color:var(--ink);margin-top:auto}
+table.t{border-collapse:collapse;width:100%;font-size:13px}table.t td,table.t th{border:1px solid var(--line);padding:5px;text-align:left;vertical-align:top}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="sheet" id="sheet"><div class="in" id="sheetIn"></div></div>
+<div class="viewer" id="viewer"><img id="vimg" alt=""><button class="ghost sm" id="vclose">✕ Close</button></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="fCam" accept="image/*" capture="environment" class="hidden">
+<input type="file" id="fGal" accept="image/*,video/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx" multiple class="hidden">
+<script>
+"use strict";
+/* ================= constants ================= */
+const VERSION='1.4.0';
+const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
+const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
+const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Vessel Manager'];
+const STAT=['Not started','In progress / given to yard','Received back','Done','Class/Owner accepted'];
+const STC=['','warn','','ok','ok'];
+const PERF=[['Yard','Yard job','🏗️','Work done by COSCO yard'],['Service Engineer','Service engineer job','🧰','Maker / service engineer attendance'],['Ship Staff','Ship staff job','⚓','Work by our own crew']];
+const OUT=new Set(['350.03','710.01','740.02']);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+const nowTime=()=>{const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+function toast(t,ms,green){const e=$('#toast');e.classList.toggle('green',!!green);e.textContent=t;e.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(()=>e.style.display='none',ms||2600)}
+/* ================= IndexedDB ================= */
+const DB={db:null,
+ open(){return new Promise((res,rej)=>{const r=indexedDB.open('fduke_dd2026',1);r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('kv');d.createObjectStore('entries',{keyPath:'id'});d.createObjectStore('blobs')};r.onsuccess=()=>{this.db=r.result;res()};r.onerror=()=>rej(r.error)})},
+ tx(store,mode,fn){return new Promise((res,rej)=>{const t=this.db.transaction(store,mode);const s=t.objectStore(store);const out=fn(s);t.oncomplete=()=>res(out&&out.result!==undefined?out.result:undefined);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)})},
+ get(store,k){return this.tx(store,'readonly',s=>s.get(k))},put(store,v,k){return this.tx(store,'readwrite',s=>k===undefined?s.put(v):s.put(v,k))},
+ del(store,k){return this.tx(store,'readwrite',s=>s.delete(k))},all(store){return this.tx(store,'readonly',s=>s.getAll())}};
+/* ================= state ================= */
+let S={user:null,data:null,entries:[],lastSync:0,since:0,syncing:false,reportHour:18,view:'home'};
+let D=null,J={},O={},IDX=null;
+async function loadState(){await DB.open();S.user=await DB.get('kv','user')||null;S.lastSync=await DB.get('kv','lastSync')||0;S.since=await DB.get('kv','since')||0;S.reportHour=await DB.get('kv','reportHour')||18;S.testMode=!!(await DB.get('kv','testMode'));
+ const raw=await DB.get('kv','records');if(raw)setData(raw);S.entries=await DB.all('entries');
+ const th=await DB.get('kv','theme');if(th)document.documentElement.setAttribute('data-theme',th)}
+function setData(raw){D=typeof raw==='string'?JSON.parse(raw):raw;J={};O={};D.jobs.forEach(j=>J[j.id]=j);D.orders.forEach(o=>O[o.no]=o);
+ IDX={jobs:D.jobs.map(j=>({r:j,f:[[norm(j.id+' '+j.title),6],[norm(j.comp+' '+j.group+' '+(j.components||[]).join(' ')),4],[norm(j.brief+' '+j.sname),3],[norm(j.scope),1]]})),
+ orders:D.orders.map(o=>({r:o,f:[[norm(o.no+' '+o.name),6],[norm(o.suppliers.map(s=>s.name).join(' ')+' '+o.jobs.map(x=>x.id+' '+(J[x.id]?J[x.id].title:'')).join(' ')),3],[norm(o.status+' '+o.loc+' '+o.notes.join(' ')),1]]})),
+ motors:D.motors.map(m=>({r:m,f:[[norm(m.motor+' '+m.job+' '+m.std+' '+m.po),5]]})),
+ msgs:(D.msgs||[]).map(m=>({r:m,f:[[norm(m.subj+' '+m.pos.join(' ')+' '+m.jobs.join(' ')),5],[norm(m.frm),2],[norm(m.text),1]]})),docs:D.docs.map(d=>({r:d,f:[[norm(d.text),1]]})),entries:[]}}
+function rebuildEntryIdx(){if(!IDX)return;IDX.entries=live().map(e=>({r:e,f:[[norm((e.text)+' '+(e.transcript||'')+' '+(e.job||'')+' '+(e.jobTitle||'')+' '+(e.order||'')),3],[norm(e.rank+' '+e.name),1]]}))}
+const live=()=>S.entries.filter(e=>!e.deleted);
+const pending=()=>S.entries.filter(e=>e.pending).length+0;
+/* ================= search engine (records) ================= */
+const GROUPS=[
+['main engine','m/e','me ','m.e','w7x82','w-7x','propulsion engine','main eng'],['aux engine','auxiliary engine','a/e','ae ','generator engine','diesel generator','d/g','dg ','g/e','ge ','himsen','genset'],
+['fuel oil','f.o','fo ','fuel pump','fuel'],['lube oil','lub oil','l.o','lo ','lubricating'],['sea water','s.w','sw ','seawater'],['fresh water','f.w','fw '],
+['overboard','ovb','o/b','ship side valve','sea chest','sea valve'],['pipe','pipes','piping','pipeline','pipe line','pipelines','spool piece'],
+['fabricat','fabrication','fabricate','crop','insert','doubler','steel renewal','new frame','bracket','railing'],['vent fan','ventilation','ventilator','e/r fan','er fan','e/r vent'],['engine room','e/r','er ','e.r'],['blower','blowers'],
+['turbocharger','t/c','tc ','turbo'],['egcs','scrubber','exhaust gas cleaning'],['bwts','ballast water treatment','nk-o3','nko3'],['iccp','impressed current','anode'],
+['inert gas','igs','ig fan','ig blower','i.g'],['copt','cargo oil pump turbine','cargo pump turbine'],['cargo oil pump','cop '],['purifier','separator','alfa laval'],
+['compressor','air compressor'],['bearing','bearings','mearing'],['motor','motors','electric motor','electro motor'],['valve','valves'],['cooler','coolers','heat exchanger'],
+['boiler','donkey','economizer','egb','exhaust gas boiler'],['incinerator','refractory'],['sewage','stp','grey water','gray water','black water'],['ows','oily water separator','odme'],
+['fwg','fresh water generator','evaporator'],['air condition','a/c','ac plant','aircon','ahu','hvac'],['provision','reefer','refrigeration'],['steering','steering gear','rudder'],
+['stern tube','sterntube','tail shaft','tailshaft','propeller shaft','shaft seal'],['propeller','pbcf'],['paint','coating','blasting','hull treatment'],['tank','tanks','cot','wbt'],
+['crane','cranes','hose handling'],['windlass','mooring winch','mooring','bollard'],['lifeboat','davit','rescue boat','lsa'],['co2','fire extinguishing'],['fire pump','fire & g.s','fire and gs','fire main'],
+['switchboard','msb','esb','breaker','acb'],['alternator','generator','avr','diode'],['vfd','frequency drive','inverter','frese','fuel save','fuelsave'],['gasket','gaskets','o-ring','o ring'],
+['hydraulic','hpu','servo oil','hydraulics'],['crankcase','crank case'],['ecdis','radar','gmdss','echo sounder','speed log','speedlog'],['gas detection','fgds','gas sampling'],['governor','woodward'],
+['accumulator'],['quick closing','qcv'],['staging','scaffolding'],['thickness','gauging','utm'],['class','surveyor','dnv'],['spares','spare','parts','requisition','reqn','po ','order','supplied'],
+['received','arrived','landed'],['air cooler','charge air cooler','scavenge air cooler']];
+const STOP=new Set('a an the of for to in on at is are was were we have has had do does did any all what whats which who whom how when where give me show list tell about with and or by from our my is it its this that be been job jobs work works please status details detail item items there their'.split(' '));
+const norm=s=>' '+String(s||'').toLowerCase().replace(/[“”"'`]/g,'').replace(/[(),;:!?\[\]]/g,' ').replace(/\s+/g,' ')+' ';
+function stem(w){return w.replace(/(ing|ings|ed|es|s)$/,'').replace(/\.$/,'')}
+function parseQ(q){let s=norm(q);const concepts=[];
+ const all=[];GROUPS.forEach((g,gi)=>g.forEach(p=>all.push([p,gi])));all.sort((a,b)=>b[0].length-a[0].length);
+ const used=new Set();
+ for(const [p,gi] of all){const pp=p.endsWith(' ')?p:p;const re=new RegExp('(^|[^a-z0-9])'+pp.trim().replace(/[.*+?^${}()|[\]\\\/]/g,'\\$&')+(p.endsWith(' ')?'(?![a-z0-9])':''),'i');
+  if(re.test(s)){if(!used.has(gi)){concepts.push({g:gi,terms:GROUPS[gi]});used.add(gi)}s=s.replace(re,' ')}}
+ s.split(' ').filter(w=>w&&!STOP.has(w)&&w.length>1).forEach(w=>concepts.push({w:stem(w)}));
+ return concepts}
+function hit(text,c){if(c.g!=null)return c.terms.some(t=>{const tt=t.trim();return tt.length<=3?new RegExp('(^|[^a-z0-9])'+tt.replace(/[.*+?^${}()|[\]\\\/]/g,'\\$&')+'([^a-z0-9]|$)').test(text):text.includes(tt)});
+ if(/^\d/.test(c.w))return text.includes(c.w);return new RegExp('(^|[^a-z0-9])'+c.w.replace(/[.*+?^${}()|[\]\\\/]/g,'\\$&')).test(text)}
+function rank(list,cs,strict){const out=[];for(const it of list){let sc=0,m=0;for(const c of cs){let best=0;for(const [t,w] of it.f)if(hit(t,c))best=Math.max(best,w);if(best){m++;sc+=best}}
+ if(!m)continue;if(strict&&m<cs.length)continue;out.push({r:it.r,sc:sc+(m===cs.length?20:0),full:m===cs.length})}return out.sort((a,b)=>b.sc-a.sc)}
+
+function search(q,kind,limit){const cs=parseQ(q);if(!cs.length||!IDX)return[];let r=rank(IDX[kind],cs,true);if(!r.length&&cs.length>1)r=rank(IDX[kind],cs,false).filter(x=>x.sc>=6);return r.slice(0,limit||50)}
+/* ================= server ================= */
+async function api(a,body,timeoutMs){if(!CFG.SERVER_URL)throw new Error('Server link not set in config.js');
+ const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),timeoutMs||120000);
+ try{const r=await fetch(CFG.SERVER_URL,{method:'POST',body:JSON.stringify(Object.assign({a,pin:S.user?S.user.pin:body.pin,rank:S.user?S.user.rank:body.rank,name:S.user?S.user.name:body.name},body)),signal:ctl.signal,redirect:'follow'});
+  const j=await r.json();if(!j.ok)throw new Error(j.error||'Server error');return j}finally{clearTimeout(t)}}
+function blobToB64(b){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(b)})}
+function b64ToBlob(b64,mime){const bin=atob(b64);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new Blob([u],{type:mime})}
+/* ================= sync ================= */
+async function saveEntry(e){const i=S.entries.findIndex(x=>x.id===e.id);if(i<0)S.entries.push(e);else S.entries[i]=e;await DB.put('entries',e);rebuildEntryIdx()}
+async function sendReceive(manual){const saveMode=manual==='save';if(saveMode)manual=false;
+ if(S.syncing){if(manual){S.manualAfter=true;toast('Sync already running – will confirm when done')}if(saveMode)S.saveAfter=true;return}
+ if(!CFG.SERVER_URL){if(manual)toast('Server link not set yet – see setup guide');return}
+ if(!navigator.onLine){if(manual||saveMode)toast('📱 Saved on this phone – no internet now.\nIt will be sent to CE Sethu Database automatically when internet is back.',5000);return}
+ S.syncing=true;renderTop();let up=0,dn=0,sent=0,fileFail=0;const wantMsg=saveMode||S.saveAfter;S.saveAfter=false;
+ try{
+  for(const e of S.entries.filter(x=>x.device===S.user.device&&(x.files||[]).some(f=>!f.driveId))){
+   for(const f of (e.files||[])){if(f.driveId)continue;const b=await DB.get('blobs',f.fid);if(!b)continue;
+    try{const r=await api('upload',{entryId:e.id,date:e.date,name:f.name,mime:f.mime,b64:await blobToB64(b)},300000);f.driveId=r.driveId;delete f.upErr;e.pending=true;await DB.put('entries',e);up++}
+    catch(err){fileFail++;f.upErr=String(err.message||err).slice(0,80);await DB.put('entries',e);if(/abort|network|Failed to fetch|Load failed/i.test(String(err)))throw err}}}
+  const all=S.entries.filter(x=>x.pending);let r=null;
+  for(let i=0;i<Math.max(1,all.length);i+=20){const chunk=all.slice(i,i+20).map(e=>{const c=Object.assign({},e);delete c.pending;delete c.rejected;return c});
+   r=await api('sync',{since:S.since,entries:chunk},180000);sent+=r.accepted.length;
+   for(const id of r.accepted){const e=S.entries.find(x=>x.id===id);if(e){e.pending=false;delete e.rejected;await DB.put('entries',e)}}
+   for(const rj of r.rejected){const e=S.entries.find(x=>x.id===rj.id);if(e){e.pending=false;e.rejected=rj.reason;await DB.put('entries',e)}}
+   for(const inc of r.entries){const cur=S.entries.find(x=>x.id===inc.id);if(cur&&cur.pending)continue;
+    if(!cur||(inc.updated||0)>=(cur.updated||0)){inc.pending=false;(inc.files||[]).forEach(f=>{const cf=cur&&(cur.files||[]).find(x=>x.fid===f.fid);if(cf&&!f.driveId)f.driveId=cf.driveId});if(!cur||(inc.updated||0)>(cur.updated||0))dn++;await saveEntry(inc)}}}
+  if(r.purged&&r.purged.length){const pg=new Set(r.purged);for(const e of S.entries.filter(x=>pg.has(x.id))){for(const f of (e.files||[]))await DB.del('blobs',f.fid);await DB.del('entries',e.id)}}
+  if(r.testMode!=null){S.testMode=!!r.testMode;await DB.put('kv',S.testMode,'testMode')}
+  S.since=Math.max(0,r.serverTime-5000);S.lastSync=Date.now();if(r.reportHour!=null)S.reportHour=r.reportHour;
+  await DB.put('kv',S.since,'since');await DB.put('kv',S.lastSync,'lastSync');await DB.put('kv',S.reportHour,'reportHour');
+  S.entries=await DB.all('entries');rebuildEntryIdx();
+  if(r.dataStamp&&r.dataStamp!==(await DB.get('kv','dataStamp'))){try{const rr=await api('records',{},120000);await DB.put('kv',rr.data,'records');await DB.put('kv',rr.dataStamp,'dataStamp');setData(rr.data);rebuildEntryIdx();toast('Drydock records updated ✔')}catch(e){}}
+  const ff=fileFail?`\n⚠ ${fileFail} photo/file not sent yet – it will retry automatically`:'';
+  if(manual)toast(`✅ Sent updates to CE Sethu Database successfully\n(${sent} update(s) sent${up?', '+up+' photo/file(s)':''}, ${dn} received)`+ff,4500,true);
+  else if(wantMsg)toast('✅ Update sent to CE Sethu Database successfully'+ff,4000,true);
+ }catch(err){if(manual||wantMsg)toast('📱 Your update is SAFE on this phone.\nNot sent yet ('+String(err.message||err).slice(0,60)+').\nIt will be sent automatically – or press Send / Receive later.',6000)}
+ finally{S.syncing=false;if(['home','timeline','spares','jobs'].includes(S.view)&&!$('#sheet').classList.contains('show'))render();else renderTop();if(S.manualAfter){S.manualAfter=false;setTimeout(()=>sendReceive(true),50)}else if(S.saveAfter){setTimeout(()=>sendReceive('save'),50)}}}
+function autoSync(){if(Date.now()-S.lastSync>55*60*1000||pending())sendReceive(false)}
+/* ================= media helpers ================= */
+async function compress(file){if(!/^image\//.test(file.type)||/gif|svg/.test(file.type))return file;
+ try{const url=URL.createObjectURL(file);const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
+  const M=1600,k=Math.min(1,M/Math.max(img.naturalWidth,img.naturalHeight));const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);
+  c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);
+  const b=await new Promise(res=>c.toBlob(res,'image/jpeg',0.8));return b&&b.size<file.size?b:file}catch(e){return file}}
+async function addFiles(list,target){for(const f of list){if(f.size>40*1024*1024){toast(f.name+' is over 40 MB – too large, skipped',4000);continue}
+ const b=await compress(f);const fid=uid();const isImg=/^image\//.test(b.type||f.type);const name=isImg?(f.name||'photo').replace(/\.[^.]+$/,'')+'.jpg':(f.name||'file');
+ await DB.put('blobs',b,fid);target.push({fid,name:isImg&&!/\.jpe?g$/i.test(name)?name+'.jpg':name,mime:isImg?'image/jpeg':(b.type||f.type||'application/octet-stream'),size:b.size})}}
+const urlCache={};
+async function fileURL(f){if(urlCache[f.fid])return urlCache[f.fid];let b=await DB.get('blobs',f.fid);
+ if(!b&&f.driveId&&navigator.onLine&&CFG.SERVER_URL){try{const r=await api('file',{driveId:f.driveId},120000);b=b64ToBlob(r.b64,r.mime);await DB.put('blobs',b,f.fid)}catch(e){return null}}
+ if(!b)return null;return urlCache[f.fid]=URL.createObjectURL(b)}
+async function fillMinis(root){for(const m of root.querySelectorAll('[data-fid]')){const e=S.entries.find(x=>x.id===m.dataset.e)||UPD.temp;const f=(e&&e.files||[]).find(x=>x.fid===m.dataset.fid);if(!f)continue;
+  if(/^image/.test(f.mime)){const u=await fileURL(f);if(u){m.innerHTML='<img alt="" src="'+u+'">';m.onclick=()=>viewImg(u)}else m.textContent='📷 tap Sync'}
+  else{m.textContent=(/^video/.test(f.mime)?'🎬 ':/^audio/.test(f.mime)?'🎙️ ':'📄 ')+f.name.slice(0,14);m.onclick=async()=>{const u=await fileURL(f);if(u)window.open(u,'_blank');else toast('Sync first to download')}}}}
+function viewImg(u){$('#vimg').src=u;$('#viewer').classList.add('show')}
+$('#vclose').onclick=()=>$('#viewer').classList.remove('show');
+/* speech recognition (live text) */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function startDictation(onText,onEnd,continuous){if(!SR)return null;const r=new SR();r.lang='en-IN';r.interimResults=true;r.continuous=!!continuous;let stopped=false,finals='';
+ r.onresult=ev=>{let interim='';for(let i=ev.resultIndex;i<ev.results.length;i++){const t=ev.results[i][0].transcript;if(ev.results[i].isFinal)finals+=t.trim()+' ';else interim+=t}onText(finals,interim)};
+ r.onerror=ev=>{if(ev.error==='not-allowed'||ev.error==='service-not-allowed'||ev.error==='audio-capture'){stopped=true;onEnd(ev.error)}};
+ r.onend=()=>{if(!stopped&&continuous){try{r.start();return}catch(e){}}if(!stopped){stopped=true;onEnd('end')}};
+ try{r.start()}catch(e){return null}return {stop(){stopped=true;try{r.stop()}catch(e){}onEnd('stopped')}}}
+function pickMime(){const c=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/aac','audio/ogg'];for(const m of c)if(window.MediaRecorder&&MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(m))return m;return ''}
+function recOn(st,keep){const mime=pickMime();const mr=new MediaRecorder(st,mime?{mimeType:mime}:undefined);const chunks=[];
+ mr.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};mr.start(1000);
+ return {mr,stop:()=>new Promise(res=>{mr.onstop=()=>{if(!keep)st.getTracks().forEach(t=>t.stop());const type=mr.mimeType||mime||'audio/webm';res(new Blob(chunks,{type}))};try{mr.stop()}catch(e){res(new Blob(chunks))}})}}
+async function startRecorder(){const st=await navigator.mediaDevices.getUserMedia({audio:true});return recOn(st,false)}
+const extOf=m=>/mp4|aac/.test(m)?'m4a':/ogg/.test(m)?'ogg':'webm';
+/* ================= rendering ================= */
+function deptOf(rank){if(rank==='Guest')return 'Guest';const r=RANKS.find(x=>x[0]===rank);return r?r[1]:'Engine'}
+function role(){return S.user?(S.user.role||(S.user.chief?'chief':'crew')):''}
+function canReport(){return S.user&&(['chief','master','vm'].includes(role())||REPORT_RANKS.includes(S.user.rank))}
+function isChief(){return role()==='chief'}
+function editAny(){return ['chief','master','vm'].includes(role())}
+function canEdit(e){return editAny()||(e.device===S.user.device&&e.date===today())}
+function canMeeting(){return ['chief','master'].includes(role())}
+function render(){if(!S.user||!D){renderLogin();return}({home:renderHome,ask:renderAsk,update:renderUpdate,meeting:renderMeeting,photos:renderPhotos,timeline:renderTimeline,jobs:renderJobs,spares:renderSpares,reports:renderReports,settings:renderSettings})[S.view]()}
+function shell(title,sub,body,opts){opts=opts||{};const p=pending();
+ $('#app').innerHTML=`<div class="top">${opts.back?'<button id="bk" aria-label="Back">←</button>':''}<div class="t">${esc(title)}<small>${esc(sub||'')}</small></div><button class="sync" id="sr">${S.syncing?'⟳ Syncing…':'⇅ Send / Receive'}${p?` <span class="badge">${p}</span>`:''}</button></div>
+ <main>${S.testMode?'<div class="banner test">🧪 TEST MODE – everything entered now is test data and will be deleted by the Chief Engineer</div>':''}${body}</main>${opts.foot||navBar()}`;
+ $('#sr').onclick=()=>sendReceive(true);if($('#bk'))$('#bk').onclick=opts.back}
+function renderTop(){const b=$('#sr');if(b)b.innerHTML=S.syncing?'⟳ Syncing…':'⇅ Send / Receive'+(pending()?` <span class="badge">${pending()}</span>`:'')}
+function navBar(){const n=[['home','🏠','Home'],['timeline','🕒','Timeline'],['update','➕','Update'],['jobs','🔧','Jobs'],['reports','📄','Reports']];
+ return `<nav>${n.map(([k,i,l])=>`<button data-go="${k}" class="${S.view===k?'on':''}"><b>${i}</b>${l}</button>`).join('')}</nav>`}
+function go(v){S.view=v;if(v==='update'&&UPD.step===0)resetUpd();render();window.scrollTo(0,0)}
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){e.preventDefault();go(g.dataset.go)}const j=e.target.closest('[data-job]');if(j){e.preventDefault();openJob(j.dataset.job)}const o=e.target.closest('[data-order]');if(o){e.preventDefault();openOrder(o.dataset.order)}});
+function sheet(html){$('#sheetIn').innerHTML='<div style="text-align:right"><button class="ghost sm" id="shx">✕ Close</button></div>'+html;$('#sheet').classList.add('show');$('#shx').onclick=closeSheet;$('#sheetIn').scrollTop=0}
+function closeSheet(){$('#sheet').classList.remove('show')}
+$('#sheet').onclick=e=>{if(e.target.id==='sheet')closeSheet()};
+/* ---------- login ---------- */
+let LG='o';
+const pinLabel=r=>r==='Chief Engineer'?'Chief Engineer PIN':r==='Master'?'Master PIN':r==='Vessel Manager'?'Vessel Manager PIN':'Vessel PIN';
+function renderLogin(){const needData=S.user&&!D;
+ $('#app').innerHTML=`<div class="login"><div style="font-size:13px;opacity:.8;letter-spacing:1.5px">MT FRONT DUKE · IMO 9771339</div><h1 style="font-size:30px;margin:6px 0 2px">Dry Dock 2026</h1><div style="opacity:.85">COSCO Zhoushan · crew app</div>
+ <div class="card"><div class="h2" style="margin-top:0">${needData?'Finish setup':'One-time login'}</div>
+ ${needData?`<p class="s">Logged in as <b>${esc(S.user.rank)} – ${esc(S.user.name)}</b>. The drydock records still need to download once (internet needed).</p><button id="dl" style="width:100%">Download records</button>`:
+ `<div class="login-tabs"><button id="tO" class="${LG==='o'?'on':''}">Ship staff</button><button id="tG" class="${LG==='g'?'on':''}">Guest</button><button id="tV" class="${LG==='v'?'on':''}">Vessel Manager</button></div>
+ ${LG==='o'?`<label class="l" for="rk">Rank</label><select id="rk"><option value="">Select your rank…</option>${RANKS.map(r=>`<option>${r[0]}</option>`).join('')}</select>`:LG==='g'?'<div class="s mut" style="margin-top:12px">For Bosun, Pumpman, Fitter, ratings and others. You can add updates and photos and see everything. No rank is shown – entries appear as Guest.</div><input id="rk" type="hidden" value="Guest">':'<div class="s mut" style="margin-top:12px">Vessel Manager: view everything, add and edit updates, make reports and extract photos. Uses the Vessel Manager PIN.</div><input id="rk" type="hidden" value="Vessel Manager">'}
+ <label class="l" for="nm">Name</label><input id="nm" autocomplete="name" placeholder="Your full name">
+ <label class="l" for="pin" id="pinl">${pinLabel(LG==='v'?'Vessel Manager':'')}</label><input id="pin" type="password" inputmode="numeric" placeholder="PIN">
+ <div class="xs mut" style="margin-top:6px">Chief Engineer, Master and Vessel Manager use their own PIN. Everyone else uses the vessel PIN.</div>
+ <button id="li" style="width:100%;margin-top:18px">Log in</button>`}
+ <p class="xs mut" id="lmsg" style="margin:10px 0 0">${CFG.SERVER_URL?'Login is needed once on this phone. After that the app works without internet.':'⚠ Server link not set in config.js – see setup guide.'}</p></div></div>`;
+ if(needData){$('#dl').onclick=()=>fetchRecords();return}
+ $('#tO').onclick=()=>{LG='o';renderLogin()};$('#tG').onclick=()=>{LG='g';renderLogin()};$('#tV').onclick=()=>{LG='v';renderLogin()};
+ if(LG==='o')$('#rk').onchange=()=>{$('#pinl').textContent=pinLabel($('#rk').value)};
+ $('#li').onclick=async()=>{const rank=$('#rk').value,name=$('#nm').value.trim(),pin=$('#pin').value.trim();
+  if(!rank||name.length<2||!pin){$('#lmsg').textContent='Please choose rank, type your name and the PIN.';return}
+  $('#li').disabled=true;$('#li').textContent='Checking…';
+  try{const r=await api('login',{pin,rank,name},30000);
+   S.user={rank,name,pin,role:r.role,chief:r.role==='chief',dept:rank==='Vessel Manager'?'Office':deptOf(rank),device:'d'+uid()};S.reportHour=r.reportHour;S.testMode=!!r.testMode;
+   await DB.put('kv',S.user,'user');await DB.put('kv',S.reportHour,'reportHour');await DB.put('kv',S.testMode,'testMode');
+   await fetchRecords()}catch(e){$('#lmsg').textContent='Login failed: '+e.message;$('#li').disabled=false;$('#li').textContent='Log in'}}}
+async function fetchRecords(){const m=$('#lmsg');if(m)m.textContent='Downloading drydock records…';
+ try{const r=await api('records',{},120000);await DB.put('kv',r.data,'records');await DB.put('kv',r.dataStamp||0,'dataStamp');setData(r.data);rebuildEntryIdx();S.view='home';render();sendReceive(false)}catch(e){if(m)m.textContent='Could not download records: '+e.message;else toast(e.message)}}
+/* ---------- home ---------- */
+function renderHome(){const t=today();const td=live().filter(e=>e.date===t);const p=pending();
+ const last=S.lastSync?new Date(S.lastSync):null;
+ shell('Front Duke · DD 2026',`${S.user.rank} · ${S.user.name}`,`
+ <div class="hero"><img src="duke.jpg" alt="MT Front Duke" onload="this.parentNode.classList.add('hasimg')" onerror="this.remove()"><svg class="ship" viewBox="0 0 400 90" aria-hidden="true"><path fill="#fff" d="M8 52h300l18-14h40l10 14h16l-22 30H40z"/><rect x="300" y="18" width="34" height="22" fill="#fff"/><rect x="314" y="6" width="8" height="12" fill="#fff"/></svg><div class="shade"></div>
+ <div class="txt"><h1>MT Front Duke</h1><p>Second Special Survey · COSCO Zhoushan</p></div></div>
+ ${p?`<div class="banner">⚠ ${p} update(s) waiting to be sent. Tap Send / Receive when you have internet.</div>`:''}
+ <div class="big2"><button class="bigbtn ask" data-go="ask"><span class="ic">💬</span><span>Ask me anything<small>Jobs, spares, who does what</small></span></button>
+ <button class="bigbtn upd" data-go="update"><span class="ic">➕</span><span>Update<small>Voice or text + photos</small></span></button></div>
+ <div class="tiles">${canMeeting()?'<button class="tile" data-go="meeting"><b>🎙️</b>Daily meeting</button>':''}<button class="tile" data-go="timeline"><b>🕒</b>Timeline</button><button class="tile" data-go="spares"><b>📦</b>Spares</button>
+ <button class="tile" data-go="jobs"><b>🔧</b>Jobs</button><button class="tile" data-go="reports"><b>📄</b>Reports</button>${canReport()?'<button class="tile" data-go="photos"><b>🗂️</b>Extract photos</button>':''}<button class="tile" data-go="settings"><b>⚙️</b>Settings</button></div>
+ <div class="card" style="margin-top:12px"><b>Today ${t}</b><div class="s mut">${td.length} update(s) · Deck ${td.filter(e=>e.dept==='Deck').length} · Engine ${td.filter(e=>e.dept==='Engine').length} · Meetings ${td.filter(e=>e.kind==='meeting').length}</div>
+ <div class="xs mut" style="margin-top:4px">Last sync: ${last?last.toLocaleString():'never'} · auto every hour while the app is open</div></div>
+ <div class="credit">Conceptualized by CE<br>Powered by Team Front Duke 2026</div>`)}
+/* ---------- update wizard ---------- */
+let UPD={step:0};
+function resetUpd(){UPD={step:1,dept:'',perf:'',text:'',job:'',jobTitle:'',status:'',files:[],kind:'update',order:'',temp:null};}
+function updFoot(backFn,nextLbl,nextFn,nextDis){return `<div class="foot"><button class="ghost" id="ub">${backFn?'← Back':'Cancel'}</button><button id="un" ${nextDis?'disabled':''}>${nextLbl}</button></div>`}
+function stepsBar(n){return `<div class="steps">${[1,2,3,4,5,6].map(i=>`<i class="${i<=n?'on':''}"></i>`).join('')}</div>`}
+function renderUpdate(){const u=UPD;if(!u.step)resetUpd();
+ const title=u.kind==='spares'?'Spares received':'Update';
+ if(u.step===1){shell(title,'Step 1 of 6',stepsBar(1)+`<div class="h2">Which department?</div><div class="choice">
+  <button data-d="Deck" class="${u.dept==='Deck'?'sel':''}"><b>⚓</b><span>Deck<small>Hull, tanks, deck machinery, LSA/FFA</small></span></button>
+  <button data-d="Engine" class="${u.dept==='Engine'?'sel':''}"><b>⚙️</b><span>Engine &amp; Electrical<small>Machinery, electrical, automation</small></span></button></div>`,{back:()=>{go('home')},foot:updFoot(false,'Next →',null,!u.dept)});
+  $('#app').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{u.dept=b.dataset.d;u.step=2;renderUpdate()});$('#ub').onclick=()=>{resetUpd();go('home')};$('#un').onclick=()=>{u.step=2;renderUpdate()};return}
+ if(u.step===2){shell(title,'Step 2 of 6',stepsBar(2)+`<div class="h2">Whose work is it?</div><div class="choice">${PERF.map(([k,l,i,s])=>`<button data-p="${k}" class="${u.perf===k?'sel':''}"><b>${i}</b><span>${l}<small>${s}</small></span></button>`).join('')}</div>`,{back:()=>{u.step=1;renderUpdate()},foot:updFoot(true,'Next →',null,!u.perf)});
+  $('#app').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{u.perf=b.dataset.p;u.step=3;renderUpdate()});$('#ub').onclick=()=>{u.step=1;renderUpdate()};$('#un').onclick=()=>{u.step=3;renderUpdate()};return}
+ if(u.step===3){shell(title,'Step 3 of 6',stepsBar(3)+`<div class="h2">What happened?</div>
+  <div class="s mut">Type, or tap the mic and speak. You can also use the mic on your phone keyboard.</div>
+  <button class="mic" id="mic" aria-label="Speak">🎤</button><div class="xs mut" style="text-align:center" id="mst">${SR?'Tap to speak · tap again to stop':'Live voice typing not available in this browser – use the keyboard mic'}</div>
+  <textarea id="tx" placeholder="e.g. Manhole doors for cargo tanks opened">${esc(u.text)}</textarea>
+  <div class="row" style="display:flex;gap:8px;margin-top:8px"><button class="ghost sm" id="vn">🎙️ ${u.files.some(f=>f.voice)?'Voice note saved ✔ (record again)':'Keep a voice note too'}</button></div>`,{back:()=>{u.step=2;renderUpdate()},foot:updFoot(true,'Next →')});
+  const tx=$('#tx');tx.oninput=()=>{u.text=tx.value};let rec=null;
+  $('#mic').onclick=()=>{if(rec){rec.stop();return}const base=tx.value?tx.value.trim()+' ':'';
+   rec=startDictation((f,i)=>{tx.value=base+f+i;u.text=tx.value},why=>{rec=null;$('#mic').classList.remove('rec');$('#mst').textContent=why==='not-allowed'||why==='service-not-allowed'?'Microphone not allowed – use the keyboard mic':'Tap to speak · tap again to stop';u.text=tx.value});
+   if(rec){$('#mic').classList.add('rec');$('#mst').textContent='Listening… tap to stop'}else toast('Use the mic on your phone keyboard')};
+  $('#vn').onclick=()=>voiceNote(u);
+  $('#ub').onclick=()=>{if(rec)rec.stop();u.step=2;renderUpdate()};$('#un').onclick=()=>{if(rec)rec.stop();u.text=tx.value.trim();if(!u.text&&!u.files.some(f=>f.voice)){toast('Please type or speak the update first');return}u.step=4;renderUpdate()};return}
+ if(u.step===4){const cand=suggestJobs(u);shell(title,'Step 4 of 6',stepsBar(4)+`<div class="h2">Which spec job?</div><div class="s mut">Best matches for ${esc(u.dept)} · ${esc(u.perf)} work. Tap one, or choose General.</div>
+  <input id="js" placeholder="Search job by word or number…" style="margin:10px 0">
+  <div class="card" id="jl" style="padding:4px 14px">${jobChoices(cand,u)}</div>
+  <div class="card"><b>Job status after this update</b> <span class="xs mut">(optional)</span><div class="seg" id="sts">${['',...STAT.keys()].map(i=>`<button data-s="${i}" class="${String(u.status)===String(i)?'on':''}">${i===''?'No change':STAT[i]}</button>`).join('')}</div></div>`,{back:()=>{u.step=3;renderUpdate()},foot:updFoot(true,'Next →')});
+  const bind=()=>$('#jl').querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const v=b.dataset.pick;u._picked=true;u.job=v==='GEN'?'':v;u.jobTitle=v==='GEN'?'':J[v].title;$('#jl').innerHTML=jobChoices(cand,u);bind()});bind();
+  $('#js').oninput=e=>{const q=e.target.value.trim();const list=q?(J[q]?[J[q]]:search(q,'jobs',12).map(x=>x.r)):cand;$('#jl').innerHTML=jobChoices(list,u);bind()};
+  $('#sts').querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{u.status=b.dataset.s===''?'':+b.dataset.s;$('#sts').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))});
+  $('#ub').onclick=()=>{u.step=3;renderUpdate()};$('#un').onclick=()=>{if(u.job===undefined)u.job='';u.step=5;renderUpdate()};return}
+ if(u.step===5){shell(title,'Step 5 of 6',stepsBar(5)+`<div class="h2">Add photos?</div>
+  ${u.files.filter(f=>!f.voice).length?'':`<div class="choice" id="yn"><button id="yes"><b>📷</b><span>Yes, add photos<small>Camera, gallery, PDF or video</small></span></button><button id="no"><b>⏭️</b><span>No, skip photos</span></button></div>`}
+  <div id="ph" class="${u.files.filter(f=>!f.voice).length?'':'hidden'}"><div style="display:flex;gap:10px"><button id="cam" style="flex:1">📷 Take photo</button><button id="gal" class="ghost" style="flex:1">🖼️ Gallery / files</button></div>
+  <div class="xs mut" style="margin-top:6px">Take as many as you need – tap Take photo again after each one. Photos are made smaller to save space.</div><div class="thumbs" id="th"></div></div>`,{back:()=>{u.step=4;renderUpdate()},foot:updFoot(true,'Next →')});
+  const showTh=async()=>{const th=$('#th');const fs=u.files.filter(f=>!f.voice);th.innerHTML=fs.map(f=>`<div class="thumb" data-t="${f.fid}">${esc(f.name)}<button class="x" data-rm="${f.fid}">✕</button></div>`).join('');
+   for(const f of fs){if(/^image/.test(f.mime)){const b=await DB.get('blobs',f.fid);if(b){const el=th.querySelector(`[data-t="${f.fid}"]`);if(el){const im=document.createElement('img');im.src=URL.createObjectURL(b);el.prepend(im)}}}}
+   th.querySelectorAll('[data-rm]').forEach(b=>b.onclick=async()=>{await DB.del('blobs',b.dataset.rm);u.files=u.files.filter(f=>f.fid!==b.dataset.rm);showTh()})};
+  const openPh=()=>{const yn=$('#yn');if(yn)yn.remove();$('#ph').classList.remove('hidden')};
+  if($('#yes')){$('#yes').onclick=()=>{openPh();pickCam(u,showTh)};$('#no').onclick=()=>{u.step=6;renderUpdate()}}
+  $('#cam').onclick=()=>pickCam(u,showTh);$('#gal').onclick=()=>pickGal(u,showTh);showTh();
+  $('#ub').onclick=()=>{u.step=4;renderUpdate()};$('#un').onclick=()=>{u.step=6;renderUpdate()};return}
+ if(u.step===6){const nph=u.files.filter(f=>!f.voice).length;shell(title,'Step 6 of 6',stepsBar(6)+`<div class="h2">Check and send</div>
+  <div class="card"><div class="kv"><div>Date & time</div><div>${today()} ${nowTime()}</div><div>By</div><div>${esc(S.user.rank)} – ${esc(S.user.name)}</div>
+  <div>Department</div><div><span class="chip ${u.dept==='Deck'?'deck':'eng'}">${esc(u.dept)}</span></div><div>Work by</div><div>${esc(u.perf||'—')}</div>
+  <div>Spec job</div><div>${u.job?`<span class="jid">${u.job}</span> ${esc(u.jobTitle)}`:'General (no spec job)'}</div>${u.order?`<div>Requisition</div><div>${esc(u.order)}</div>`:''}
+  <div>Status</div><div>${u.status===''?'No change':STAT[u.status]}</div><div>Update</div><div style="white-space:pre-wrap">${esc(u.text||'(voice note only)')}</div>
+  <div>Attachments</div><div>${nph} photo/file(s)${u.files.some(f=>f.voice)?' + voice note':''}</div></div></div>
+  <div class="xs mut">Saved on this phone first, then sent at the next Send / Receive.</div>`,{back:()=>{u.step=5;renderUpdate()},foot:updFoot(true,'✔ Save & send')});
+  $('#ub').onclick=()=>{u.step=5;renderUpdate()};$('#un').onclick=async()=>{$('#un').disabled=true;
+   const e={id:'e'+uid(),kind:u.kind,dept:u.dept,perf:u.perf,rank:S.user.rank,name:S.user.name,device:S.user.device,chiefEntry:isChief(),date:today(),time:nowTime(),ts:new Date().toISOString(),
+    text:u.text,job:u.job||'',jobTitle:u.jobTitle||'',status:u.status,order:u.order||'',test:!!S.testMode,confirmed:u.kind==='spares'&&isChief(),files:u.files,deleted:false,pending:true,updated:Date.now()};
+   try{await saveEntry(e)}catch(err){toast('Could not save on this phone: '+err.message+' – phone storage may be full',6000);$('#un').disabled=false;return}
+   resetUpd();UPD.step=0;S.view='timeline';render();toast('📱 Saved on this phone – sending…');sendReceive('save')};return}}
+function jobChoices(list,u){return `<div class="item" data-pick="GEN" style="cursor:pointer">${u.job===''&&u._picked?'✅ ':'○ '}<b>General – no spec job</b></div>`+list.map(j=>`<div class="item" data-pick="${j.id}" style="cursor:pointer">${u.job===j.id?'✅':'○'} <span class="jid">${j.id}</span> ${esc(j.title)}<div class="xs mut">${esc(j.comp)} · ${esc(j.perf)} · ${esc(j.dept)}${OUT.has(j.id)?' · out of this dock':''}</div></div>`).join('')}
+function suggestJobs(u){const txt=(u.text||'').replace(/\b(today|yesterday|given|handed|sent|to|the|yard|workshop|for|received|back|done|completed|started|we|have|has|been|and|of|from|shore|service|engineer|ship|staff|opened|closed|by|for|in|on|at|no)\b/gi,' ');
+ const cs=parseQ(txt);let r=[];if(cs.length&&IDX){const sc=[];for(const it of IDX.jobs){let t=0,m=0;for(const c of cs){if(hit(it.f[0][0],c)||hit(it.f[1][0],c))t++;if(it.f.some(f=>hit(f[0],c)))m++}if(m)sc.push([it.r,t*10+m*3])}r=sc.sort((a,b)=>b[1]-a[1]).slice(0,40).map(x=>x[0])}const byPref=j=>(j.perf===u.perf?2:0)+(j.dept===u.dept?1:0);
+ r=r.sort((a,b)=>byPref(b)-byPref(a));if(r.length<8){const more=D.jobs.filter(j=>j.perf===u.perf&&j.dept===u.dept&&!r.includes(j));r=r.concat(more.slice(0,10-r.length))}
+ return r.slice(0,10)}
+function pickCam(u,cb){const i=$('#fCam');i.value='';i.onchange=async()=>{await addFiles(i.files,u.files);cb()};i.click()}
+function pickGal(u,cb){const i=$('#fGal');i.value='';i.onchange=async()=>{toast('Adding '+i.files.length+' file(s)…');await addFiles(i.files,u.files);cb()};i.click()}
+async function voiceNote(u){if(!navigator.mediaDevices||!window.MediaRecorder){toast('Voice notes are not supported on this phone browser');return}
+ sheet(`<div class="h2">Voice note</div><div class="timer" id="vt">00:00</div><button class="mic rec" id="vs">■</button><div class="s mut" style="text-align:center">Recording… tap ■ to stop and keep</div>`);
+ let r;try{r=await startRecorder()}catch(e){closeSheet();toast('Microphone not allowed');return}
+ const t0=Date.now();const iv=setInterval(()=>{const s=Math.floor((Date.now()-t0)/1000);const el=$('#vt');if(el)el.textContent=pad(Math.floor(s/60))+':'+pad(s%60)},500);
+ $('#vs').onclick=async()=>{clearInterval(iv);const b=await r.stop();u.files=u.files.filter(f=>!f.voice);const fid=uid();await DB.put('blobs',b,fid);
+  u.files.push({fid,name:'voice-note.'+extOf(b.type),mime:b.type||'audio/webm',size:b.size,voice:true});closeSheet();toast('Voice note kept ✔');renderUpdate()}}
+/* ---------- meeting ---------- */
+let MT=null;
+function renderMeeting(){if(!canMeeting()){go('home');return}if(!MT)MT={files:[],text:''};
+ const aud=MT.files.filter(f=>f.voice),trf=MT.files.filter(f=>f.tr),ph=MT.files.filter(f=>!f.voice&&!f.tr);
+ shell('Daily meeting','Attach your recording and transcript',`
+ <div class="card"><b>1 · Meeting recording</b><div class="xs mut">From your phone's voice recorder (M4A, MP3, AAC, WAV…). Max 35 MB – use standard quality in the recorder.</div>
+ <button id="mra" style="width:100%;margin-top:8px">🎙️ Attach recording</button><div class="s" id="mral" style="margin-top:6px">${aud.map(f=>'✔ '+esc(f.name)+' ('+(f.size/1048576).toFixed(1)+' MB)').join('<br>')}</div></div>
+ <div class="card"><b>2 · Transcript</b><div class="xs mut">Paste the transcribed text, or attach the transcript file (Word, PDF or text).</div>
+ <textarea id="mtx" placeholder="Paste the meeting transcript here" style="margin-top:8px">${esc(MT.text)}</textarea>
+ <button id="mta" class="ghost" style="width:100%;margin-top:8px">📄 Attach transcript file</button><div class="s" id="mtal" style="margin-top:6px">${trf.map(f=>'✔ '+esc(f.name)).join('<br>')}</div></div>
+ <div class="card"><b>3 · Photos / yard documents</b> <span class="xs mut">(optional)</span><div style="display:flex;gap:10px;margin-top:8px"><button id="cam" style="flex:1">📷 Take photo</button><button id="gal" class="ghost" style="flex:1">🖼️ Gallery / files</button></div><div class="thumbs" id="th"></div></div>
+ <input type="file" id="fAud" accept="audio/*,.m4a,.mp3,.aac,.wav,.amr,.3gp,.ogg" class="hidden"><input type="file" id="fTr" accept=".txt,.doc,.docx,.pdf,text/plain,application/pdf" class="hidden">`,
+ {back:()=>go('home'),foot:`<div class="foot"><button class="ghost" id="mdis">Cancel</button><button id="msave">✔ Save meeting</button></div>`});
+ const keep=()=>{MT.text=$('#mtx').value};
+ const showTh=async()=>{const fs=MT.files.filter(f=>!f.voice&&!f.tr);$('#th').innerHTML=fs.map(f=>`<div class="thumb" data-t="${f.fid}">${esc(f.name)}<button class="x" data-rm="${f.fid}">✕</button></div>`).join('');
+  for(const f of fs){const b=await DB.get('blobs',f.fid);const el=$('#th').querySelector(`[data-t="${f.fid}"]`);if(b&&el&&/^image/.test(f.mime)){const im=document.createElement('img');im.src=URL.createObjectURL(b);el.prepend(im)}}
+  $('#th').querySelectorAll('[data-rm]').forEach(b=>b.onclick=async()=>{await DB.del('blobs',b.dataset.rm);MT.files=MT.files.filter(f=>f.fid!==b.dataset.rm);showTh()})};
+ const u={files:MT.files};
+ $('#cam').onclick=()=>{keep();pickCam(u,()=>{MT.files=u.files;showTh()})};$('#gal').onclick=()=>{keep();pickGal(u,()=>{MT.files=u.files;showTh()})};showTh();
+ $('#mra').onclick=()=>{keep();const i=$('#fAud');i.value='';i.onchange=async()=>{const f=i.files[0];if(!f)return;if(f.size>35*1048576){toast('Recording is '+(f.size/1048576).toFixed(0)+' MB – over 35 MB. Record at standard quality or split it.',5000);return}
+  const fid=uid();await DB.put('blobs',f,fid);MT.files=MT.files.filter(x=>!x.voice);MT.files.push({fid,name:f.name||('meeting-'+today()+'.m4a'),mime:f.type||'audio/mp4',size:f.size,voice:true});renderMeeting()};i.click()};
+ $('#mta').onclick=()=>{keep();const i=$('#fTr');i.value='';i.onchange=async()=>{const f=i.files[0];if(!f)return;
+  if(/\.txt$/i.test(f.name)||f.type==='text/plain'){MT.text=(MT.text?MT.text+'\n':'')+(await f.text());renderMeeting();return}
+  const fid=uid();await DB.put('blobs',f,fid);MT.files.push({fid,name:f.name,mime:f.type||'application/octet-stream',size:f.size,tr:true});renderMeeting()};i.click()};
+ $('#mdis').onclick=async()=>{if(!$('#mdis').dataset.c){$('#mdis').dataset.c=1;$('#mdis').textContent='Tap again to cancel';return}for(const f of MT.files)await DB.del('blobs',f.fid);MT=null;go('home')};
+ $('#msave').onclick=async()=>{keep();if(!MT.text.trim()&&!MT.files.length){toast('Attach the recording or the transcript first');return}
+  const e={id:'m'+uid(),kind:'meeting',dept:'Deck & Engine',perf:'',rank:S.user.rank,name:S.user.name,device:S.user.device,date:today(),time:nowTime(),ts:new Date().toISOString(),
+   text:'Daily meeting with drydock team',transcript:MT.text.trim(),job:'',jobTitle:'',status:'',files:MT.files,deleted:false,test:!!S.testMode,pending:true,updated:Date.now()};
+  try{await saveEntry(e)}catch(err){toast('Could not save on this phone: '+err.message,6000);return}
+  MT=null;S.view='timeline';render();toast('📱 Meeting saved on this phone – sending…');sendReceive('save')}}
+/* ---------- timeline ---------- */
+let TF={dept:'All',date:''};
+function entryCard(e){const dcls=e.kind==='meeting'?'meeting':e.dept==='Deck'?'Deck':'Engine';
+ const tr=e.transcript||'';const txt=e.kind==='meeting'?`🎙️ Daily meeting\n${tr?tr.slice(0,500)+(tr.length>500?'…':''):'(transcript attached as file)'}`:(e.text);
+ return `<div class="entry ${dcls}"><div class="who"><b>${esc(e.time)}</b> · ${esc(e.rank)} – ${esc(e.name)} ${e.kind!=='meeting'?`<span class="chip ${e.dept==='Deck'?'deck':'eng'}">${esc(e.dept)}</span>`:''}${e.perf?`<span class="chip">${esc(e.perf)}</span>`:''}</div>
+ <div class="txt">${esc(txt)}</div>
+ <div>${e.job?`<span class="chip" data-job="${e.job}">${e.job} ${esc((e.jobTitle||'').slice(0,40))}</span>`:''}${e.status!==''&&e.status!=null?`<span class="chip ${STC[e.status]}">${STAT[e.status]}</span>`:''}${e.kind==='spares'?`<span class="chip ${e.confirmed?'ok':'warn'}" data-order="${esc(e.order)}">${esc(e.order)} ${e.confirmed?'received ✔ confirmed':'received – pending Chief'}</span>`:''}
+ ${e.pending?'<span class="chip warn">📱 on phone – not sent yet</span>':'<span class="chip ok">✓ in database</span>'}${(e.files||[]).some(f=>f.upErr)?'<span class="chip warn">photo retry pending</span>':''}${e.rejected?`<span class="chip bad">${esc(e.rejected)}</span>`:''}${e.test?'<span class="chip test">TEST</span>':''}${e.kind==='meeting'&&(e.transcript||'').length>500?`<button class="ghost sm" data-full="${e.id}">Read full transcript</button>`:''}</div>
+ ${(e.files||[]).length?`<div class="minis">${e.files.map(f=>`<div class="m" data-e="${e.id}" data-fid="${f.fid}">…</div>`).join('')}</div>`:''}
+ ${canEdit(e)||(isChief()&&e.kind==='spares'&&!e.confirmed)?`<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">${canEdit(e)?`<button class="ghost sm" data-ed="${e.id}">✏️ Edit</button>`:''}${isChief()?`<button class="ghost sm" data-dl="${e.id}">🗑 Delete</button>`:''}${isChief()&&e.kind==='spares'&&!e.confirmed?`<button class="sm" data-cf="${e.id}">✔ Confirm received</button>`:''}</div>`:''}</div>`}
+function renderTimeline(){let L=live();if(TF.dept==='Deck')L=L.filter(e=>e.dept==='Deck'||e.kind==='meeting');if(TF.dept==='Engine')L=L.filter(e=>e.dept==='Engine'||e.kind==='meeting');if(TF.date)L=L.filter(e=>e.date===TF.date);
+ L.sort((a,b)=>String(b.ts).localeCompare(String(a.ts)));const days={};L.forEach(e=>(days[e.date]=days[e.date]||[]).push(e));
+ shell('Timeline',`${L.length} entries`,`<div class="seg">${['All','Deck','Engine'].map(d=>`<button data-tf="${d}" class="${TF.dept===d?'on':''}">${d==='Engine'?'Engine & Elec.':d}</button>`).join('')}<input type="date" id="tfd" value="${TF.date}" style="width:auto;padding:7px 10px">${TF.date?'<button class="ghost" id="tfc">All dates</button>':''}</div>
+ ${Object.keys(days).map(d=>`<div class="mut s" style="margin:14px 0 6px;font-weight:700">${d}</div>${days[d].map(entryCard).join('')}`).join('')||'<div class="card mut">No entries yet. Tap ➕ Update to add the first one.</div>'}`);
+ $('#app').querySelectorAll('[data-tf]').forEach(b=>b.onclick=()=>{TF.dept=b.dataset.tf;renderTimeline()});$('#tfd').onchange=e=>{TF.date=e.target.value;renderTimeline()};if($('#tfc'))$('#tfc').onclick=()=>{TF.date='';renderTimeline()};
+ bindEntryButtons($('#app'));fillMinis($('#app'))}
+function bindEntryButtons(root){root.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>editEntry(b.dataset.ed));
+ root.querySelectorAll('[data-dl]').forEach(b=>b.onclick=async()=>{if(!b.dataset.c){b.dataset.c=1;b.textContent='Tap again to delete';return}const e=S.entries.find(x=>x.id===b.dataset.dl);e.deleted=true;e.pending=true;e.editBy=S.user.rank+' '+S.user.name;await saveEntry(e);render();sendReceive('save')});
+ root.querySelectorAll('[data-full]').forEach(b=>b.onclick=()=>{const e=S.entries.find(x=>x.id===b.dataset.full);sheet(`<div class="h2">Daily meeting ${esc(e.date)} ${esc(e.time)}</div><pre class="scope" style="max-height:none">${esc(e.transcript)}</pre>`)});
+ root.querySelectorAll('[data-cf]').forEach(b=>b.onclick=async()=>{const e=S.entries.find(x=>x.id===b.dataset.cf);e.confirmed=true;e.pending=true;e.editBy=S.user.rank+' '+S.user.name;await saveEntry(e);toast('Confirmed ✔ – sending…');render();sendReceive('save')})}
+function editEntry(id){const e=S.entries.find(x=>x.id===id);sheet(`<div class="h2">Edit update</div><label class="l">Text</label><textarea id="etx">${esc(e.kind==='meeting'?e.transcript:e.text)}</textarea>
+ ${e.kind!=='meeting'?`<label class="l">Status</label><select id="est"><option value="">No change</option>${STAT.map((s,i)=>`<option value="${i}" ${String(e.status)===String(i)?'selected':''}>${s}</option>`).join('')}</select>`:''}
+ <button id="esv" style="width:100%;margin-top:14px">Save change</button><div class="xs mut" style="margin-top:6px">The earlier text is kept in the history on the server.</div>`);
+ $('#esv').onclick=async()=>{if(e.kind==='meeting')e.transcript=$('#etx').value;else{e.text=$('#etx').value;e.status=$('#est').value===''?'':+$('#est').value}e.pending=true;e.editBy=S.user.rank+' '+S.user.name;await saveEntry(e);closeSheet();render();sendReceive('save')}}
+/* ---------- status from timeline ---------- */
+function jobStatus(id){let s=0,last=null;live().filter(e=>e.job===id&&e.status!==''&&e.status!=null).sort((a,b)=>String(a.ts).localeCompare(String(b.ts))).forEach(e=>{s=+e.status;last=e});return {s,last}}
+function orderStatus(o){const u=live().filter(e=>e.kind==='spares'&&e.order===o.no).sort((a,b)=>String(a.ts).localeCompare(String(b.ts)));
+ if(u.length){const l=u[u.length-1];return {txt:l.confirmed?'RECEIVED ONBOARD '+l.date+' (confirmed by Chief)':'RECEIVED ONBOARD '+l.date+' – pending Chief confirmation',src:'Ship timeline',cls:l.confirmed?'ok':'warn'}}
+ const up=o.updates||[];const sw=up.filter(x=>/Swift/.test(x.src));const st=up.filter(x=>!/Swift/.test(x.src));
+ if(sw.length&&!o.cancelled)return {txt:'IN TRANSIT – Swift consolidated delivery to Zhoushan (24 Nov)',src:sw[sw.length-1].src,cls:'transit'};
+ if(st.length&&!o.cancelled)return {txt:st[st.length-1].txt+' (24 Nov)',src:st[st.length-1].src,cls:/place the order/i.test(st[st.length-1].txt)?'bad':'warn'};
+ return {txt:o.status||'—',src:'PO status 12 Nov 2026',cls:recv(o.status)}}
+function recv(t){t=(t||'').toUpperCase();if(/CANCEL/.test(t))return 'bad';if(/NOT RECEIVED|PENDING|IN KOREA|IN CHINA/.test(t))return 'warn';if(/RECEIVED|DONE|SUPPLIED|INSTALLED/.test(t))return 'ok';return ''}
+/* ---------- jobs ---------- */
+let JF={q:'',perf:'',dept:''};
+function jobRow(j){const st=jobStatus(j.id);return `<div class="item" data-job="${j.id}" style="cursor:pointer"><span class="jid">${j.id}</span> <b>${esc(j.title)}</b><div class="xs mut">${esc(j.comp)} · ${esc(j.perf)} · ${esc(j.dept)} <span class="chip ${STC[st.s]}">${STAT[st.s]}</span>${OUT.has(j.id)?'<span class="chip bad">out of this dock</span>':j.flag?'<span class="chip warn">'+esc(j.flag)+'</span>':''}</div></div>`}
+function renderJobs(){let L=JF.q?search(JF.q,'jobs',300).map(x=>x.r):D.jobs.slice().sort((a,b)=>a.id.localeCompare(b.id));if(JF.perf)L=L.filter(j=>j.perf===JF.perf);if(JF.dept)L=L.filter(j=>j.dept===JF.dept);
+ shell('Spec jobs',`${L.length} of ${D.jobs.length} · TM Master 22 Oct 2026`,`<input id="jq" placeholder="Search: ME fuel pump, pipe, 600.13…" value="${esc(JF.q)}">
+ <div class="seg">${['','Yard','Service Engineer','Ship Staff'].map(p=>`<button data-jp="${p}" class="${JF.perf===p?'on':''}">${p||'All'}</button>`).join('')}</div>
+ <div class="seg">${['','Deck','Engine'].map(p=>`<button data-jd="${p}" class="${JF.dept===p?'on':''}">${p||'Both depts'}</button>`).join('')}</div>
+ <div class="card" style="padding:4px 14px">${L.slice(0,150).map(jobRow).join('')||'<div class="item mut">No jobs.</div>'}${L.length>150?'<div class="item xs mut">Showing first 150 – type to narrow.</div>':''}</div>`);
+ $('#jq').oninput=e=>{JF.q=e.target.value;clearTimeout(renderJobs.t);renderJobs.t=setTimeout(()=>{renderJobs();const i=$('#jq');i.focus();i.setSelectionRange(i.value.length,i.value.length)},400)};
+ $('#app').querySelectorAll('[data-jp]').forEach(b=>b.onclick=()=>{JF.perf=b.dataset.jp;renderJobs()});$('#app').querySelectorAll('[data-jd]').forEach(b=>b.onclick=()=>{JF.dept=b.dataset.jd;renderJobs()})}
+function openJob(id){const j=J[id];if(!j)return;const st=jobStatus(id);const lo=D.orders.filter(o=>o.jobs.some(x=>x.id===id));const ents=live().filter(e=>e.job===id).sort((a,b)=>String(b.ts).localeCompare(String(a.ts)));
+ const att=[j.att.classs?'Class surveyor':'',j.att.owner?"Owner's rep / Supt":'',j.att.maker?"Maker's rep":''].filter(Boolean);
+ sheet(`<div><span class="jid" style="font-size:19px">${j.id}</span> <b style="font-size:18px">${esc(j.title)}</b></div><div class="xs mut">${esc(j.series)} – ${esc(j.sname)} · spec page ${j.page}</div>
+ ${j.flag?`<div class="banner" style="margin-top:8px">${esc(j.flag)}</div>`:''}${j.note?`<div class="banner info" style="margin-top:8px">${esc(j.note)}</div>`:''}
+ <div style="margin:8px 0"><span class="chip ${STC[st.s]}">Status: ${STAT[st.s]}</span>${st.last?`<span class="xs mut">${esc(st.last.date)} by ${esc(st.last.rank)}</span>`:''}</div>
+ <div class="card" style="background:var(--bg)"><b>Work:</b> ${esc(j.brief)}</div>
+ <div class="kv"><div>Who does it</div><div><b>${esc(j.perf)}</b>${j.perf!==j.tperf?` <span class="xs mut">(TM Master: ${esc(j.tperf)})</span>`:''}</div><div>Department</div><div>${esc(j.dept)}</div><div>Component</div><div>${esc(j.comp)}</div><div>TMM PMS ID</div><div>${esc(j.pms||'—')}</div>
+ <div>Ship's person</div><div>${esc(j.assigned||'—')}</div><div>Attendance</div><div>${att.map(a=>`<span class="chip">${a}</span>`).join('')||'—'}<div class="xs mut">TMM "Surveyed by": ${esc(j.surveyed||'blank')}</div></div><div>Materials</div><div>${esc(j.supply||'—')}</div></div>
+ <div class="h2" style="font-size:16px;margin-top:14px">Spares (${lo.length})</div>${lo.map(o=>{const s=orderStatus(o);return `<div class="item" data-order="${esc(o.no)}" style="cursor:pointer"><span class="jid">${esc(o.no)}</span> ${esc(o.name)}<div><span class="chip ${s.cls}">${esc(s.txt)}</span></div></div>`}).join('')||'<div class="s mut">No requisition linked.</div>'}
+ <div class="h2" style="font-size:16px;margin-top:14px">Timeline (${ents.length})</div><div id="jents">${ents.map(entryCard).join('')||'<div class="s mut">No updates yet.</div>'}</div>
+ <button style="width:100%;margin:10px 0" id="jup">➕ Update this job</button>
+ ${(()=>{const ms=D.msgs.filter(m=>m.jobs.includes(id)).sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));return ms.length?`<div class="h2" style="font-size:16px;margin-top:14px">Mail discussions (${ms.length})</div>`+evHtml(ms.map(m=>({k:'mail',date:m.date,who:m.frm,src:'Mail – '+m.subj,text:snip(m.text,[id]),mi:msgIdx(m)}))):''})()}
+ <details><summary class="s" style="font-weight:700;padding:8px 0">Full spec scope</summary><pre class="scope">${esc(j.scope)}</pre></details>`);
+ bindEntryButtons($('#sheetIn'));fillMinis($('#sheetIn'));
+ $('#jup').onclick=()=>{closeSheet();resetUpd();UPD.dept=j.dept;UPD.perf=j.perf==='Ship Staff'||j.perf==='Yard'||j.perf==='Service Engineer'?j.perf:'';UPD.job=j.id;UPD.jobTitle=j.title;UPD.step=1;S.view='update';render()}}
+/* ---------- spares ---------- */
+let SF={q:'',f:''};
+function renderSpares(){let L=SF.q?search(SF.q,'orders',300).map(x=>x.r):D.orders.slice();if(SF.f)L=L.filter(o=>orderStatus(o).cls===SF.f);
+ shell('Spares & requisitions',`${L.length} · PO status 12 Nov 2026 + ship updates`,`<input id="sq" placeholder="Search: vent fan, bearings, FDU-0231…" value="${esc(SF.q)}">
+ <div class="seg">${[['','All'],['ok','Received'],['transit','In transit (Swift)'],['warn','Not received / pending'],['bad','Cancelled / to order']].map(([v,l])=>`<button data-sf="${v}" class="${SF.f===v?'on':''}">${l}</button>`).join('')}</div>
+ <div class="card" style="padding:4px 14px">${L.map(o=>{const s=orderStatus(o);return `<div class="item" data-order="${esc(o.no)}" style="cursor:pointer"><span class="jid">${esc(o.no)}</span> <b>${esc(o.name)}</b><div><span class="chip ${s.cls}">${esc(s.txt)}</span><span class="xs mut">${esc(o.suppliers[0]?o.suppliers[0].name:'')}</span></div></div>`}).join('')}</div>`);
+ $('#sq').oninput=e=>{SF.q=e.target.value;clearTimeout(renderSpares.t);renderSpares.t=setTimeout(()=>{renderSpares();const i=$('#sq');i.focus();i.setSelectionRange(i.value.length,i.value.length)},400)};
+ $('#app').querySelectorAll('[data-sf]').forEach(b=>b.onclick=()=>{SF.f=b.dataset.sf;renderSpares()})}
+/* ---------- history timelines (mails + PO sheets + ship log) ---------- */
+function snip(text,terms,n){n=n||420;const t=String(text||'');const low=t.toLowerCase();let i=-1;for(const w of terms){if(!w)continue;const k=low.indexOf(String(w).toLowerCase());if(k>=0&&(i<0||k<i))i=k}
+ if(i<0)return t.slice(0,n)+(t.length>n?'…':'');let a=Math.max(0,i-140);const nl=t.lastIndexOf('\n',i);if(nl>=0&&i-nl<200)a=nl+1;return (a>0?'…':'')+t.slice(a,a+n).trim()+(a+n<t.length?'…':'')}
+const msgIdx=m=>D.msgs.indexOf(m);
+function poEvents(o){const no4=o.no.slice(0,8);const ev=[];
+ D.msgs.filter(m=>m.pos.some(p=>p===o.no||p.startsWith(no4+'-2026'))).forEach(m=>ev.push({k:'mail',date:m.date,who:m.frm,src:'Mail – '+m.subj,text:snip(m.text,[o.no,no4]),mi:msgIdx(m)}));
+ (o.updates||[]).forEach(u=>ev.push({k:'sheet',date:u.date,who:'',src:u.src,text:u.txt}));
+ if(o.status)ev.push({k:'sheet',date:'2026-11-12',who:'',src:'PO status sheet 12 Nov 2026',text:o.status+(o.loc?' · stowed: '+o.loc:'')+(o.onboard?' · '+o.onboard:'')});
+ if(o.tm_approved)ev.push({k:'sheet',date:o.tm_approved,who:'',src:'TM Master order summary',text:'Last approved · status: '+(o.tm_status||'')});
+ live().filter(e=>e.order===o.no).forEach(e=>ev.push({k:'ship',date:e.date+' '+e.time,who:e.rank+' – '+e.name,src:'Ship timeline',text:(e.text)+(e.confirmed?' (confirmed by Chief)':'')}));
+ return ev.sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'))}
+function evHtml(ev,max){const L=max?ev.slice(-max):ev;return `<div class="tl">${L.map(e=>`<div class="ev ${e.k}"><div class="d">${esc(e.date||'date not stated')}</div><div class="w">${esc(e.who?e.who+' · ':'')}${esc(e.src)}</div><div class="x">${esc(e.text)}</div>${e.mi!=null&&e.mi>=0?`<button class="ghost sm" data-msg="${e.mi}" style="margin-top:4px">Open full mail</button>`:''}</div>`).join('')}</div>`}
+function openMsg(i){const m=D.msgs[i];if(!m)return;sheet(`<div class="xs mut">${esc(m.src)}</div><b>${esc(m.subj)}</b><div class="s" style="margin:6px 0"><b>${esc(m.frm)}</b> · ${esc(m.date||'date not stated')}</div>
+ <div>${m.jobs.map(x=>`<span class="chip" data-job="${x}">${x}</span>`).join('')}${m.pos.map(x=>O[x]?`<span class="chip" data-order="${x}">${x}</span>`:`<span class="chip">${x}</span>`).join('')}</div><pre class="scope" style="max-height:none">${esc(m.text)}</pre>`)}
+document.addEventListener('click',e=>{const m=e.target.closest('[data-msg]');if(m){e.preventDefault();openMsg(+m.dataset.msg)}});
+function openOrder(no){const o=O[no];if(!o)return;const s=orderStatus(o);const ents=live().filter(e=>e.order===no);
+ sheet(`<span class="jid" style="font-size:18px">${esc(o.no)}</span><div><b>${esc(o.name)}</b></div><div style="margin:8px 0"><span class="chip ${s.cls}">${esc(s.txt)}</span><span class="xs mut">${esc(s.src)}</span></div>
+ <div class="kv"><div>Type</div><div>${esc(o.type||'—')}</div><div>Stowed</div><div>${esc(o.loc||'—')}</div><div>Supplier</div><div>${o.suppliers.map(x=>esc(x.name)+' <span class="xs mut">('+esc(x.src)+')</span>').join('<br>')||'Not in records'}</div>
+ <div>History</div><div>${(o.updates||[]).map(x=>`<div class="xs" style="margin-bottom:4px"><b>${esc(x.date)}</b> ${esc(x.txt)}<br><span class="mut">${esc(x.src)}</span></div>`).join('')}<div class="xs"><b>12 Nov</b> ${esc(o.status||'not on the DD PO sheet')}</div></div>
+ <div>Notes</div><div>${o.notes.map(esc).join('<br>')||'—'}${o.notdd?'<br>Not a DD requisition':''}</div><div>For job(s)</div><div>${o.jobs.map(x=>`<span class="chip" data-job="${x.id}">${x.id}</span>`).join('')||'Not linked'}</div></div>
+ <div class="h2" style="font-size:16px;margin-top:16px">History timeline (${poEvents(o).length})</div><div class="xs mut">Mails, PO sheets, delivery notes and ship updates – oldest first</div>${evHtml(poEvents(o))}
+ <div style="margin-top:12px">${ents.map(entryCard).join('')}</div>
+ <button style="width:100%;margin-top:12px" id="orc">📦 Mark received onboard (+ delivery note photo)</button>`);bindEntryButtons($('#sheetIn'));fillMinis($('#sheetIn'));
+ $('#orc').onclick=()=>{closeSheet();resetUpd();UPD.kind='spares';UPD.order=o.no;UPD.dept=/-(D|DO|B)(-\d)?$/.test(o.no)?'Deck':'Engine';UPD.perf='Ship Staff';UPD.text='Received onboard: '+o.no+' '+o.name;
+  const lj=o.jobs[0];if(lj&&J[lj.id]){UPD.job=lj.id;UPD.jobTitle=J[lj.id].title}UPD.step=3;S.view='update';render()}}
+/* ---------- ask ---------- */
+let CHAT=[];
+function renderAsk(){shell('Ask me anything','Answers only from the drydock records',`
+ <div style="display:flex;gap:8px"><input id="aq" placeholder="e.g. spares for ER vent fans" enterkeyhint="search"><button id="amic" class="ghost" style="padding:0 14px">🎤</button><button id="ago">Ask</button></div>
+ ${CHAT.length?'':`<div style="margin-top:10px">${['main engine fuel pump','spares for ER vent fans','pipe line jobs','fabrication jobs','bearings for yard motors','what was done today','who does stern tube seal','approvals for ME air cooler'].map(x=>`<span class="chip" data-ex="${esc(x)}" style="cursor:pointer">${esc(x)}</span>`).join('')}</div>`}
+ <div id="chat" style="margin-top:12px">${CHAT.slice().reverse().map(c=>`<div class="card"><div class="xs mut">You asked</div><b>${esc(c.q)}</b><div style="white-space:pre-wrap;margin-top:8px">${esc(c.sum)}</div>${c.html}</div>`).join('')}</div>`);
+ const ask=()=>{const q=$('#aq').value.trim();if(!q)return;CHAT.push(Object.assign({q},answer(q)));renderAsk()};
+ $('#ago').onclick=ask;$('#aq').onkeydown=e=>{if(e.key==='Enter')ask()};$('#app').querySelectorAll('[data-ex]').forEach(c=>c.onclick=()=>{$('#aq').value=c.dataset.ex;ask()});
+ let rec=null;$('#amic').onclick=()=>{if(rec){rec.stop();return}rec=startDictation((f,i)=>{$('#aq').value=f+i},()=>{rec=null;$('#amic').textContent='🎤';if($('#aq').value.trim())ask()});if(rec)$('#amic').textContent='■';else toast('Use the mic on your keyboard')};
+ bindEntryButtons($('#app'));fillMinis($('#app'))}
+function answer(q){const ql=q.toLowerCase();
+ const ids=[...new Set((q.match(/\b\d{3}\.\d{2}\b/g)||[]).filter(x=>J[x]))];
+ const pos=[...new Set((q.toUpperCase().match(/FDU-?\d{4}/g)||[]).flatMap(p=>{const n=p.replace(/\D/g,'');return D.orders.filter(o=>o.no.startsWith('FDU-'+n)).map(o=>o.no)}))];
+ if(ids.length||pos.length)return {sum:`Found ${ids.length} job(s) and ${pos.length} requisition(s).`+pos.map(p=>{const ev=poEvents(O[p]);const lm=ev.filter(e=>e.k==='mail').pop();return `\n• ${p}: ${orderStatus(O[p]).txt}${lm?'\n   Latest mail: '+(lm.date||'date not stated')+' – '+lm.who:''}`}).join(''),html:ids.map(i=>jobRow(J[i])).join('')+pos.map(p=>orderRowA(O[p])+`<div class="xs mut" style="margin-top:6px">History timeline</div>`+evHtml(poEvents(O[p]))).join('')};
+ if(/today|yesterday/.test(ql)&&/done|happen|update|work|progress/.test(ql)){const d=/yesterday/.test(ql)?shiftD(today(),-1):today();const L=live().filter(e=>e.date===d).sort((a,b)=>String(a.ts).localeCompare(String(b.ts)));
+  return {sum:`${L.length} update(s) on ${d} in the ship timeline.`,html:L.map(entryCard).join('')}}
+ const wantsSp=/spare|reqn|requisition|\bpo\b|order|received|supplier|deliver|arriv/.test(ql);const wantsAp=/approv|class|surveyor|owner|witness|attend/.test(ql);
+ const qq=q.replace(/\b(spares?|requisitions?|reqns?|received|receive|supplier|po|orders?|status|approvals?|needed|required|have we|did we|jobs?|who does|who|does)\b/gi,' ').trim()||q;
+ const jr=search(qq,'jobs',40).map(x=>x.r);let orr=search(qq,'orders',wantsSp?25:6).map(x=>x.r);if(wantsSp){const via=D.orders.filter(o=>o.jobs.some(x=>jr.slice(0,10).some(j=>j.id===x.id)));orr=[...new Set(orr.concat(via))]}
+ const ent=search(qq,'entries',8).map(x=>x.r);const sum=[];
+ const terms=qq.split(/\s+/).filter(w=>w.length>3);const mr=search(qq,'msgs',12).map(x=>x.r).sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
+ if(wantsSp){if(orr.length){sum.push(`${orr.length} requisition(s) match.`);orr.slice(0,6).forEach(o=>{const s=orderStatus(o);sum.push(`• ${o.no} – ${o.name}\n   ${s.txt} (${s.src})${(o.updates||[]).filter(x=>/Swift/.test(x.src)).map(x=>'\n   '+x.txt).join('')}${o.loc?'\n   Stowed: '+o.loc:''}\n   Supplier: ${o.suppliers.map(x=>x.name).join(' / ')||'not in records'}`)})}else sum.push('No requisition in the records matches this.')}
+ if(jr.length){sum.push(`${jr.length} job(s) match.`);if(jr.length<=4)jr.forEach(j=>sum.push(`• ${j.id} ${j.title}\n   Who: ${j.perf} · Status: ${STAT[jobStatus(j.id).s]}\n   Work: ${j.brief}${wantsAp?'\n   Attendance (TMM): '+(j.surveyed||'blank'):''}`))}
+ if(mr.length){const who=[...new Set(mr.map(m=>m.frm))].slice(0,6);const lm=mr.filter(m=>m.date).pop();sum.push(`${mr.length} mail(s) discuss this – by ${who.join(', ')}.`+(lm?`\nLatest: ${lm.date} – ${lm.frm}: "${snip(lm.text,terms,160).replace(/\s+/g,' ')}"`:''))}
+ if(!jr.length&&!orr.length&&!ent.length&&!mr.length)return {sum:'Not in records. Nothing in the spec, requisitions, mails or timeline matches – try other words.',html:''};
+ const tlH=wantsSp?orr.slice(0,3).map(o=>`<div class="s mut" style="margin-top:10px;font-weight:700">History – ${esc(o.no)}</div>`+evHtml(poEvents(o),8)+`<button class="ghost sm" data-order="${esc(o.no)}">Full history</button>`).join(''):'';
+ const mH=mr.length?'<div class="s mut" style="margin-top:10px;font-weight:700">From the emails (oldest first)</div>'+evHtml(mr.map(m=>({k:'mail',date:m.date,who:m.frm,src:'Mail – '+m.subj,text:snip(m.text,terms,300),mi:msgIdx(m)}))):'';
+ return {sum:sum.join('\n'),html:tlH+(orr.length?'<div class="s mut" style="margin-top:10px;font-weight:700">Requisitions</div>'+orr.map(orderRowA).join(''):'')+(jr.length?'<div class="s mut" style="margin-top:10px;font-weight:700">Jobs</div>'+jr.map(jobRow).join(''):'')+(ent.length?'<div class="s mut" style="margin-top:10px;font-weight:700">From the ship timeline</div>'+ent.map(entryCard).join(''):'')+mH}}
+function orderRowA(o){const s=orderStatus(o);return `<div class="item" data-order="${esc(o.no)}" style="cursor:pointer"><span class="jid">${esc(o.no)}</span> ${esc(o.name)}<div><span class="chip ${s.cls}">${esc(s.txt)}</span></div></div>`}
+function shiftD(d,n){const t=new Date(d+'T12:00:00');t.setDate(t.getDate()+n);return t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate())}
+/* ---------- reports ---------- */
+let RP={from:today(),to:today()};
+function renderReports(){const ok=canReport();
+ const off=[['Deck',['Ship staff daily work done report','Ship staff photo album','Yard job report','Yard job photo album','Service engineer job report','Service engineer photo album']],['Engine & Electrical',['Ship staff daily work done report','Ship staff photo album','Yard job report','Yard job photo album','Service engineer job report','Service engineer photo album']]];
+ shell('Reports',ok?'Word reports with photos':'Only Chief, Master, C/O, 2/E and VM can generate',`
+ ${ok?'':'<div class="banner">Reports can be generated by the Chief Engineer, Master, Chief Officer, Second Engineer and Vessel Manager. You can still see the full Timeline.</div>'}
+ <div class="card"><div class="h2" style="margin-top:0">Daily reports for records</div><div class="s mut">All entries by time, with S.No, date &amp; time, rank &amp; name, description exactly as entered by the crew, and photos. A4 portrait Word file. Meetings are included.</div>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><div style="min-width:0"><label class="l">From</label><input type="date" id="rf" value="${RP.from}"></div><div style="min-width:0"><label class="l">To</label><input type="date" id="rt" value="${RP.to}"></div></div>
+ <div style="display:flex;gap:10px;margin-top:12px"><button id="rD" style="flex:1" ${ok?'':'disabled'}>⚓ Deck report</button><button id="rE" style="flex:1;background:var(--eng)" ${ok?'':'disabled'}>⚙️ Engine report</button></div>
+ <div class="xs mut" id="rmsg" style="margin-top:8px">Needs internet. Send / Receive is done first so the report has the latest entries.</div><div class="banner info" style="margin-top:10px">Language check: the report shows the text exactly as the crew entered it. Before sending to the office, give the Word file to Claude in the Drydock chat for grammar correction, or correct it yourself in Word.</div></div>
+ <div class="card"><div class="h2" style="margin-top:0">Office reports</div><div class="banner info">Waiting for the office daily report template from the Chief Engineer. These will be switched on when it is added.</div>
+ ${off.map(([d,l])=>`<div class="s" style="font-weight:700;margin:10px 0 4px">${d}</div>${l.map(x=>`<button class="ghost sm" disabled style="margin:3px">${x}</button>`).join('')}`).join('')}</div>
+ <div class="card"><b>Automatic daily email</b><div class="s mut">Sent to the Chief Engineer every day at ${pad(S.reportHour)}:00 ship time.${isChief()?' Change it in Settings.':''}</div></div>`);
+ $('#rf').onchange=e=>{RP.from=e.target.value;if(RP.to<RP.from){RP.to=RP.from;$('#rt').value=RP.to}};$('#rt').onchange=e=>{RP.to=e.target.value};
+ const gen=async dept=>{if(!navigator.onLine){toast('Needs internet');return}if(RP.to<RP.from){toast('"To" date is before "From"');return}const m=$('#rmsg');$('#rD').disabled=$('#rE').disabled=true;
+  try{m.textContent='Sending latest updates…';await sendReceive(false);m.textContent='Building the '+dept+' report with photos – this can take a minute…';
+   const r=await api('report',{kind:'records',dept,from:RP.from,to:RP.to,rank:S.user.rank,name:S.user.name},360000);
+   if(r.b64){const b=b64ToBlob(r.b64,'application/vnd.openxmlformats-officedocument.wordprocessingml.document');downloadBlob(b,r.name);m.innerHTML='✔ '+esc(r.name)+' downloaded. Also saved in Google Drive › Reports.'}
+   else{m.innerHTML='✔ Report is large – <a href="'+esc(r.url)+'" target="_blank" rel="noopener">open it from Google Drive</a>'}}
+  catch(e){m.textContent='Report failed: '+e.message}finally{$('#rD').disabled=$('#rE').disabled=!ok}};
+ $('#rD').onclick=()=>gen('Deck');$('#rE').onclick=()=>gen('Engine')}
+function downloadBlob(b,name){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}
+/* ---------- extract photos (zip built on the phone) ---------- */
+let PX={date:today(),from:'',to:'',dept:'All'};
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
+function makeZip(files){const enc=new TextEncoder();const parts=[],central=[];let off=0;const d=new Date();
+ const dt=((d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1))&0xFFFF,dd=(((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate())&0xFFFF;
+ for(const f of files){const name=enc.encode(f.name),data=f.data,crc=crc32(data);
+  const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(8,0,true);h.setUint16(10,dt,true);h.setUint16(12,dd,true);
+  h.setUint32(14,crc,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);h.setUint16(26,name.length,true);h.setUint16(28,0,true);
+  parts.push(new Uint8Array(h.buffer),name,data);
+  const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(10,0,true);c.setUint16(12,dt,true);c.setUint16(14,dd,true);
+  c.setUint32(16,crc,true);c.setUint32(20,data.length,true);c.setUint32(24,data.length,true);c.setUint16(28,name.length,true);c.setUint32(42,off,true);
+  central.push(new Uint8Array(c.buffer),name);off+=30+name.length+data.length}
+ const csize=central.reduce((a,x)=>a+x.length,0);const e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,csize,true);e.setUint32(16,off,true);
+ return new Blob([...parts,...central,new Uint8Array(e.buffer)],{type:'application/zip'})}
+async function getBlob(f){let b=await DB.get('blobs',f.fid);if(!b&&f.driveId&&navigator.onLine&&CFG.SERVER_URL){const r=await api('file',{driveId:f.driveId},180000);b=b64ToBlob(r.b64,r.mime);await DB.put('blobs',b,f.fid)}return b||null}
+const safeName=t=>String(t||'Update').replace(/[\\/:*?"<>|\r\n\t]+/g,' ').replace(/\s+/g,' ').trim().replace(/^(.{90}).*$/,(m,x)=>x.replace(/\s+\S*$/,'')).replace(/[. ]+$/,'')||'Update';
+function photoEntries(){return live().filter(e=>e.date===PX.date&&(!PX.from||e.time>=PX.from)&&(!PX.to||e.time<=PX.to)&&(PX.dept==='All'||e.dept===PX.dept||e.kind==='meeting')&&(e.files||[]).some(f=>/^image\//.test(f.mime))).sort((a,b)=>String(a.ts).localeCompare(String(b.ts)))}
+function renderPhotos(){if(!canReport()){go('home');return}const L=photoEntries();const n=L.reduce((a,e)=>a+e.files.filter(f=>/^image\//.test(f.mime)).length,0);
+ shell('Extract photos','Zip of all photos for one day',`<div class="card"><label class="l">Date (required)</label><input type="date" id="pxd" value="${PX.date}">
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="min-width:0"><label class="l">From time (optional)</label><input type="time" id="pxf" value="${PX.from}"></div><div style="min-width:0"><label class="l">To time (optional)</label><input type="time" id="pxt" value="${PX.to}"></div></div>
+ <label class="l">Department</label><div class="seg">${['All','Deck','Engine'].map(d=>`<button data-px="${d}" class="${PX.dept===d?'on':''}">${d==='Engine'?'Engine & Elec.':d}</button>`).join('')}</div>
+ <div class="banner info" style="margin-top:10px">${L.length} update(s) with ${n} photo(s). One folder per update, named after the update.</div>
+ <button id="pxgo" style="width:100%" ${n?'':'disabled'}>🗂️ Create zip and download</button><div class="xs mut" id="pxm" style="margin-top:8px">Send / Receive runs first so photos from all phones are included. Needs internet for photos taken on other phones.</div></div>`,{back:()=>go('home')});
+ $('#pxd').onchange=e=>{PX.date=e.target.value;renderPhotos()};$('#pxf').onchange=e=>{PX.from=e.target.value;renderPhotos()};$('#pxt').onchange=e=>{PX.to=e.target.value;renderPhotos()};
+ $('#app').querySelectorAll('[data-px]').forEach(b=>b.onclick=()=>{PX.dept=b.dataset.px;renderPhotos()});
+ $('#pxgo').onclick=async()=>{if(!PX.date){toast('Choose a date');return}const m=$('#pxm');$('#pxgo').disabled=true;
+  try{if(navigator.onLine){m.textContent='Syncing first…';await sendReceive(false)}
+   const list=photoEntries();const used={};const files=[];const idx=['Front Duke DD 2026 – photos '+PX.date+(PX.from||PX.to?' '+(PX.from||'00:00')+'-'+(PX.to||'23:59'):'')+' – '+PX.dept,''];let k=0,miss=0;const tot=list.reduce((a,e)=>a+e.files.filter(f=>/^image\//.test(f.mime)).length,0);
+   for(const e of list){let base=safeName(e.kind==='meeting'?'Daily meeting':(e.text));let name=base,c=2;while(used[name])name=base+' ('+(c++)+')';used[name]=1;
+    idx.push(name+'  |  '+e.date+' '+e.time+'  |  '+e.dept+'  |  '+(e.text||''));let i=1;
+    for(const f of e.files.filter(f=>/^image\//.test(f.mime))){k++;m.textContent=`Collecting photo ${k} of ${tot}…`;const b=await getBlob(f).catch(()=>null);if(!b){miss++;continue}
+     files.push({name:name+'/photo_'+(i++)+'.jpg',data:new Uint8Array(await b.arrayBuffer())})}}
+   files.push({name:'_list_of_updates.txt',data:new TextEncoder().encode(idx.join('\r\n'))});
+   m.textContent='Making zip…';const z=makeZip(files);const fn='FrontDuke_Photos_'+PX.date+(PX.from||PX.to?'_'+(PX.from||'0000').replace(':','')+'-'+(PX.to||'2359').replace(':',''):'')+'_'+PX.dept+'.zip';
+   downloadBlob(z,fn);m.textContent=`✔ ${fn} – ${files.length-1} photo(s)${miss?', '+miss+' could not be downloaded (sync later)':''}`}
+  catch(e){m.textContent='Failed: '+e.message}finally{$('#pxgo').disabled=false}}}
+/* ---------- settings ---------- */
+function renderSettings(){const all=S.entries.length;
+ shell('Settings',`App version ${VERSION}`,`<div class="card"><div class="kv"><div>Logged in</div><div>${esc(S.user.rank)} – ${esc(S.user.name)}${isChief()?' <span class="chip ok">Master account</span>':role()==='vm'?' <span class="chip">Vessel Manager</span>':''}</div><div>Department</div><div>${esc(S.user.dept)}</div>
+ <div>Entries on phone</div><div>${all} (${pending()} not sent)</div><div>Last sync</div><div>${S.lastSync?new Date(S.lastSync).toLocaleString():'never'}</div><div>Records</div><div>${esc(D.built)} · ${D.jobs.length} jobs · ${D.orders.length} reqns</div></div></div>
+ ${isChief()?`<div class="card"><b>🧪 Test mode</b><div class="s mut">${S.testMode?'ON – every new entry is marked TEST on all phones.':'OFF – entries are live drydock records.'}</div><div style="display:flex;gap:8px;margin-top:8px"><button id="tmon" ${S.testMode?'disabled':''}>Turn ON</button><button class="ghost" id="tmoff" ${S.testMode?'':'disabled'}>Turn OFF</button></div>
+ <button class="danger" id="purge" style="width:100%;margin-top:10px">🗑 Delete ALL test entries and their photos</button><div class="xs mut" style="margin-top:4px">Removes them from Google Sheet, Drive and every phone, and switches Test mode OFF. Cannot be undone.</div></div>`:''}
+ ${isChief()?`<div class="card"><b>Daily email time (ship time)</b><div style="display:flex;gap:8px;margin-top:8px"><select id="rh">${[...Array(24).keys()].map(h=>`<option value="${h}" ${h===S.reportHour?'selected':''}>${pad(h)}:00</option>`).join('')}</select><button id="rhs">Save</button></div></div>`:''}
+ <div class="card"><b>Appearance</b><div class="seg">${[['','Auto'],['light','Light'],['dark','Dark']].map(([v,l])=>`<button data-th="${v}">${l}</button>`).join('')}</div></div>
+ <div class="card"><button class="ghost" id="rr" style="width:100%">⟳ Re-download drydock records</button><button class="ghost" id="bk2" style="width:100%;margin-top:8px">⬇ Backup my entries (file)</button>
+ <button class="danger" id="lo" style="width:100%;margin-top:8px">Log out of this phone</button><div class="xs mut" style="margin-top:6px">Log out is blocked while updates are not sent.</div></div>`,{back:()=>go('home')});
+ if($('#rhs'))$('#rhs').onclick=async()=>{try{const r=await api('settings',{reportHour:+$('#rh').value});S.reportHour=r.reportHour;await DB.put('kv',S.reportHour,'reportHour');toast('Daily email set to '+pad(r.reportHour)+':00 ✔')}catch(e){toast(e.message)}};
+ if($('#tmon')){const setTM=async on=>{try{const r=await api('settings',{testMode:on});S.testMode=r.testMode;await DB.put('kv',S.testMode,'testMode');toast('Test mode '+(on?'ON':'OFF')+' ✔');renderSettings()}catch(e){toast(e.message)}};$('#tmon').onclick=()=>setTM(true);$('#tmoff').onclick=()=>setTM(false);
+  $('#purge').onclick=async()=>{const b=$('#purge');if(!b.dataset.c){b.dataset.c=1;b.textContent='Tap again – delete all TEST data';return}if(!b.dataset.c2){b.dataset.c2=1;b.textContent='Last check – tap to DELETE';return}
+   b.disabled=true;b.textContent='Deleting…';try{await sendReceive(false);const r=await api('purgeTest',{},300000);for(const e of S.entries.filter(x=>x.test||r.ids.includes(x.id))){for(const f of (e.files||[]))await DB.del('blobs',f.fid);await DB.del('entries',e.id)}
+    S.entries=await DB.all('entries');rebuildEntryIdx();S.testMode=false;await DB.put('kv',false,'testMode');toast(`✅ Deleted ${r.deleted} test entries and ${r.files} files. App is now LIVE.`,5000,true);renderSettings()}catch(e){toast(e.message);b.disabled=false}}}
+ $('#app').querySelectorAll('[data-th]').forEach(b=>b.onclick=async()=>{const v=b.dataset.th;if(v)document.documentElement.setAttribute('data-theme',v);else document.documentElement.removeAttribute('data-theme');await DB.put('kv',v,'theme')});
+ $('#rr').onclick=()=>{S.view='home';fetchRecords()};
+ $('#bk2').onclick=()=>downloadBlob(new Blob([JSON.stringify({exported:new Date().toISOString(),user:{rank:S.user.rank,name:S.user.name},entries:S.entries},null,1)],{type:'application/json'}),'FrontDuke_DD2026_backup_'+today()+'.json');
+ $('#lo').onclick=async()=>{if(pending()){toast('Send / Receive first – '+pending()+' update(s) not sent',4000);return}if(!$('#lo').dataset.c){$('#lo').dataset.c=1;$('#lo').textContent='Tap again to log out';return}await DB.del('kv','user');S.user=null;render()}}
+/* ================= boot ================= */
+let SWREG=null;
+async function boot(){try{await loadState()}catch(e){$('#app').innerHTML='<div style="padding:20px">This browser blocks offline storage (private mode?). Open the app in normal Safari/Chrome.</div>';return}
+ render();if(S.user&&D)autoSync();
+ setInterval(()=>{if(S.user&&D)sendReceive(false)},60*60*1000);
+ window.addEventListener('online',()=>{if(S.user&&D)sendReceive(false)});
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&S.user&&D)autoSync()});
+ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){try{SWREG=await navigator.serviceWorker.register('sw.js');
+  const ask=w=>{const b=document.createElement('div');b.className='toast';b.style.display='block';b.style.bottom='auto';b.style.top='calc(70px + env(safe-area-inset-top))';b.innerHTML='New version available <button class="sm" style="margin-left:8px">Update</button>';document.body.appendChild(b);b.querySelector('button').onclick=()=>{S.updateAsked=true;w.postMessage('skip')}};
+  if(SWREG.waiting)ask(SWREG.waiting);
+  SWREG.addEventListener('updatefound',()=>{const w=SWREG.installing;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)ask(w)})});
+  let rl=false;const hadCtl=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadCtl&&!rl&&S.updateAsked){rl=true;location.reload()}});setInterval(()=>SWREG.update(),30*60*1000)}catch(e){}}}
+boot();
+</script>
+</body>
+</html>
