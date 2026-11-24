@@ -107,7 +107,7 @@ table.t{border-collapse:collapse;width:100%;font-size:13px}table.t td,table.t th
 <script>
 "use strict";
 /* ================= constants ================= */
-const VERSION='1.4.1';
+const VERSION='1.6.0';
 const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
 const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
 const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Vessel Manager'];
@@ -534,6 +534,12 @@ function renderReports(){const ok=canReport();
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><div style="min-width:0"><label class="l">From</label><input type="date" id="rf" value="${RP.from}"></div><div style="min-width:0"><label class="l">To</label><input type="date" id="rt" value="${RP.to}"></div></div>
  <div style="display:flex;gap:10px;margin-top:12px"><button id="rD" style="flex:1" ${ok?'':'disabled'}>⚓ Deck report</button><button id="rE" style="flex:1;background:var(--eng)" ${ok?'':'disabled'}>⚙️ Engine report</button></div>
  <div class="xs mut" id="rmsg" style="margin-top:8px">Needs internet. Send / Receive is done first so the report has the latest entries.</div></div>
+ <div class="card"><div class="h2" style="margin-top:0">Report by DD job number</div><div class="s mut">All updates for one spec job – Deck and Engine – with job name, who does it and scope at the top. Whole dock unless you pick dates.</div>
+ <label class="l">DD spec job number</label><input id="rj" list="rjl" placeholder="e.g. 630.13" inputmode="decimal" value="${esc(RP.job||'')}"><datalist id="rjl">${D.jobs.map(j=>`<option value="${j.id}">${esc(j.title)}</option>`).join('')}</datalist>
+ <div class="xs mut" id="rjn" style="margin-top:4px">${RP.job&&J[RP.job]?esc(J[RP.job].title):''}</div>
+ ${(()=>{const c={};live().forEach(e=>{const ids=new Set([e.job,...((String(e.text||'')+' '+String(e.transcript||'')).match(/\b\d{3}\.\d{2}\b/g)||[])].filter(x=>x&&J[x]));ids.forEach(x=>c[x]=(c[x]||0)+1)});const top=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,15);return top.length?`<div class="xs mut" style="margin-top:8px">Jobs with updates:</div><div>${top.map(([k,n])=>`<span class="chip" data-rj="${k}" style="cursor:pointer">${k} (${n})</span>`).join('')}</div>`:'<div class="xs mut" style="margin-top:8px">No job has updates yet.</div>'})()}
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px"><div style="min-width:0"><label class="l">From (optional)</label><input type="date" id="rjf" value="${RP.jf||''}"></div><div style="min-width:0"><label class="l">To (optional)</label><input type="date" id="rjt" value="${RP.jt||''}"></div></div>
+ <button id="rJ" style="width:100%;margin-top:12px" ${ok?'':'disabled'}>🔧 Generate job report</button><div class="xs mut" id="rjm" style="margin-top:8px"></div></div>
  <div class="card"><div class="h2" style="margin-top:0">Office reports</div><div class="banner info">Waiting for the office daily report template from the Chief Engineer. These will be switched on when it is added.</div>
  ${off.map(([d,l])=>`<div class="s" style="font-weight:700;margin:10px 0 4px">${d}</div>${l.map(x=>`<button class="ghost sm" disabled style="margin:3px">${x}</button>`).join('')}`).join('')}</div>
  <div class="card"><b>Automatic daily email</b><div class="s mut">Sent to the Chief Engineer every day at ${pad(S.reportHour)}:00 ship time.${isChief()?' Change it in Settings.':''}</div></div>`);
@@ -544,7 +550,17 @@ function renderReports(){const ok=canReport();
    if(r.b64){const b=b64ToBlob(r.b64,'application/vnd.openxmlformats-officedocument.wordprocessingml.document');downloadBlob(b,r.name);m.innerHTML='✔ '+esc(r.name)+' downloaded. Also saved in Google Drive › Reports.'}
    else{m.innerHTML='✔ Report is large – <a href="'+esc(r.url)+'" target="_blank" rel="noopener">open it from Google Drive</a>'}}
   catch(e){m.textContent='Report failed: '+e.message}finally{$('#rD').disabled=$('#rE').disabled=!ok}};
- $('#rD').onclick=()=>gen('Deck');$('#rE').onclick=()=>gen('Engine')}
+ $('#rD').onclick=()=>gen('Deck');$('#rE').onclick=()=>gen('Engine');
+ const rj=$('#rj');rj.oninput=()=>{RP.job=rj.value.trim();$('#rjn').textContent=J[RP.job]?J[RP.job].title:(RP.job.length>=6?'Not a DD spec job number':'')};
+ $('#app').querySelectorAll('[data-rj]').forEach(c=>c.onclick=()=>{rj.value=c.dataset.rj;rj.oninput()});
+ $('#rjf').onchange=e=>{RP.jf=e.target.value};$('#rjt').onchange=e=>{RP.jt=e.target.value};
+ $('#rJ').onclick=async()=>{const job=rj.value.trim(),m=$('#rjm');if(!/^\d{3}\.\d{2}$/.test(job)){m.textContent='Type a job number like 630.13';return}
+  if(!navigator.onLine){toast('Needs internet');return}if(RP.jf&&RP.jt&&RP.jt<RP.jf){toast('"To" date is before "From"');return}
+  $('#rJ').disabled=true;try{m.textContent='Sending latest updates…';await sendReceive(false);m.textContent='Building the report for '+job+' – this can take a minute…';
+   const r=await api('report',{kind:'job',job,from:RP.jf||'',to:RP.jt||'',rank:S.user.rank,name:S.user.name},360000);
+   if(r.b64){downloadBlob(b64ToBlob(r.b64,'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),r.name);m.innerHTML='✔ '+esc(r.name)+' downloaded. Also saved in Google Drive › Reports.'}
+   else m.innerHTML='✔ Report is large – <a href="'+esc(r.url)+'" target="_blank" rel="noopener">open it from Google Drive</a>'}
+  catch(e){m.textContent='Report failed: '+e.message}finally{$('#rJ').disabled=!ok}}}
 function downloadBlob(b,name){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}
 /* ---------- extract photos (zip built on the phone) ---------- */
 let PX={date:today(),from:'',to:'',dept:'All'};
