@@ -91,6 +91,8 @@ body.chatview main{padding-bottom:150px}#cl{display:flex;flex-direction:column;g
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cm.me .cb{background:#173a5c;border-color:#24557f}}:root[data-theme="dark"] .cm.me .cb{background:#173a5c;border-color:#24557f}
 .inst{background:linear-gradient(135deg,#0b2942,#1f6fb8);color:#fff;border-radius:16px;padding:12px 14px;margin:12px 0;font-size:14px;line-height:1.4}.inst button{padding:10px}.inst .ghost{background:rgba(255,255,255,.15);color:#fff}
 a.btn{display:block;text-align:center;text-decoration:none;border-radius:12px;padding:14px 16px;background:var(--sea);color:#fff;font-weight:700;font-size:16px}.isteps{padding-left:22px;margin:10px 0}.isteps li{margin:8px 0;font-size:15px}
+.cfile{display:flex;gap:8px;align-items:center;background:var(--chip);border-radius:10px;padding:10px 12px;cursor:pointer;max-width:260px}.cfile b{font-size:26px}.cfile span{font-size:13px;font-weight:600;overflow-wrap:anywhere}.cfile small{display:block;font-weight:400;color:var(--mut)}
+.chip.sec{background:#e8eefc;color:#28407a}
 .hero .txt{position:relative}.hero h1{margin:0;font-size:24px;letter-spacing:.3px}.hero p{margin:2px 0 0;opacity:.85;font-size:13.5px}
 .big2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .bigbtn{border-radius:20px;padding:20px 14px;min-height:118px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;text-align:left;font-size:18px;box-shadow:0 6px 18px rgba(11,41,66,.18)}
@@ -201,7 +203,7 @@ async function instDiag(){const el=$('#instDiag');if(!el)return;const row=(ok,t,
  $('#dcopy').onclick=()=>{const t=rep+'\n'+el.innerText.replace('Copy this check for Chief','');try{navigator.clipboard.writeText(t);toast('Copied – paste it in WhatsApp to the Chief')}catch(e){toast('Copy not allowed on this phone')}}}
 "use strict";
 /* ================= constants ================= */
-const VERSION='2.0.1';
+const VERSION='2.1.0';
 const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
 const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
 const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager'];
@@ -213,6 +215,11 @@ function stLabel(e){return e.jst==='ip'?'Status details':e.jst==='ca'?'Reason fo
 function jobState(id){let last=null;for(const e of S.entries){if(!e.deleted&&e.job===id&&JST[e.jst]&&(!last||String(e.ts)>String(last.ts)))last=e}return {jst:last?last.jst:'ns',last}}
 const imgsOf=u=>u.files.filter(f=>!f.voice&&/^image\//.test(f.mime));
 const PERF=[['Yard','Yard job','🏗️','Work done by COSCO yard'],['Service Engineer','Service engineer job','🧰','Maker / service engineer attendance'],['Ship Staff','Ship staff job','⚓','Work by our own crew']];
+/* office report sections (Form 047C) */
+const SECS=[['1','Shipyard jobs','🏗️','Work done by COSCO shipyard','Yard'],['2','Crew jobs','⚓','Work by our own crew','Ship Staff'],['3','Contractor jobs','🧰','Service engineers, makers, other contractors','Service Engineer'],['4','Class surveys','🏅','Class surveyor attendance and surveys','Class']];
+const SUBSEC=[['1.1','Hull & Docking jobs','D'],['1.2','WBT upgrading','D'],['1.3','Cargo Oil Tanks upgrading','D'],['1.4','Main deck jobs','D'],['1.5','Superstructure jobs','D'],['1.6','E/R – Machinery jobs','E'],['1.7','Electrical jobs','E'],['1.8','Other','DE'],['2.1','Deck jobs','D'],['2.2','Engine room jobs','E'],['2.3','Electrical jobs','E']];
+const subsFor=(sec,dept)=>SUBSEC.filter(x=>x[0].startsWith(sec+'.')&&x[2].includes(dept==='Deck'?'D':'E'));
+function secLabel(c){if(!c)return '';const x=SUBSEC.find(y=>y[0]===c)||SECS.find(y=>y[0]===c);return x?c+' '+x[1]:c}
 const OUT=new Set(['350.03','710.01','740.02']);
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -353,7 +360,7 @@ function isChief(){return role()==='chief'}
 function editAny(){return ['chief','master','vm'].includes(role())}
 function canEdit(e){return editAny()||(e.device===S.user.device&&e.date===today())}
 function canMeeting(){return ['chief','master'].includes(role())}
-function render(){if(!S.user||!D){renderLogin();return}({home:renderHome,ask:renderAsk,update:renderUpdate,meeting:renderMeeting,photos:renderPhotos,timeline:renderTimeline,jobs:renderJobs,spares:renderSpares,reports:renderReports,settings:renderSettings,progress:renderProgress,chat:renderChat})[S.view]()}
+function render(){if(!S.user||!D){renderLogin();return}({home:renderHome,ask:renderAsk,update:renderUpdate,meeting:renderMeeting,photos:renderPhotos,timeline:renderTimeline,jobs:renderJobs,spares:renderSpares,reports:renderReports,settings:renderSettings,progress:renderProgress,chat:renderChat,office:renderOffice})[S.view]()}
 function shell(title,sub,body,opts){opts=opts||{};const p=pending();document.body.classList.remove('chatview');
  $('#app').innerHTML=`<div class="top">${opts.back?'<button id="bk" aria-label="Back">←</button>':''}<div class="t">${esc(title)}<small>${esc(sub||'')}</small></div><button class="sync" id="sr">${S.syncing?'⟳ Syncing…':'⇅ Send / Receive'}${p?` <span class="badge">${p}</span>`:''}</button></div>
  <main>${S.testMode?'<div class="banner test">🧪 TEST MODE – everything entered now is test data and will be deleted by the Chief Engineer</div>':''}${body}</main>${opts.foot||navBar()}`;
@@ -431,9 +438,9 @@ function openStatus(id){const j=J[id];const st=jobState(id);const last=st.last;
  const r=$('#sheetIn');r.querySelector('#stx').onclick=ajClick;bindEntryButtons(r);fillMinis(r)}
 /* ---------- update wizard ---------- */
 let UPD={step:0};
-function resetUpd(){UPD={step:1,dept:'',perf:'',text:'',job:'',jobTitle:'',jst:'',sub:'',stc:'',cdate:'',appr:'',files:[],kind:'update',order:'',temp:null};}
+function resetUpd(){UPD={step:1,dept:'',sec:'',ssec:'',perf:'',text:'',job:'',jobTitle:'',jst:'',sub:'',stc:'',cdate:'',appr:'',files:[],kind:'update',order:'',temp:null};}
 function updFoot(backFn,nextLbl,nextFn,nextDis){return `<div class="foot"><button class="ghost" id="ub">${backFn?'← Back':'Cancel'}</button><button id="un" ${nextDis?'disabled':''}>${nextLbl}</button></div>`}
-function updSteps(u){const s=[1,2,3,4,5];if(imgsOf(u).length)s.push(6);if(u.job)s.push(7);s.push(8);return s}
+function updSteps(u){const s=[1,2];if(u.kind!=='spares'&&(u.sec==='1'||u.sec==='2')&&subsFor(u.sec,u.dept).length>1)s.push(25);s.push(3,4,5);if(imgsOf(u).length)s.push(6);if(u.job)s.push(7);s.push(8);return s}
 const nextOf=(u,n)=>{const s=updSteps(u);return s[s.indexOf(n)+1]},prevOf=(u,n)=>{const s=updSteps(u);return s[s.indexOf(n)-1]};
 function stepSub(n){const s=updSteps(UPD);return 'Step '+(s.indexOf(n)+1)+' of '+s.length}
 function stepsBar(n){const s=updSteps(UPD);const k=s.indexOf(n);return `<div class="steps">${s.map((x,i)=>`<i class="${i<=k?'on':''}"></i>`).join('')}</div>`}
@@ -442,20 +449,23 @@ function renderUpdate(){const u=UPD;if(!u.step)resetUpd();
  if(u.step===1){shell(title,stepSub(1),stepsBar(1)+`<div class="h2">Which department?</div><div class="choice">
   <button data-d="Deck" class="${u.dept==='Deck'?'sel':''}"><b>⚓</b><span>Deck<small>Hull, tanks, deck machinery, LSA/FFA</small></span></button>
   <button data-d="Engine" class="${u.dept==='Engine'?'sel':''}"><b>⚙️</b><span>Engine &amp; Electrical<small>Machinery, electrical, automation</small></span></button></div>`,{back:()=>{go('home')},foot:updFoot(false,'Next →',null,!u.dept)});
-  $('#app').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{u.dept=b.dataset.d;u.step=2;renderUpdate()});$('#ub').onclick=()=>{resetUpd();go('home')};$('#un').onclick=()=>{u.step=2;renderUpdate()};return}
- if(u.step===2){shell(title,stepSub(2),stepsBar(2)+`<div class="h2">Whose work is it?</div><div class="choice">${PERF.map(([k,l,i,s])=>`<button data-p="${k}" class="${u.perf===k?'sel':''}"><b>${i}</b><span>${l}<small>${s}</small></span></button>`).join('')}</div>`,{back:()=>{u.step=1;renderUpdate()},foot:updFoot(true,'Next →',null,!u.perf)});
-  $('#app').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{u.perf=b.dataset.p;u.step=3;renderUpdate()});$('#ub').onclick=()=>{u.step=1;renderUpdate()};$('#un').onclick=()=>{u.step=3;renderUpdate()};return}
+  $('#app').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(u.dept!==b.dataset.d){u.sec='';u.ssec=''}u.dept=b.dataset.d;u.step=2;renderUpdate()});$('#ub').onclick=()=>{resetUpd();go('home')};$('#un').onclick=()=>{u.step=2;renderUpdate()};return}
+ if(u.step===2){shell(title,stepSub(2),stepsBar(2)+`<div class="h2">Which section?</div><div class="s mut">${esc(u.dept==='Deck'?'Deck':'Engine & Electrical')} · as in the office daily report (Form 047C)</div><div class="choice">${SECS.map(([k,l,i,sd])=>`<button data-sec="${k}" class="${u.sec===k?'sel':''}"><b>${i}</b><span>Section ${k} – ${l}<small>${sd}</small></span></button>`).join('')}</div>`,{back:()=>{u.step=1;renderUpdate()},foot:updFoot(true,'Next →',null,!u.sec)});
+  const pickSec=k=>{if(u.sec!==k)u.ssec='';u.sec=k;u.perf=SECS.find(x=>x[0]===k)[4];if(k==='3'||k==='4')u.ssec=k;else{const L=subsFor(k,u.dept);if(L.length===1)u.ssec=L[0][0]}u.step=nextOf(u,2);renderUpdate()};
+  $('#app').querySelectorAll('[data-sec]').forEach(b=>b.onclick=()=>pickSec(b.dataset.sec));$('#ub').onclick=()=>{u.step=1;renderUpdate()};$('#un').onclick=()=>{if(u.sec)pickSec(u.sec)};return}
+ if(u.step===25){const L=subsFor(u.sec,u.dept);shell(title,stepSub(25),stepsBar(25)+`<div class="h2">Which sub-section?</div><div class="s mut">Section ${u.sec} – ${esc(SECS.find(x=>x[0]===u.sec)[1])}</div><div class="choice">${L.map(([k,l])=>`<button data-ssec="${k}" class="${u.ssec===k?'sel':''}"><b style="font-size:16px">${k}</b><span>${esc(l)}</span></button>`).join('')}</div>`,{back:()=>{u.step=2;renderUpdate()},foot:updFoot(true,'Next →',null,!u.ssec)});
+  $('#app').querySelectorAll('[data-ssec]').forEach(b=>b.onclick=()=>{u.ssec=b.dataset.ssec;u.step=3;renderUpdate()});$('#ub').onclick=()=>{u.step=2;renderUpdate()};$('#un').onclick=()=>{if(u.ssec){u.step=3;renderUpdate()}};return}
  if(u.step===3){shell(title,stepSub(3),stepsBar(3)+`<div class="h2">What happened?</div>
   <div class="s mut">Type, or tap the mic and speak. You can also use the mic on your phone keyboard.</div>
   <button class="mic" id="mic" aria-label="Speak">🎤</button><div class="xs mut" style="text-align:center" id="mst">${SR?'Tap to speak · tap again to stop':'Live voice typing not available in this browser – use the keyboard mic'}</div>
   <textarea id="tx" placeholder="e.g. Manhole doors for cargo tanks opened">${esc(u.text)}</textarea>
-  <div class="row" style="display:flex;gap:8px;margin-top:8px"><button class="ghost sm" id="vn">🎙️ ${u.files.some(f=>f.voice)?'Voice note saved ✔ (record again)':'Keep a voice note too'}</button></div>`,{back:()=>{u.step=2;renderUpdate()},foot:updFoot(true,'Next →')});
+  <div class="row" style="display:flex;gap:8px;margin-top:8px"><button class="ghost sm" id="vn">🎙️ ${u.files.some(f=>f.voice)?'Voice note saved ✔ (record again)':'Keep a voice note too'}</button></div>`,{back:()=>{if(u.kind==='spares'){resetUpd();go('home');return}u.step=prevOf(u,3);renderUpdate()},foot:updFoot(true,'Next →')});
   const tx=$('#tx');tx.oninput=()=>{u.text=tx.value};let rec=null;
   $('#mic').onclick=()=>{if(rec){rec.stop();return}const base=tx.value?tx.value.trim()+' ':'';
    rec=startDictation((f,i)=>{tx.value=base+f+i;u.text=tx.value},why=>{rec=null;$('#mic').classList.remove('rec');$('#mst').textContent=why==='not-allowed'||why==='service-not-allowed'?'Microphone not allowed – use the keyboard mic':'Tap to speak · tap again to stop';u.text=tx.value});
    if(rec){$('#mic').classList.add('rec');$('#mst').textContent='Listening… tap to stop'}else toast('Use the mic on your phone keyboard')};
   $('#vn').onclick=()=>voiceNote(u);
-  $('#ub').onclick=()=>{if(rec)rec.stop();u.step=2;renderUpdate()};$('#un').onclick=()=>{if(rec)rec.stop();u.text=tx.value.trim();if(!u.text&&!u.files.some(f=>f.voice)){toast('Please type or speak the update first');return}u.step=4;renderUpdate()};return}
+  $('#ub').onclick=()=>{if(rec)rec.stop();if(u.kind==='spares'){resetUpd();go('home');return}u.step=prevOf(u,3);renderUpdate()};$('#un').onclick=()=>{if(rec)rec.stop();u.text=tx.value.trim();if(!u.text&&!u.files.some(f=>f.voice)){toast('Please type or speak the update first');return}u.step=4;renderUpdate()};return}
  if(u.step===4){const cand=suggestJobs(u);shell(title,stepSub(4),stepsBar(4)+`<div class="h2">Which spec job?</div><div class="s mut">Best matches for ${esc(u.dept)} · ${esc(u.perf)} work. Tap one, or choose General.</div>
   <input id="js" placeholder="Search job by word or number…" style="margin:10px 0">
   <div class="card" id="jl" style="padding:4px 14px">${jobChoices(cand,u)}</div>`,{back:()=>{u.step=3;renderUpdate()},foot:updFoot(true,'Next →')});
@@ -505,13 +515,13 @@ function renderUpdate(){const u=UPD;if(!u.step)resetUpd();
   $('#un').onclick=()=>{keep();u.stc=(u.stc||'').trim();const bad=statusProblem(u);if(bad){toast(bad);return}u.step=8;renderUpdate()};return}
  if(u.step===8){const nph=u.files.filter(f=>!f.voice).length;shell(title,stepSub(8),stepsBar(8)+`<div class="h2">Check and send</div>
   <div class="card"><div class="kv"><div>Date & time</div><div>${today()} ${nowTime()}</div><div>By</div><div>${esc(S.user.rank)} – ${esc(S.user.name)}</div>
-  <div>Department</div><div><span class="chip ${u.dept==='Deck'?'deck':'eng'}">${esc(u.dept)}</span></div><div>Work by</div><div>${esc(u.perf||'—')}</div>
+  <div>Department</div><div><span class="chip ${u.dept==='Deck'?'deck':'eng'}">${esc(u.dept)}</span></div><div>Section</div><div>${u.ssec?esc('Section '+secLabel(u.ssec)):esc(u.perf||'—')}</div>
   <div>Spec job</div><div>${u.job?`<span class="jid">${u.job}</span> ${esc(u.jobTitle)}`:'General (no spec job)'}</div>${u.order?`<div>Requisition</div><div>${esc(u.order)}</div>`:''}
   <div>Job status</div><div>${u.job?`<span class="chip ${JST[u.jst][1]}">${esc(stText(u))}</span>${u.stc?`<div class="s" style="white-space:pre-wrap"><b>${stLabel(u)}:</b> ${esc(u.stc)}</div>`:''}`:'General – no job status'}</div><div>Update</div><div style="white-space:pre-wrap">${esc(u.text||'(voice note only)')}</div>
   <div>Attachments</div><div>${nph} photo/file(s)${u.files.some(f=>f.voice)?' + voice note':''}${imgsOf(u).map((f,i)=>`<div class="xs">Photo ${i+1}: ${esc(f.cap||'(no name)')}</div>`).join('')}</div></div></div>
   <div class="xs mut">Saved on this phone first, then sent at the next Send / Receive.</div>`,{back:()=>{u.step=prevOf(u,8);renderUpdate()},foot:updFoot(true,'✔ Save & send')});
   $('#ub').onclick=()=>{u.step=prevOf(u,8);renderUpdate()};$('#un').onclick=async()=>{$('#un').disabled=true;
-   const e={id:'e'+uid(),kind:u.kind,dept:u.dept,perf:u.perf,rank:S.user.rank,name:S.user.name,device:S.user.device,chiefEntry:isChief(),date:today(),time:nowTime(),ts:new Date().toISOString(),
+   const e={id:'e'+uid(),kind:u.kind,dept:u.dept,perf:u.perf,sec:u.kind==='update'?u.sec:'',ssec:u.kind==='update'?u.ssec:'',rank:S.user.rank,name:S.user.name,device:S.user.device,chiefEntry:isChief(),date:today(),time:nowTime(),ts:new Date().toISOString(),
     text:u.text,job:u.job||'',jobTitle:u.jobTitle||'',status:'',jst:u.job?u.jst:'',sub:u.job&&u.jst==='ip'?u.sub:'',stc:u.job?u.stc:'',cdate:u.job&&u.jst==='co'?u.cdate:'',appr:u.job&&u.jst==='ca'?u.appr:'',order:u.order||'',test:!!S.testMode,confirmed:u.kind==='spares'&&isChief(),files:u.files,deleted:false,pending:true,updated:Date.now()};
    try{await saveEntry(e)}catch(err){toast('Could not save on this phone: '+err.message+' – phone storage may be full',6000);$('#un').disabled=false;return}
    resetUpd();UPD.step=0;S.view='timeline';render();toast('📱 Saved on this phone – sending…');sendReceive('save')};return}}
@@ -567,7 +577,7 @@ function renderMeeting(){if(!canMeeting()){go('home');return}if(!MT)MT={files:[]
 let TF={dept:'All',date:''};
 function entryCard(e){const dcls=e.kind==='meeting'?'meeting':e.dept==='Deck'?'Deck':'Engine';
  const tr=e.transcript||'';const txt=e.kind==='meeting'?`🎙️ Daily meeting\n${tr?tr.slice(0,500)+(tr.length>500?'…':''):'(transcript attached as file)'}`:(e.text);
- return `<div class="entry ${dcls}"><div class="who"><b>${esc(e.time)}</b> · ${esc(e.rank)} – ${esc(e.name)} ${e.kind!=='meeting'?`<span class="chip ${e.dept==='Deck'?'deck':'eng'}">${esc(e.dept)}</span>`:''}${e.perf?`<span class="chip">${esc(e.perf)}</span>`:''}</div>
+ return `<div class="entry ${dcls}"><div class="who"><b>${esc(e.time)}</b> · ${esc(e.rank)} – ${esc(e.name)} ${e.kind!=='meeting'?`<span class="chip ${e.dept==='Deck'?'deck':'eng'}">${esc(e.dept)}</span>`:''}${e.ssec?`<span class="chip sec">${esc(secLabel(e.ssec))}</span>`:e.perf?`<span class="chip">${esc(e.perf)}</span>`:''}</div>
  <div class="txt">${esc(txt)}</div>${e.stc?`<div class="s stc"><b>${stLabel(e)}:</b> ${esc(e.stc)}</div>`:''}
  <div>${e.job?`<span class="chip" data-job="${e.job}">${e.job} ${esc((e.jobTitle||'').slice(0,40))}</span>`:''}${e.job&&JST[e.jst]?`<span class="chip ${JST[e.jst][1]}">${esc(stText(e))}</span>`:''}${e.kind==='spares'?`<span class="chip ${e.confirmed?'ok':'warn'}" data-order="${esc(e.order)}">${esc(e.order)} ${e.confirmed?'received ✔ confirmed':'received – pending Chief'}</span>`:''}
  ${e.pending?'<span class="chip warn">📱 on phone – not sent yet</span>':'<span class="chip ok">✓ in database</span>'}${(e.files||[]).some(f=>f.upErr)?'<span class="chip warn">photo retry pending</span>':''}${e.rejected?`<span class="chip bad">${esc(e.rejected)}</span>`:''}${e.test?'<span class="chip test">TEST</span>':''}${e.kind==='meeting'&&(e.transcript||'').length>500?`<button class="ghost sm" data-full="${e.id}">Read full transcript</button>`:''}</div>
@@ -585,7 +595,8 @@ function bindEntryButtons(root){root.querySelectorAll('[data-ed]').forEach(b=>b.
  root.querySelectorAll('[data-full]').forEach(b=>b.onclick=()=>{const e=S.entries.find(x=>x.id===b.dataset.full);sheet(`<div class="h2">Daily meeting ${esc(e.date)} ${esc(e.time)}</div><pre class="scope" style="max-height:none">${esc(e.transcript)}</pre>`)});
  root.querySelectorAll('[data-cf]').forEach(b=>b.onclick=async()=>{const e=S.entries.find(x=>x.id===b.dataset.cf);e.confirmed=true;e.pending=true;e.editBy=S.user.rank+' '+S.user.name;await saveEntry(e);toast('Confirmed ✔ – sending…');render();sendReceive('save')})}
 function editEntry(id){const e=S.entries.find(x=>x.id===id);const E={jst:e.jst||'',sub:e.sub||'',stc:e.stc||'',cdate:e.cdate||'',appr:e.appr||'',job:e.job};const ims=(e.files||[]).filter(f=>/^image\//.test(f.mime));
- sheet(`<div class="h2">Edit update</div><label class="l">Text</label><textarea id="etx">${esc(e.kind==='meeting'?e.transcript:e.text)}</textarea>
+ const secOpts=e.kind==='update'&&e.dept?[...subsFor('1',e.dept),...subsFor('2',e.dept),['3','Contractor jobs'],['4','Class surveys']]:[];
+ sheet(`<div class="h2">Edit update</div>${secOpts.length?`<label class="l">Section</label><select id="esec"><option value="">– not set –</option>${secOpts.map(([k,l])=>`<option value="${k}" ${e.ssec===k?'selected':''}>${k} ${esc(l)}</option>`).join('')}</select>`:''}<label class="l">Text</label><textarea id="etx">${esc(e.kind==='meeting'?e.transcript:e.text)}</textarea>
  ${e.kind!=='meeting'&&e.job?`<label class="l">Job status</label><select id="ejs">${Object.entries(JST).map(([k,[l]])=>`<option value="${k}" ${E.jst===k?'selected':''}>${l}</option>`).join('')}</select>
   <div id="esub"><label class="l">Stage</label><select id="esb"><option value="">– choose –</option>${SUBS.map(x=>`<option ${E.sub===x?'selected':''}>${esc(x)}</option>`).join('')}</select></div>
   <div id="ecd"><label class="l">Completed on</label><input type="date" id="ecdv" value="${esc(E.cdate||today())}" max="${today()}"></div>
@@ -600,6 +611,7 @@ function editEntry(id){const e=S.entries.find(x=>x.id===id);const E={jst:e.jst||
     e.jst=n.jst;e.sub=n.jst==='ip'?n.sub:'';e.stc=n.stc;e.cdate=n.jst==='co'?n.cdate:'';e.appr=n.jst==='ca'?n.appr:''}
    const ims2=ims.filter(f=>true);const caps=[...document.querySelectorAll('[data-ecap]')].map(i=>[i.dataset.ecap,i.value.trim()]);const need=Math.min(2,ims2.length);
    if(caps.filter(c=>c[1]).length<need){toast(need===1?'Please name the photo':'Please name at least 2 photos');return}caps.forEach(([fid,v])=>{const f=e.files.find(x=>x.fid===fid);if(f)f.cap=v});
+   if($('#esec')){const v=$('#esec').value;e.ssec=v;e.sec=v?v.split('.')[0]:'';if(v)e.perf=SECS.find(x=>x[0]===e.sec)[4]}
    e.text=$('#etx').value}
   e.pending=true;e.editBy=S.user.rank+' '+S.user.name;await saveEntry(e);closeSheet();render();sendReceive('save')}}
 /* ---------- status from timeline ---------- */
@@ -760,8 +772,8 @@ function shiftD(d,n){const t=new Date(d+'T12:00:00');t.setDate(t.getDate()+n);re
 let RP={from:today(),to:today()};
 function renderReports(){const ok=canReport();
  const off=[['Deck',['Ship staff daily work done report','Ship staff photo album','Yard job report','Yard job photo album','Service engineer job report','Service engineer photo album']],['Engine & Electrical',['Ship staff daily work done report','Ship staff photo album','Yard job report','Yard job photo album','Service engineer job report','Service engineer photo album']]];
- shell('Reports',ok?'Word reports with photos':'Only Chief, Master, C/O, 2/E and VM can generate',`
- ${ok?'':'<div class="banner">Reports can be generated by the Chief Engineer, Master, Chief Officer, Second Engineer and Vessel Manager. You can still see the full Timeline.</div>'}
+ shell('Reports',ok?'Word reports with photos':'Only Chief, Master, C/O, 2/E, ETO and VM can generate',`
+ ${ok?'':'<div class="banner">Reports can be generated by the Chief Engineer, Master, Chief Officer, Second Engineer, Electrical Engineer and Vessel Manager. You can still see the full Timeline.</div>'}
  <div class="card"><div class="h2" style="margin-top:0">Daily reports for records</div><div class="s mut">All entries by time, with S.No, date &amp; time, rank &amp; name, description and photos. A4 portrait Word file. Meetings are included.</div>
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><div style="min-width:0"><label class="l">From</label><input type="date" id="rf" value="${RP.from}"></div><div style="min-width:0"><label class="l">To</label><input type="date" id="rt" value="${RP.to}"></div></div>
  <div style="display:flex;gap:10px;margin-top:12px"><button id="rD" style="flex:1" ${ok?'':'disabled'}>⚓ Deck report</button><button id="rE" style="flex:1;background:var(--eng)" ${ok?'':'disabled'}>⚙️ Engine report</button></div>
@@ -772,8 +784,8 @@ function renderReports(){const ok=canReport();
  ${(()=>{const c={};live().forEach(e=>{const ids=new Set([e.job,...((String(e.text||'')+' '+String(e.transcript||'')).match(/\b\d{3}\.\d{2}\b/g)||[])].filter(x=>x&&J[x]));ids.forEach(x=>c[x]=(c[x]||0)+1)});const top=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,15);return top.length?`<div class="xs mut" style="margin-top:8px">Jobs with updates:</div><div>${top.map(([k,n])=>`<span class="chip" data-rj="${k}" style="cursor:pointer">${k} (${n})</span>`).join('')}</div>`:'<div class="xs mut" style="margin-top:8px">No job has updates yet.</div>'})()}
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px"><div style="min-width:0"><label class="l">From (optional)</label><input type="date" id="rjf" value="${RP.jf||''}"></div><div style="min-width:0"><label class="l">To (optional)</label><input type="date" id="rjt" value="${RP.jt||''}"></div></div>
  <button id="rJ" style="width:100%;margin-top:12px" ${ok?'':'disabled'}>🔧 Generate job report</button><div class="xs mut" id="rjm" style="margin-top:8px"></div></div>
- <div class="card"><div class="h2" style="margin-top:0">Office reports</div><div class="banner info">Waiting for the office daily report template from the Chief Engineer. These will be switched on when it is added.</div>
- ${off.map(([d,l])=>`<div class="s" style="font-weight:700;margin:10px 0 4px">${d}</div>${l.map(x=>`<button class="ghost sm" disabled style="margin:3px">${x}</button>`).join('')}`).join('')}</div>
+ <div class="card"><div class="h2" style="margin-top:0">📋 Office daily report – Form 047C</div><div class="s mut">OSM Thome Dry-docking Daily Report for one date: time sheet, site team, Sections 1–4 and Section 5 photo report. The app asks the open questions first.</div>
+ <button id="rO" style="width:100%;margin-top:10px" ${ok?'':'disabled'}>📋 Make office report</button></div>
  <div class="card"><b>Automatic daily email</b><div class="s mut">Sent to the Chief Engineer every day at ${pad(S.reportHour)}:00 ship time.${isChief()?' Change it in Settings.':''}</div></div>`);
  $('#rf').onchange=e=>{RP.from=e.target.value;if(RP.to<RP.from){RP.to=RP.from;$('#rt').value=RP.to}};$('#rt').onchange=e=>{RP.to=e.target.value};
  const gen=async dept=>{if(!navigator.onLine){toast('Needs internet');return}if(RP.to<RP.from){toast('"To" date is before "From"');return}const m=$('#rmsg');$('#rD').disabled=$('#rE').disabled=true;
@@ -782,7 +794,7 @@ function renderReports(){const ok=canReport();
    if(r.b64){const b=b64ToBlob(r.b64,'application/vnd.openxmlformats-officedocument.wordprocessingml.document');downloadBlob(b,r.name);m.innerHTML='✔ '+esc(r.name)+' downloaded. Also saved in Google Drive › Reports.'}
    else{m.innerHTML='✔ Report is large – <a href="'+esc(r.url)+'" target="_blank" rel="noopener">open it from Google Drive</a>'}}
   catch(e){m.textContent='Report failed: '+e.message}finally{$('#rD').disabled=$('#rE').disabled=!ok}};
- $('#rD').onclick=()=>gen('Deck');$('#rE').onclick=()=>gen('Engine');
+ $('#rO').onclick=startOffice;$('#rD').onclick=()=>gen('Deck');$('#rE').onclick=()=>gen('Engine');
  const rj=$('#rj');rj.oninput=()=>{RP.job=rj.value.trim();$('#rjn').textContent=J[RP.job]?J[RP.job].title:(RP.job.length>=6?'Not a DD spec job number':'')};
  $('#app').querySelectorAll('[data-rj]').forEach(c=>c.onclick=()=>{rj.value=c.dataset.rj;rj.oninput()});
  $('#rjf').onchange=e=>{RP.jf=e.target.value};$('#rjt').onchange=e=>{RP.jt=e.target.value};
@@ -839,6 +851,7 @@ function renderSettings(){const all=S.entries.length;
  <button class="danger" id="purge" style="width:100%;margin-top:10px">🗑 Delete ALL test entries and their photos</button><div class="xs mut" style="margin-top:4px">Removes them from Google Sheet, Drive and every phone, and switches Test mode OFF. Cannot be undone.</div></div>`:''}
  ${isChief()?`<div class="card"><b>Daily email time (ship time)</b><div style="display:flex;gap:8px;margin-top:8px"><select id="rh">${[...Array(24).keys()].map(h=>`<option value="${h}" ${h===S.reportHour?'selected':''}>${pad(h)}:00</option>`).join('')}</select><button id="rhs">Save</button></div></div>`:''}
  ${isChief()?'<div class="card"><b>✏️ Home screen layout</b><div class="s mut">Ship photo, tile order and size, text size, credit line, app icon. Saved for all phones.</div><button id="edl2" style="width:100%;margin-top:8px">Edit home screen</button></div>':''}
+ ${isChief()||role()==='master'?`<div class="card"><b>📋 Office report – time sheet</b><div class="s mut">Correct EOSP / Moored / Dock-in / Dock-out / Unmoored / COSP (local time). Needs internet.</div><button class="ghost" id="otsb" style="width:100%;margin-top:8px">Correct time sheet</button></div>`:''}
  <div class="card"><b>📲 Install / share the app</b><div class="s mut">${ENV.standalone?'This phone uses the installed app.':'Not installed on this phone yet.'}</div><div style="display:flex;gap:8px;margin-top:8px"><button id="ihelp" style="flex:1">Install help</button><button class="ghost" id="ishare" style="flex:1">Share app link</button></div></div>
  <div class="card"><b>Appearance</b><div class="seg">${[['','Auto'],['light','Light'],['dark','Dark']].map(([v,l])=>`<button data-th="${v}">${l}</button>`).join('')}</div></div>
  <div class="card"><button class="ghost" id="rr" style="width:100%">⟳ Re-download drydock records</button><button class="ghost" id="bk2" style="width:100%;margin-top:8px">⬇ Backup my entries (file)</button>
@@ -849,7 +862,7 @@ function renderSettings(){const all=S.entries.length;
    b.disabled=true;b.textContent='Deleting…';try{await sendReceive(false);const r=await api('purgeTest',{},300000);for(const e of S.entries.filter(x=>x.test||r.ids.includes(x.id))){for(const f of (e.files||[]))await DB.del('blobs',f.fid);await DB.del('entries',e.id)}
     S.entries=await DB.all('entries');rebuildEntryIdx();S.testMode=false;await DB.put('kv',false,'testMode');toast(`✅ Deleted ${r.deleted} test entries and ${r.files} files. App is now LIVE.`,5000,true);renderSettings()}catch(e){toast(e.message);b.disabled=false}}}
  $('#app').querySelectorAll('[data-th]').forEach(b=>b.onclick=async()=>{const v=b.dataset.th;if(v)document.documentElement.setAttribute('data-theme',v);else document.documentElement.removeAttribute('data-theme');await DB.put('kv',v,'theme')});
- $('#rr').onclick=()=>{S.view='home';fetchRecords()};if($('#edl2'))$('#edl2').onclick=startEdit;$('#ihelp').onclick=doInstall;$('#ishare').onclick=async()=>{const u=location.href.split('#')[0].split('?')[0];const t='Front Duke DD 2026 crew app. Open in Chrome (Android) or Safari (iPhone), then tap 📲 Install: '+u;try{if(navigator.share){await navigator.share({title:'Duke DD app',text:t,url:u});return}}catch(e){return}try{await navigator.clipboard.writeText(t);toast('Link copied – paste it in WhatsApp')}catch(e){toast(u,8000)}};
+ $('#rr').onclick=()=>{S.view='home';fetchRecords()};if($('#edl2'))$('#edl2').onclick=startEdit;$('#ihelp').onclick=doInstall;if($('#otsb'))$('#otsb').onclick=openTsEdit;$('#ishare').onclick=async()=>{const u=location.href.split('#')[0].split('?')[0];const t='Front Duke DD 2026 crew app. Open in Chrome (Android) or Safari (iPhone), then tap 📲 Install: '+u;try{if(navigator.share){await navigator.share({title:'Duke DD app',text:t,url:u});return}}catch(e){return}try{await navigator.clipboard.writeText(t);toast('Link copied – paste it in WhatsApp')}catch(e){toast(u,8000)}};
  $('#bk2').onclick=()=>downloadBlob(new Blob([JSON.stringify({exported:new Date().toISOString(),user:{rank:S.user.rank,name:S.user.name},entries:S.entries},null,1)],{type:'application/json'}),'FrontDuke_DD2026_backup_'+today()+'.json');
  $('#lo').onclick=async()=>{if(pending()){toast('Send / Receive first – '+pending()+' update(s) not sent',4000);return}if(!$('#lo').dataset.c){$('#lo').dataset.c=1;$('#lo').textContent='Tap again to log out';return}await DB.del('kv','user');S.user=null;ED=null;render()}}
 /* ================= home-screen layout (Chief edits, all phones get it) ================= */
@@ -982,7 +995,7 @@ function chatMsgHTML(e,prevDate){const me=isMine(e);const can=!e.deleted&&(me||i
  return day+`<div class="cm ${me?'me':''}" data-cid="${e.id}"><div class="cb${(e.mentions||[]).includes(S.user.rank)&&!me?' tome':''}">
   <div class="cw">${me?'You':esc(e.rank+' – '+e.name)} · ${esc(e.time)}${e.test?' <span class="chip test">TEST</span>':''}</div>
   ${e.text?`<div class="ct">${mentionHTML(e.text)}</div>`:''}
-  ${ims.length?`<div class="cmedia">${ims.map(f=>/^video\//.test(f.mime)?`<div class="cv" data-cvid="${f.fid}" data-e="${e.id}">🎬 Video<br><small>tap to play</small></div>`:`<div class="m" data-e="${e.id}" data-fid="${f.fid}">…</div>`).join('')}</div>`:''}
+  ${ims.length?`<div class="cmedia">${ims.map(f=>/^video\//.test(f.mime)?`<div class="cv" data-cvid="${f.fid}" data-e="${e.id}">🎬 Video<br><small>tap to play</small></div>`:/^image\//.test(f.mime)?`<div class="m" data-e="${e.id}" data-fid="${f.fid}">…</div>`:`<div class="cfile" data-cfile="${f.fid}" data-e="${e.id}"><b>📄</b><span>${esc(f.name||'file')}<small>${f.size?(f.size/1048576).toFixed(1)+' MB · ':''}tap to download</small></span></div>`).join('')}</div>`:''}
   <div class="cs">${e.pending?'🕓 waiting to send':e.rejected?'⚠ '+esc(e.rejected):'✓'}</div>
   ${can?`<button class="cdel${CH.delOpen===e.id?'':' hidden'}" data-cdel="${e.id}"${CH.delArm===e.id?' data-c="1"':''}>${CH.delArm===e.id?'Tap again to delete':'🗑 Delete'}</button>`:''}</div></div>`}
 function chatListHTML(){const L=chats();const s=L.slice(-CH.show);let pd='';
@@ -1006,9 +1019,11 @@ function renderChat(){
 function scrollChat(){requestAnimationFrame(()=>window.scrollTo(0,document.body.scrollHeight))}
 function bindChatList(){const cl=$('#cl');if(!cl)return;
  if($('#cmore'))$('#cmore').onclick=()=>{CH.show+=150;$('#cl').innerHTML=chatListHTML();bindChatList()};
- cl.querySelectorAll('.cb').forEach(b=>b.onclick=ev=>{if(ev.target.closest('.m,.cv,[data-cdel]'))return;const d=b.querySelector('[data-cdel]');if(d){d.classList.toggle('hidden');CH.delOpen=d.classList.contains('hidden')?'':d.dataset.cdel;CH.delArm=''}});
+ cl.querySelectorAll('.cb').forEach(b=>b.onclick=ev=>{if(ev.target.closest('.m,.cv,.cfile,[data-cdel]'))return;const d=b.querySelector('[data-cdel]');if(d){d.classList.toggle('hidden');CH.delOpen=d.classList.contains('hidden')?'':d.dataset.cdel;CH.delArm=''}});
  cl.querySelectorAll('[data-cdel]').forEach(b=>b.onclick=async()=>{if(!b.dataset.c){b.dataset.c=1;CH.delArm=b.dataset.cdel;b.textContent='Tap again to delete';return}CH.delOpen='';CH.delArm='';
   const e=S.entries.find(x=>x.id===b.dataset.cdel);e.deleted=true;e.pending=true;e.editBy=S.user.rank+' '+S.user.name;await saveEntry(e);refreshChat();sendReceive(false)});
+ cl.querySelectorAll('[data-cfile]').forEach(v=>v.onclick=async()=>{const e=S.entries.find(x=>x.id===v.dataset.e);const f=e&&e.files.find(x=>x.fid===v.dataset.cfile);if(!f)return;const sm=v.querySelector('small');sm.textContent='⏳ downloading…';
+  const u=await fileURL(f);if(!u){sm.textContent='not downloaded – needs internet';return}const a=document.createElement('a');a.href=u;a.download=f.name||'file';document.body.appendChild(a);a.click();a.remove();sm.textContent='✔ downloaded – tap to download again'});
  cl.querySelectorAll('[data-cvid]').forEach(v=>v.onclick=async()=>{const e=S.entries.find(x=>x.id===v.dataset.e);const f=e&&e.files.find(x=>x.fid===v.dataset.cvid);if(!f)return;v.innerHTML='⏳ loading…';
   const u=await fileURL(f);if(!u){v.innerHTML='🎬 Video<br><small>not downloaded – needs internet</small>';return}v.outerHTML=`<video src="${u}" controls playsinline class="cvid"></video>`});
  fillMinis(cl)}
@@ -1050,6 +1065,84 @@ async function chatPoll(){if(!S.user||!D||document.visibilityState!=='visible'||
  if(pending()){sendReceive(false);return}
  try{const r=await api('poll',{},15000);if(r&&r.stamp&&r.stamp>S.since+5000)sendReceive(false)}catch(e){}}
 setInterval(chatPoll,15000);
+/* ================= office daily report – Form 047C ================= */
+const TSK=[['moored','Moored at Shipyard'],['eosp','EOSP'],['dockin','Dock-in'],['dockout','Dock-out'],['unmoored','Unmoored from Shipyard'],['cosp','COSP']];
+const SITEK=[['vm','Vessel Manager'],['owner','Owner’s Representative'],['aes','Assistant Engineer Superintendent'],['ase','Assistant Superintendent Electrical'],['hsse','HSSE Officer']];
+let OF=null;
+const tsShow=v=>v?v.slice(8,10)+'-'+v.slice(5,7)+'-'+v.slice(0,4)+' / '+v.slice(11,16)+' Hrs':'—';
+const dmyOf=d=>d.slice(8,10)+'-'+d.slice(5,7)+'-'+d.slice(0,4);
+function dayOf(date,moored){if(!moored)return '--';const n=Math.round((Date.UTC(+date.slice(0,4),+date.slice(5,7)-1,+date.slice(8,10))-Date.UTC(+moored.slice(0,4),+moored.slice(5,7)-1,+moored.slice(8,10)))/86400000);return n<0?'--':(n<10?'0'+n:String(n))}
+const WMO={0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Fog',48:'Fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',56:'Freezing drizzle',57:'Freezing drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',66:'Freezing rain',67:'Freezing rain',71:'Light snow',73:'Snow',75:'Heavy snow',77:'Snow grains',80:'Rain showers',81:'Rain showers',82:'Heavy rain showers',85:'Snow showers',86:'Snow showers',95:'Thunderstorm',96:'Thunderstorm with hail',99:'Thunderstorm with hail'};
+async function autoWeather(date){const u=`https://api.open-meteo.com/v1/forecast?latitude=30.0&longitude=122.1&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max&wind_speed_unit=kn&timezone=Asia%2FShanghai&start_date=${date}&end_date=${date}`;
+ const r=await fetch(u);if(!r.ok)throw new Error('weather service '+r.status);const j=await r.json();const d=j.daily;if(!d||!d.time||!d.time.length)throw new Error('no data');
+ const c=d.weather_code[0],lo=Math.round(d.temperature_2m_min[0]),hi=Math.round(d.temperature_2m_max[0]),w=Math.round(d.wind_speed_10m_max[0]);
+ return `${WMO[c]||'Weather code '+c} / ${hi}°C`}
+function startOffice(){if(!canReport()){toast('Only report ranks can make the office report');return}OF={step:'date',date:today(),ts:{},site:null,siteEdited:false};go('office')}
+function renderOffice(){if(!OF){go('reports');return}const o=OF;const back=()=>{go('reports')};
+ const foot=(next,lbl,extra)=>`<div class="foot">${extra||''}<button id="ofn" style="flex:2">${lbl||'Next →'}</button></div>`;
+ const page=(sub,html,f)=>shell('Office report · Form 047C',sub,html,{back:o.prev||back,foot:f});
+ if(o.step==='date'){page('Report date',`<div class="h2">Which date is this report for?</div><input type="date" id="odt" value="${o.date}" max="${today()}"><div class="xs mut" style="margin-top:8px">All Section updates posted with this date (00:00–23:59) go into the report. Needs internet.</div><div class="xs mut" id="ost" style="margin-top:8px"></div>`,foot());
+  $('#ofn').onclick=async()=>{o.date=$('#odt').value||today();if(o.date>today()){toast('Date cannot be in the future');return}if(!navigator.onLine){toast('Needs internet');return}
+   $('#ofn').disabled=true;$('#ost').textContent='Loading time sheet and site team…';
+   try{await sendReceive(false);const r=await api('officeGet',{},60000);o.data=r.data;const day=o.data.days[o.date];o.again=!!day;o.weather=day?day.weather:'';o.site=JSON.parse(JSON.stringify(o.data.site));
+    o.tsq=TSK.map(k=>k[0]).filter(k=>!o.data.ts[k]);o.step=o.again?'again':'weather';renderOffice()}catch(e){$('#ost').textContent='Could not load: '+e.message;$('#ofn').disabled=false}};return}
+ if(o.step==='again'){const s=o.data.site;page(`Day ${dayOf(o.date,o.data.ts.moored)} · ${dmyOf(o.date)}`,`<div class="banner info">A report for ${dmyOf(o.date)} was already made by ${esc(o.data.days[o.date].by)}. The same answers will be used.</div>
+  <div class="kv"><div>Weather</div><div>${esc(o.weather||'—')}</div>${SITEK.map(([k,l])=>`<div>${esc(l)}</div><div>${esc(s[k]||'—')}</div>`).join('')}${(s.other||[]).map(r=>`<div>${esc(r.d)}</div><div>${esc(r.n)}</div>`).join('')}</div>
+  <div class="h2">Any changes?</div><div class="seg"><button id="agy">Yes, change</button><button id="agn" class="on">No changes</button></div>`,'');
+  $('#agy').onclick=()=>{o.step='weather';renderOffice()};$('#agn').onclick=()=>{o.noSite=true;o.step=o.tsq.length?'ts':'gen';o.tsi=0;renderOffice()};return}
+ if(o.step==='weather'){page('Weather',`<div class="h2">Weather – ${dmyOf(o.date)}</div><div class="s mut">Filled from the web for Zhoushan. Correct it if needed.</div><textarea id="owx" rows="2" placeholder="e.g. Intermittent rain / 10°C">${esc(o.weather)}</textarea><div class="xs mut" id="owm" style="margin-top:6px"></div><button class="ghost sm" id="owr" style="margin-top:6px">↻ Get from web again</button>`,foot());
+  const get=async()=>{$('#owm').textContent='Getting weather…';try{const w=await autoWeather(o.date);$('#owx').value=w;o.weather=w;$('#owm').textContent='From open-meteo.com (Zhoushan). You can edit it.'}catch(e){$('#owm').textContent='Could not get weather from the web – please type it.'}};
+  if(!o.weather)get();$('#owr').onclick=get;$('#owx').oninput=e=>{o.weather=e.target.value};
+  $('#ofn').onclick=()=>{o.weather=$('#owx').value.trim();if(!o.weather){toast('Please enter the weather');return}o.tsi=0;o.step=o.tsq.length?'ts':'site';renderOffice()};return}
+ if(o.step==='ts'){const k=o.tsq[o.tsi],L=TSK.find(x=>x[0]===k)[1];const v=o.ts[k]||'';
+  page(`Time sheet ${o.tsi+1} of ${o.tsq.length}`,`<div class="h2">${esc(L)}</div><div class="s mut">Date and time (local). ${k==='moored'?'Day 0 of the report counts from this date. ':''}Once saved it stays fixed – Chief or Master can correct it in Settings.</div>
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><div style="min-width:0"><label class="l">Date</label><input type="date" id="otd" value="${v.slice(0,10)}" max="${today()}"></div><div style="min-width:0"><label class="l">Time</label><input type="time" id="ott" value="${v.slice(11,16)}"></div></div>`,
+   foot(0,'Save & next →','<button class="ghost" id="ofs" style="flex:1">Skip</button>'));
+  const nxt=()=>{o.tsi++;if(o.tsi>=o.tsq.length)o.step=o.noSite?'gen':'site';renderOffice()};
+  $('#ofs').onclick=()=>{delete o.ts[k];nxt()};
+  $('#ofn').onclick=()=>{const d=$('#otd').value,t=$('#ott').value;if(!d||!t){toast('Enter both date and time, or tap Skip');return}if(d>today()){toast('Date cannot be in the future');return}o.ts[k]=d+' '+t;if(k==='moored')o.data.ts.moored=o.ts[k];nxt()};return}
+ if(o.step==='site'){if(!o.data.siteDone){o.step='siteAll';renderOffice();return}
+  page('Site team',`<div class="h2">Any changes in site team attendance?</div><div class="kv">${SITEK.map(([k,l])=>`<div>${esc(l)}</div><div>${esc(o.site[k]||'—')}</div>`).join('')}${(o.site.other||[]).map(r=>`<div>${esc(r.d)}</div><div>${esc(r.n)}</div>`).join('')}</div>
+   <div class="seg" style="margin-top:12px"><button id="scy">Yes</button><button id="scn">No</button></div>`,'');
+  $('#scy').onclick=()=>{o.step='siteTabs';renderOffice()};$('#scn').onclick=()=>{o.step='gen';renderOffice()};return}
+ if(o.step==='siteAll'){page('Site team (asked once)',`<div class="h2">Site team</div><div class="s mut">Asked once. Later you will only be asked "Any changes?".</div>
+   ${SITEK.map(([k,l])=>`<label class="l">${esc(l)}</label><input data-sk="${k}" value="${esc(o.site[k]||'')}" placeholder="Name (leave empty if none)">`).join('')}
+   <div class="h2" style="font-size:16px">Other…</div><div id="oth">${othHTML()}</div><button class="ghost sm" id="oadd" style="margin-top:6px">+ Add other person</button>`,foot());
+  bindOth();$('#app').querySelectorAll('[data-sk]').forEach(i=>i.oninput=()=>{o.site[i.dataset.sk]=i.value});
+  $('#ofn').onclick=()=>{readOth();o.siteEdited=true;o.step='gen';renderOffice()};return}
+ if(o.step==='siteTabs'){page('Site team – change',`<div class="h2">Which one changed?</div><div class="choice">${SITEK.map(([k,l])=>`<button data-stab="${k}"><b>👤</b><span>${esc(l)}<small>${esc(o.site[k]||'— empty —')}</small></span></button>`).join('')}<button data-stab="other"><b>➕</b><span>Other…<small>${(o.site.other||[]).length?esc(o.site.other.map(r=>r.d+': '+r.n).join(' · ')):'— none —'}</small></span></button></div>`,'');
+  $('#app').querySelectorAll('[data-stab]').forEach(b=>b.onclick=()=>{o.tab=b.dataset.stab;o.step='siteEdit';renderOffice()});return}
+ if(o.step==='siteEdit'){const k=o.tab;const L=k==='other'?'Other…':SITEK.find(x=>x[0]===k)[1];
+  page('Site team – change',`<div class="h2">${esc(L)}</div>${k==='other'?`<div id="oth">${othHTML()}</div><button class="ghost sm" id="oadd" style="margin-top:6px">+ Add other person</button>`:`<label class="l">Name (leave empty if not attending)</label><input id="sev" value="${esc(o.site[k]||'')}">`}`,foot(0,'Save'));
+  if(k==='other')bindOth();
+  $('#ofn').onclick=()=>{if(k==='other')readOth();else o.site[k]=$('#sev').value.trim();o.siteEdited=true;o.step='siteMore';renderOffice()};return}
+ if(o.step==='siteMore'){page('Site team – change',`<div class="h2">Any more changes?</div><div class="seg"><button id="smy">Yes</button><button id="smn">No – save</button></div>`,'');
+  $('#smy').onclick=()=>{o.step='siteTabs';renderOffice()};$('#smn').onclick=()=>{o.step='gen';renderOffice()};return}
+ if(o.step==='gen'){const ts=Object.assign({},o.data.ts);TSK.forEach(([k])=>{if(!ts[k]&&o.ts[k])ts[k]=o.ts[k]});const day=dayOf(o.date,ts.moored);
+  const n=live().filter(e=>e.kind==='update'&&e.date===o.date&&e.ssec).length;
+  page(`Day ${day} · ${dmyOf(o.date)}`,`<div class="h2">Make the report</div><div class="kv"><div>File</div><div>Form 047C - Day ${day} - ${dmyOf(o.date)} - Dry-docking Daily Report.docx</div><div>Weather</div><div>${esc(o.weather||'—')}</div>
+   ${TSK.map(([k,l])=>`<div>${esc(l)}</div><div>${tsShow(ts[k])}</div>`).join('')}<div>Section updates</div><div>${n} on this phone for ${dmyOf(o.date)}</div></div>
+   <div class="xs mut" style="margin-top:8px">Schedule and Finance are left empty. Photos: 2 per row, 9.1 × 6.9 cm, comment under each, grouped by sub-section in Section 5.</div><div class="xs mut" id="ogm" style="margin-top:8px"></div>`,foot(0,'📄 Make office report'));
+  $('#ofn').onclick=async()=>{const m=$('#ogm');$('#ofn').disabled=true;try{m.textContent='Sending latest updates…';await sendReceive(false);m.textContent='Building the report with photos – this can take a minute…';
+    const tr=await fetch('form047c.docx');if(!tr.ok)throw new Error('template file missing – upload form047c.docx to GitHub');const tb=await blobToB64(await tr.blob());
+    const r=await api('office',{date:o.date,weather:o.weather,ts:o.ts,site:o.siteEdited?o.site:null,tpl:tb},360000);o.res=r;
+    if(r.b64)downloadBlob(b64ToBlob(r.b64,'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),r.name);o.step='done';renderOffice()}
+   catch(e){m.textContent='Report failed: '+e.message;$('#ofn').disabled=false}};return}
+ if(o.step==='done'){const r=o.res;page('Done',`<div class="banner ok">✅ ${esc(r.name)} ${r.b64?'downloaded to this phone.':'is large – open it from Google Drive.'} Also saved in Google Drive › Reports › Office 047C.</div>
+  ${r.big?`<a class="btn" href="${esc(r.url)}" target="_blank" rel="noopener" style="margin-bottom:10px">Open in Google Drive</a>`:''}
+  <button id="osc" style="width:100%">💬 Send to chat</button><div class="xs mut" style="margin-top:6px">Everyone can then tap it in Chat to download it.</div>`,`<div class="foot"><button class="ghost" id="ofn" style="flex:1">Back to Reports</button></div>`);
+  $('#ofn').onclick=()=>{OF=null;go('reports')};
+  $('#osc').onclick=async()=>{const e={id:'c'+uid(),kind:'chat',dept:'',perf:'',job:'',jobTitle:'',status:'',rank:S.user.rank,name:S.user.name,device:S.user.device,date:today(),time:nowTime(),ts:new Date().toISOString(),
+    text:'📄 Office daily report: '+r.name,mentions:[],files:[{fid:'r'+uid(),name:r.name,mime:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',driveId:r.driveId,size:r.size}],test:!!S.testMode,deleted:false,pending:true,updated:Date.now()};
+   await saveEntry(e);sendReceive(false);$('#osc').disabled=true;$('#osc').textContent='✔ Sent to chat';toast('Report sent to chat',3000,true)};return}}
+async function openTsEdit(){if(!navigator.onLine){toast('Needs internet');return}let d;try{d=(await api('officeGet',{},60000)).data}catch(e){toast('Could not load: '+e.message);return}
+ sheet(`<div class="h2">Correct time sheet</div><div class="s mut">Local time. Clear both boxes to make a row blank again.</div>${TSK.map(([k,l])=>{const v=d.ts[k]||'';return `<label class="l">${esc(l)}</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><input type="date" data-tsd="${k}" value="${v.slice(0,10)}"><input type="time" data-tst="${k}" value="${v.slice(11,16)}"></div>`}).join('')}<button id="tsv" style="width:100%;margin-top:14px">Save</button>`);
+ $('#tsv').onclick=async()=>{const ts={};for(const [k,l] of TSK){const dd=document.querySelector(`[data-tsd="${k}"]`).value,tt=document.querySelector(`[data-tst="${k}"]`).value;if(!!dd!==!!tt){toast(l+': enter both date and time, or clear both');return}ts[k]=dd?dd+' '+tt:''}
+  try{await api('officeTs',{ts},60000);closeSheet();toast('✔ Time sheet saved',3000,true)}catch(e){toast('Not saved: '+e.message)}}}
+function othHTML(){return (OF.site.other||[]).map((r,i)=>`<div class="othr" style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-top:6px"><input data-od="${i}" value="${esc(r.d)}" placeholder="Designation"><input data-on="${i}" value="${esc(r.n)}" placeholder="Name"><button class="ghost sm" data-orm="${i}">✕</button></div>`).join('')||'<div class="xs mut">None</div>'}
+function readOth(){const L=[];document.querySelectorAll('#oth .othr').forEach(r=>{const d=r.querySelector('[data-od]').value.trim(),n=r.querySelector('[data-on]').value.trim();if(d||n)L.push({d:d||'Other',n})});OF.site.other=L}
+function bindOth(){const b=()=>{$('#oth').innerHTML=othHTML();bindOth()};$('#oadd').onclick=()=>{readOth();OF.site.other.push({d:'',n:''});b()};document.querySelectorAll('[data-orm]').forEach(x=>x.onclick=()=>{readOth();OF.site.other.splice(+x.dataset.orm,1);b()})}
+function blobToB64(b){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(b)})}
 /* ================= boot ================= */
 let SWREG=null;
 async function boot(){try{await loadState()}catch(e){$('#app').innerHTML='<div style="padding:20px">This browser blocks offline storage (private mode?). Open the app in normal Safari/Chrome.</div>';return}
