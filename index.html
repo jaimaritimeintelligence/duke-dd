@@ -50,7 +50,7 @@ main{zoom:var(--z,1)}
 .pk img{width:72px;height:52px;object-fit:cover;border-radius:8px;display:block}.pk .gal{width:72px;height:52px;display:flex;align-items:center;justify-content:center;font-size:26px}.pk.on{border-color:var(--sea)}
 .tiles.ts-s .tile{padding:9px 4px;font-size:11.5px}.tiles.ts-s .tile b{font-size:19px}.tiles.ts-l .tile{padding:22px 8px;font-size:15px}.tiles.ts-l .tile b{font-size:34px}
 .tiles.editing .tile{position:relative;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;border-style:dashed}.tiles.editing .tile.drag{opacity:.55;transform:scale(1.06);box-shadow:0 8px 20px rgba(0,0,0,.25);border-color:var(--sea)}
-.tiles.editing .tile.hid{opacity:.4}.tile .eye{position:absolute;top:3px;right:4px;font-size:15px;cursor:pointer;padding:2px}.tile .eye.lock{cursor:default;opacity:.6}
+.tiles.editing .tile.hid{opacity:.4}.tile .eye{position:absolute;top:3px;right:4px;font-size:15px;cursor:pointer;padding:2px}.tile .eye.lock{cursor:default;opacity:.6}.ren{position:absolute;bottom:3px;right:5px;font-size:12px;opacity:.75;pointer-events:none}.bigbtn{position:relative}
 .icbox{position:relative;width:min(260px,70vw);aspect-ratio:1;margin:8px auto 0;border-radius:22%;overflow:hidden;touch-action:none;cursor:grab;background:#0b2942}.icbox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .icsafe{position:absolute;inset:10%;border:2px dashed rgba(255,255,255,.85);border-radius:50%;pointer-events:none}
 .aj{border-top:1px solid var(--line);padding:12px 0 10px}.aj:first-of-type{border-top:0}.ajt{cursor:pointer;font-size:15.5px;line-height:1.35}.ajb{font-size:13.5px;color:var(--mut);margin:4px 0 8px;line-height:1.4}
@@ -209,7 +209,7 @@ async function instDiag(){const el=$('#instDiag');if(!el)return;const row=(ok,t,
  $('#dcopy').onclick=()=>{const t=rep+'\n'+el.innerText.replace('Copy this check for Chief','');try{navigator.clipboard.writeText(t);toast('Copied – paste it in WhatsApp to the Chief')}catch(e){toast('Copy not allowed on this phone')}}}
 "use strict";
 /* ================= constants ================= */
-const VERSION='2.3.0';
+const VERSION='2.3.1';
 const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
 const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
 const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager'];
@@ -922,24 +922,29 @@ function renderSettings(){const all=S.entries.length;
  $('#bk2').onclick=()=>downloadBlob(new Blob([JSON.stringify({exported:new Date().toISOString(),user:{rank:S.user.rank,name:S.user.name},entries:S.entries},null,1)],{type:'application/json'}),'FrontDuke_DD2026_backup_'+today()+'.json');
  $('#lo').onclick=async()=>{if(pending()){toast('Send / Receive first – '+pending()+' update(s) not sent',4000);return}if(!$('#lo').dataset.c){$('#lo').dataset.c=1;$('#lo').textContent='Tap again to log out';return}await DB.del('kv','user');S.user=null;ED=null;render()}}
 /* ================= home-screen layout (Chief edits, all phones get it) ================= */
-const LDEF={photo:'duke.jpg',px:50,py:50,zoom:1,photoH:230,order:['chat','sreports','meeting','timeline','spares','jobs','reports','photos','settings'],hidden:[],tileSize:'m',cols:3,textScale:100,creditSize:10.5,creditAlign:'right',swapBig:false};
+const LDEF={photo:'duke.jpg',px:50,py:50,zoom:1,photoH:230,order:['chat','sreports','meeting','timeline','spares','jobs','reports','photos','settings'],hidden:[],tileSize:'m',cols:3,textScale:100,creditSize:10.5,creditAlign:'right',swapBig:false,names:{}};
 const BUILTIN=[['ship1.jpg','Side view'],['duke.jpg','Bow quarter'],['ship3.jpg','Bow-on']];
+const BIGDEF={ask:'Ask me anything',askSub:'Jobs, spares, who does what',upd:'Update',updSub:'Voice or text + photos'};
+const NMAX={askSub:50,updSub:50};
 const TILEDEF={chat:['💬','Chat'],sreports:['📑','Service reports'],meeting:['🎙️','Daily meeting',()=>canMeeting()],timeline:['🕒','Timeline'],spares:['📦','Spares'],jobs:['🔧','Jobs'],reports:['📄','Reports'],photos:['🗂️','Extract photos',()=>canExtract()],settings:['⚙️','Settings']};
 let ED=null,IC=null;
 function lay(){const L=Object.assign({},LDEF,S.layout||{});const known=Object.keys(TILEDEF);
  L.order=(L.order||[]).filter(k=>known.includes(k));known.forEach(k=>{if(!L.order.includes(k))L.order.push(k)});
  L.hidden=(L.hidden||[]).filter(k=>k!=='settings');L.px=Number.isFinite(+L.px)?clamp(+L.px,0,100):50;L.py=Number.isFinite(+L.py)?clamp(+L.py,0,100):50;L.zoom=clamp(+L.zoom||1,1,4);L.photoH=clamp(+L.photoH||230,150,420);
- if(!['s','m','l'].includes(L.tileSize))L.tileSize='m';if(!['left','center','right'].includes(L.creditAlign))L.creditAlign='right';if(typeof L.photo!=='string'||!(/^data:image\//.test(L.photo)||BUILTIN.some(b=>b[0]===L.photo)))L.photo='duke.jpg';return L}
+ if(!['s','m','l'].includes(L.tileSize))L.tileSize='m';if(!['left','center','right'].includes(L.creditAlign))L.creditAlign='right';const nm0=L.names&&typeof L.names==='object'?L.names:{};L.names={};Object.keys(nm0).forEach(k=>{if((TILEDEF[k]||BIGDEF[k])&&typeof nm0[k]==='string'){const v=nm0[k].trim().slice(0,NMAX[k]||30);if(v)L.names[k]=v}});
+ if(typeof L.photo!=='string'||!(/^data:image\//.test(L.photo)||BUILTIN.some(b=>b[0]===L.photo)))L.photo='duke.jpg';return L}
+const tName=(L,k)=>(L.names&&L.names[k])||(TILEDEF[k]?TILEDEF[k][1]:BIGDEF[k]);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 function applyScale(L){document.documentElement.style.setProperty('--z',String(clamp(+L.textScale||100,80,140)/100))}
 function imgStyle(L){return `object-position:${L.px}% ${L.py}%;transform:scale(${L.zoom});transform-origin:${L.px}% ${L.py}%`}
 function heroHTML(L,edit){return `<div class="hero${edit?' editing':''}" id="hero" style="min-height:0;height:${L.photoH}px"><img id="heroimg" src="${esc(L.photo||'duke.jpg')}" alt="MT Front Duke" style="${imgStyle(L)}" onload="this.parentNode.classList.add('hasimg')" onerror="this.remove()"><svg class="ship" viewBox="0 0 400 90" aria-hidden="true"><path fill="#fff" d="M8 52h300l18-14h40l10 14h16l-22 30H40z"/><rect x="300" y="18" width="34" height="22" fill="#fff"/><rect x="314" y="6" width="8" height="12" fill="#fff"/></svg><div class="shade"></div>
  <div class="txt"><h1>MT Front Duke</h1><p>Second Special Survey · COSCO Zhoushan</p></div>${edit?'<div class="edhint">☝ Drag to move · pinch or slider to zoom</div>':''}</div>`}
-function bigHTML(L){const a='<button class="bigbtn ask" data-go="ask"><span class="ic">💬</span><span>Ask me anything<small>Jobs, spares, who does what</small></span></button>',u='<button class="bigbtn upd" data-go="update"><span class="ic">➕</span><span>Update<small>Voice or text + photos</small></span></button>';
+function bigHTML(L,edit){const at=edit?' data-ren="ask"':' data-go="ask"',ut=edit?' data-ren="upd"':' data-go="update"',pen=edit?'<span class="ren">✏️</span>':'';
+ const a=`<button class="bigbtn ask"${at}><span class="ic">💬</span><span>${esc(tName(L,'ask'))}<small>${esc(tName(L,'askSub'))}</small></span>${pen}</button>`,u=`<button class="bigbtn upd"${ut}><span class="ic">➕</span><span>${esc(tName(L,'upd'))}<small>${esc(tName(L,'updSub'))}</small></span>${pen}</button>`;
  return `<div class="big2">${L.swapBig?u+a:a+u}</div>`}
 function tilesHTML(L,edit){const it=L.order.filter(k=>{const d=TILEDEF[k];return !d[2]||d[2]()}).filter(k=>edit||!L.hidden.includes(k));
- return `<div class="tiles ts-${L.tileSize}${edit?' editing':''}" id="tiles" style="grid-template-columns:repeat(${clamp(+L.cols||3,2,4)},1fr)">${it.map(k=>{const [i,l]=TILEDEF[k];const hid=L.hidden.includes(k);
-  return edit?`<div class="tile${hid?' hid':''}" data-tid="${k}"><b>${i}</b>${l}${k==='settings'?'<span class="eye lock" title="Always shown">🔒</span>':`<span class="eye" data-eye="${k}">${hid?'🚫':'👁'}</span>`}</div>`:`<button class="tile" data-go="${k}"><b>${i}</b>${l}${k==='chat'?'<span class="tbadge" data-chatbadge style="display:none"></span>':''}</button>`}).join('')}</div>`}
+ return `<div class="tiles ts-${L.tileSize}${edit?' editing':''}" id="tiles" style="grid-template-columns:repeat(${clamp(+L.cols||3,2,4)},1fr)">${it.map(k=>{const i=TILEDEF[k][0],l=esc(tName(L,k));const hid=L.hidden.includes(k);
+  return edit?`<div class="tile${hid?' hid':''}" data-tid="${k}"><b>${i}</b>${l}${k==='settings'?'<span class="eye lock" title="Always shown">🔒</span>':`<span class="eye" data-eye="${k}">${hid?'🚫':'👁'}</span>`}<span class="ren">✏️</span></div>`:`<button class="tile" data-go="${k}"><b>${i}</b>${l}${k==='chat'?'<span class="tbadge" data-chatbadge style="display:none"></span>':''}</button>`}).join('')}</div>`}
 function creditHTML(L){return `<div class="credit" style="font-size:${clamp(+L.creditSize||10.5,8,18)}px;text-align:${L.creditAlign||'right'}">Conceptualized by CE<br>Powered by Team Front Duke 2026</div>`}
 async function fetchLayout(){const r=await api('getLayout',{},60000);S.layout=r.layout||null;await DB.put('kv',S.layout,'layout');await DB.put('kv',r.layoutStamp||0,'layoutStamp');applyScale(lay())}
 /* --- pan / pinch helper --- */
@@ -952,12 +957,12 @@ function panZoom(el,get,set,done){const P=new Map();let st=null;
  const up=e=>{if(!P.has(e.pointerId))return;P.delete(e.pointerId);if(P.size){const v=get();const p=[...P.values()][0];st={px:v.px,py:v.py,zoom:v.zoom,x:p.x,y:p.y,d:0}}else{st=null;done&&done()}};
  el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up)}
 /* --- tile drag --- */
-function tileDrag(grid,onDone){let drag=null,sx=0,sy=0,moved=false;
+function tileDrag(grid,onDone,onTap){let drag=null,sx=0,sy=0,moved=false;
  grid.addEventListener('pointerdown',e=>{const t=e.target.closest('.tile');if(!t||e.target.closest('[data-eye]'))return;drag=t;sx=e.clientX;sy=e.clientY;moved=false;t.setPointerCapture(e.pointerId);e.preventDefault()});
  grid.addEventListener('pointermove',e=>{if(!drag)return;if(!moved&&Math.hypot(e.clientX-sx,e.clientY-sy)<6)return;if(!moved){moved=true;drag.classList.add('drag')}
   const over=document.elementsFromPoint(e.clientX,e.clientY).map(x=>x.closest&&x.closest('.tile')).find(x=>x&&x!==drag&&grid.contains(x));
   if(over){const all=[...grid.children];if(all.indexOf(over)>all.indexOf(drag))over.after(drag);else over.before(drag)}});
- const end=()=>{if(!drag)return;drag.classList.remove('drag');drag=null;if(moved)onDone([...grid.children].map(x=>x.dataset.tid))};
+ const end=e=>{if(!drag)return;const t=drag;drag.classList.remove('drag');drag=null;if(moved)onDone([...grid.children].map(x=>x.dataset.tid));else if(onTap&&e.type==='pointerup')onTap(t.dataset.tid)};
  grid.addEventListener('pointerup',end);grid.addEventListener('pointercancel',end)}
 /* --- read a picked image file as a (compressed) data URL --- */
 async function fileToDataURL(f){const b=await compress(f);return await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(b)})}
@@ -978,8 +983,8 @@ function renderEditHome(){const L=ED.L;applyScale(L);
   <label class="l">Zoom <span id="zv">${L.zoom.toFixed(1)}×</span></label><input type="range" id="pz" min="1" max="4" step="0.05" value="${L.zoom}">
   <label class="l">Photo height <span id="hv">${L.photoH}px</span></label><input type="range" id="ph" min="150" max="420" step="5" value="${L.photoH}">
   <button class="ghost sm" id="pc" style="margin-top:8px">Centre photo</button></div>
- ${bigHTML(L)}<div style="text-align:right;margin:-6px 0 12px"><button class="ghost sm" id="swp">⇄ Swap Ask / Update</button></div>
- <div class="xs mut" style="margin:0 2px 6px">☝ Press and drag a tile to move it. 👁 = shown, 🚫 = hidden on all phones.</div>
+ ${bigHTML(L,true)}<div style="text-align:right;margin:-6px 0 12px"><button class="ghost sm" id="swp">⇄ Swap Ask / Update</button></div>
+ <div class="xs mut" style="margin:0 2px 6px">☝ Tap a tile or big button to rename it. Press and drag a tile to move it. 👁 = shown, 🚫 = hidden on all phones.</div>
  ${tilesHTML(L,true)}
  <div class="card" style="margin-top:12px"><b>🔲 Tiles</b><label class="l">Tile size</label><div class="seg">${[['s','Small'],['m','Medium'],['l','Large']].map(([v,l])=>`<button data-tsz="${v}" class="${L.tileSize===v?'on':''}">${l}</button>`).join('')}</div>
   <label class="l">Tiles per row</label><div class="seg">${[2,3,4].map(n=>`<button data-tcol="${n}" class="${+L.cols===n?'on':''}">${n}</button>`).join('')}</div></div>
@@ -998,7 +1003,8 @@ function renderEditHome(){const L=ED.L;applyScale(L);
  $('#app').querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>{L.photo=b.dataset.pk;L.px=50;L.py=50;L.zoom=1;mark();renderEditHome()});
  $('#pgal').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{L.photo=await fileToDataURL(f);L.px=50;L.py=50;L.zoom=1;mark();renderEditHome()}catch(err){toast('Could not read that picture')}};
  $('#swp').onclick=()=>{L.swapBig=!L.swapBig;mark();renderEditHome()};
- tileDrag($('#tiles'),ids=>{L.order=ids;mark()});
+ tileDrag($('#tiles'),ids=>{L.order=ids;mark()},k=>openRename(k));
+ $('#app').querySelectorAll('[data-ren]').forEach(b=>b.onclick=()=>openRename(b.dataset.ren));
  $('#app').querySelectorAll('[data-eye]').forEach(s=>s.onclick=e=>{e.stopPropagation();const k=s.dataset.eye;L.hidden=L.hidden.includes(k)?L.hidden.filter(x=>x!==k):L.hidden.concat(k);mark();renderEditHome()});
  $('#app').querySelectorAll('[data-tsz]').forEach(b=>b.onclick=()=>{L.tileSize=b.dataset.tsz;mark();renderEditHome()});
  $('#app').querySelectorAll('[data-tcol]').forEach(b=>b.onclick=()=>{L.cols=+b.dataset.tcol;mark();renderEditHome()});
@@ -1008,6 +1014,15 @@ function renderEditHome(){const L=ED.L;applyScale(L);
  $('#rst').onclick=()=>{ED.L=JSON.parse(JSON.stringify(LDEF));ED.dirty=true;toast('Standard layout loaded – tap Save for all phones to keep it');renderEditHome()};
  $('#icb').onclick=()=>{IC={src:BUILTIN[1][0],px:50,py:50,zoom:1};openIcon()};
  $('#edc').onclick=cancelEdit;$('#eds').onclick=saveLayout}
+function openRename(k){if(!ED)return;const L=ED.L,big=!!BIGDEF[k],sk=k+'Sub';
+ sheet(`<div class="h2">✏️ Rename ${big?'big button':'tile'}</div><div class="s mut">Standard name: <b>${esc(big?BIGDEF[k]:TILEDEF[k][1])}</b>${big?' · small line: <b>'+esc(BIGDEF[sk])+'</b>':''}</div>
+ <label class="l">Name (max ${NMAX[k]||30} letters)</label><input id="rnv" maxlength="${NMAX[k]||30}" value="${esc(tName(L,k))}">
+ ${big?`<label class="l">Small line under it (max ${NMAX[sk]})</label><input id="rns" maxlength="${NMAX[sk]}" value="${esc(tName(L,sk))}">`:''}
+ <div style="display:flex;gap:8px;margin-top:14px"><button class="ghost" id="rnd" style="flex:1">↺ Standard</button><button id="rno" style="flex:2">✔ Done</button></div>
+ <div class="xs mut" style="margin-top:8px">Other phones see it after you tap 💾 Save for all phones.</div>`);
+ const put=(key,v)=>{v=String(v||'').trim();const def=TILEDEF[key]?TILEDEF[key][1]:BIGDEF[key];if(!v||v===def)delete L.names[key];else L.names[key]=v.slice(0,NMAX[key]||30)};
+ $('#rnd').onclick=()=>{delete L.names[k];if(big)delete L.names[sk];ED.dirty=true;closeSheet();renderEditHome()};
+ $('#rno').onclick=()=>{L.names=L.names||{};put(k,$('#rnv').value);if(big)put(sk,$('#rns').value);ED.dirty=true;closeSheet();renderEditHome()}}
 function cancelEdit(){if(ED&&ED.dirty&&!cancelEdit.c){cancelEdit.c=1;toast('Changes not saved – tap Cancel again to throw them away',3500);setTimeout(()=>cancelEdit.c=0,3500);return}
  cancelEdit.c=0;ED=null;applyScale(lay());render()}
 async function saveLayout(){const b=$('#eds');if(!navigator.onLine){toast('Needs internet to save the layout for all phones. Your edits stay here – try again when online.',4500);return}
