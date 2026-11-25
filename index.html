@@ -97,6 +97,7 @@ a.btn{display:block;text-align:center;text-decoration:none;border-radius:12px;pa
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tv,:root:not([data-theme="light"]) .t-v{--c:#5fd0d8;--cb:#0f2e31}}
 .atabs button{font-size:11.5px!important;padding:7px 1px!important}
 .srr{border-top:1px solid var(--line);padding:9px 0}.srj .srr:first-of-type{border-top:0}.srjh{cursor:pointer;margin-bottom:4px}.srt{font-size:15px}
+.pitabs{grid-template-columns:1fr 1fr;margin:10px 0 4px}.pitabs.one{grid-template-columns:1fr}.pitabs button{font-size:14px!important;padding:10px 4px!important}.pitabs button.miss i{background:#c0392b}.picx{background:#fbe9e7;color:#a8261b;border:1.5px solid #e3a59d;border-radius:10px;padding:8px 10px;font-weight:800;margin:8px 0;text-align:center}
 .srf{display:flex;gap:8px;align-items:center;background:var(--chip);border-radius:10px;padding:8px 10px;margin-top:6px;cursor:pointer}.srf b{font-size:22px}.srf span{flex:1;font-size:13.5px;font-weight:600;overflow-wrap:anywhere}.srf small{display:block;font-weight:400;color:var(--mut)}.srdel{margin-top:6px}
 .hero .txt{position:relative}.hero h1{margin:0;font-size:24px;letter-spacing:.3px}.hero p{margin:2px 0 0;opacity:.85;font-size:13.5px}
 .big2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
@@ -208,7 +209,7 @@ async function instDiag(){const el=$('#instDiag');if(!el)return;const row=(ok,t,
  $('#dcopy').onclick=()=>{const t=rep+'\n'+el.innerText.replace('Copy this check for Chief','');try{navigator.clipboard.writeText(t);toast('Copied – paste it in WhatsApp to the Chief')}catch(e){toast('Copy not allowed on this phone')}}}
 "use strict";
 /* ================= constants ================= */
-const VERSION='2.2.0';
+const VERSION='2.3.0';
 const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
 const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
 const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager'];
@@ -251,7 +252,7 @@ function setData(raw){D=typeof raw==='string'?JSON.parse(raw):raw;J={};O={};D.jo
  motors:D.motors.map(m=>({r:m,f:[[norm(m.motor+' '+m.job+' '+m.std+' '+m.po),5]]})),
  msgs:(D.msgs||[]).map(m=>({r:m,f:[[norm(m.subj+' '+m.pos.join(' ')+' '+m.jobs.join(' ')),5],[norm(m.frm),2],[norm(m.text),1]]})),docs:D.docs.map(d=>({r:d,f:[[norm(d.text),1]]})),entries:[]}}
 function rebuildEntryIdx(){if(!IDX)return;IDX.entries=live().map(e=>({r:e,f:[[norm((e.text)+' '+(e.transcript||'')+' '+(e.job||'')+' '+(e.jobTitle||'')+' '+(e.order||'')),3],[norm(e.rank+' '+e.name),1]]}))}
-const live=()=>S.entries.filter(e=>!e.deleted&&e.kind!=='chat'&&e.kind!=='sreport');
+const live=()=>S.entries.filter(e=>!e.deleted&&e.kind!=='chat'&&e.kind!=='sreport'&&e.kind!=='podoc');
 const pending=()=>S.entries.filter(e=>e.pending).length+0;
 /* ================= search engine (records) ================= */
 const GROUPS=[
@@ -303,7 +304,7 @@ async function sendReceive(manual){const saveMode=manual==='save';if(saveMode)ma
  try{
   for(const e of S.entries.filter(x=>x.device===S.user.device&&(x.files||[]).some(f=>!f.driveId))){
    for(const f of (e.files||[])){if(f.driveId)continue;const b=await DB.get('blobs',f.fid);if(!b)continue;
-    try{const r=await api('upload',{entryId:e.id,date:e.date,name:f.name,mime:f.mime,b64:await blobToB64(b)},300000);f.driveId=r.driveId;delete f.upErr;e.pending=true;await DB.put('entries',e);up++}
+    try{const r=await api('upload',{entryId:e.id,date:e.date,name:f.name,mime:f.mime,dest:e.kind==='podoc'?(e.dkind==='I'?'INVOICES':'PO'):undefined,b64:await blobToB64(b)},300000);f.driveId=r.driveId;delete f.upErr;e.pending=true;await DB.put('entries',e);up++}
     catch(err){fileFail++;f.upErr=String(err.message||err).slice(0,80);await DB.put('entries',e);if(/abort|network|Failed to fetch|Load failed/i.test(String(err)))throw err}}}
   const all=S.entries.filter(x=>x.pending);let r=null;
   for(let i=0;i<Math.max(1,all.length);i+=20){const chunk=all.slice(i,i+20).map(e=>{const c=Object.assign({},e);delete c.pending;delete c.rejected;return c});
@@ -676,16 +677,59 @@ function evHtml(ev,max){const L=max?ev.slice(-max):ev;return `<div class="tl">${
 function openMsg(i){const m=D.msgs[i];if(!m)return;sheet(`<div class="xs mut">${esc(m.src)}</div><b>${esc(m.subj)}</b><div class="s" style="margin:6px 0"><b>${esc(m.frm)}</b> · ${esc(m.date||'date not stated')}</div>
  <div>${m.jobs.map(x=>`<span class="chip" data-job="${x}">${x}</span>`).join('')}${m.pos.map(x=>O[x]?`<span class="chip" data-order="${x}">${x}</span>`:`<span class="chip">${x}</span>`).join('')}</div><pre class="scope" style="max-height:none">${esc(m.text)}</pre>`)}
 document.addEventListener('click',e=>{const m=e.target.closest('[data-msg]');if(m){e.preventDefault();openMsg(+m.dataset.msg)}});
-function openOrder(no){const o=O[no];if(!o)return;const s=orderStatus(o);const ents=live().filter(e=>e.order===no);
+function openOrder(no){const o=O[no];if(!o)return;PIT='';const s=orderStatus(o);const ents=live().filter(e=>e.order===no);
  sheet(`<span class="jid" style="font-size:18px">${esc(o.no)}</span><div><b>${esc(o.name)}</b></div><div style="margin:8px 0"><span class="chip ${s.cls}">${esc(s.txt)}</span><span class="xs mut">${esc(s.src)}</span></div>
+ ${o.cancelled?'<div class="picx">⛔ Cancelled by office</div>':''}<div id="piw" data-no="${esc(o.no)}">${piTabsHtml(o)}</div>
  <div class="kv"><div>Type</div><div>${esc(o.type||'—')}</div><div>Stowed</div><div>${esc(o.loc||'—')}</div><div>Supplier</div><div>${o.suppliers.map(x=>esc(x.name)+' <span class="xs mut">('+esc(x.src)+')</span>').join('<br>')||'Not in records'}</div>
  <div>History</div><div>${(o.updates||[]).map(x=>`<div class="xs" style="margin-bottom:4px"><b>${esc(x.date)}</b> ${esc(x.txt)}<br><span class="mut">${esc(x.src)}</span></div>`).join('')}<div class="xs"><b>12 Nov</b> ${esc(o.status||'not on the DD PO sheet')}</div></div>
  <div>Notes</div><div>${o.notes.map(esc).join('<br>')||'—'}${o.notdd?'<br>Not a DD requisition':''}</div><div>For job(s)</div><div>${o.jobs.map(x=>`<span class="chip" data-job="${x.id}">${x.id}</span>`).join('')||'Not linked'}</div></div>
  <div class="h2" style="font-size:16px;margin-top:16px">History timeline (${poEvents(o).length})</div><div class="xs mut">Mails, PO sheets, delivery notes and ship updates – oldest first</div>${evHtml(poEvents(o))}
  <div style="margin-top:12px">${ents.map(entryCard).join('')}</div>
- <button style="width:100%;margin-top:12px" id="orc">📦 Mark received onboard (+ delivery note photo)</button>`);bindEntryButtons($('#sheetIn'));fillMinis($('#sheetIn'));
+ <button style="width:100%;margin-top:12px" id="orc">📦 Mark received onboard (+ delivery note photo)</button>`);bindEntryButtons($('#sheetIn'));fillMinis($('#sheetIn'));piBind(o);
  $('#orc').onclick=()=>{closeSheet();resetUpd();UPD.kind='spares';UPD.order=o.no;UPD.dept=/-(D|DO|B)(-\d)?$/.test(o.no)?'Deck':'Engine';UPD.perf='Ship Staff';UPD.text='Received onboard: '+o.no+' '+o.name;
   const lj=o.jobs[0];if(lj&&J[lj.id]){UPD.job=lj.id;UPD.jobTitle=J[lj.id].title}UPD.step=3;S.view='update';render()}}
+/* ---------- P.O / Invoice tabs (files in Drive › PO and › INVOICES + files added in the app) ---------- */
+let PI=null,PIT='';const PIMAX=20*1024*1024;
+const pkey=s=>{const m=/FDU-(\d{4})-\d{4}-[A-Z]+(-\d)?/i.exec(String(s||''));return m?m[1]+(m[2]||''):''};
+function okey(k){if(!O.__pk){const m={};Object.keys(O).forEach(n=>{if(n!=='__pk')m[pkey(n)]=1});Object.defineProperty(O,'__pk',{value:m,enumerable:false,configurable:true})}return O.__pk[k]||!O.__pk[k.slice(0,4)]?k:k.slice(0,4)}
+async function piLoad(){if(!PI){try{PI=await DB.get('kv','poinv')}catch(e){}PI=PI||{files:[],time:0}}return PI}
+async function piRefresh(force){if(!navigator.onLine||!CFG.SERVER_URL)return false;try{const r=await api('poinv',force?{fresh:1}:{},60000);PI={files:r.files||[],time:Date.now()};await DB.put('kv',PI,'poinv');return true}catch(e){return false}}
+const piMime=n=>/\.pdf$/i.test(n)?'application/pdf':/\.jpe?g$/i.test(n)?'image/jpeg':/\.png$/i.test(n)?'image/png':/\.heic$/i.test(n)?'image/heic':'application/octet-stream';
+function piDocs(o,k){const key=pkey(o.no),out=[],seen=new Set();
+ for(const e of S.entries)if(e.kind==='podoc'&&!e.deleted&&e.order===o.no&&e.dkind===k)for(const f of (e.files||[])){if(f.driveId)seen.add(f.driveId);out.push({f,e:e.id,t:Date.parse(e.ts)||0,by:e.rank+' – '+e.name,pend:!f.driveId})}
+ for(const x of (PI&&PI.files||[]))if(x.f===k&&!seen.has(x.id)&&okey(pkey(x.n))===key)out.push({f:{fid:'drv_'+x.id,driveId:x.id,name:x.n,mime:piMime(x.n),size:x.s},t:x.t});
+ return out.sort((a,b)=>b.t-a.t)}
+const piNeedInv=o=>o.type!=='SERVICE';
+const piRcv=o=>{const t=orderStatus(o).txt;return /RECEIVED/i.test(t)&&!/NOT RECEIVED/i.test(t)};
+function piTabsHtml(o){const np=piDocs(o,'P').length,ni=piDocs(o,'I').length,inv=piNeedInv(o);const iw=ni?ni:o.cancelled?'–':piRcv(o)?'missing':'not yet',im=!ni&&!o.cancelled&&piRcv(o);
+ return `<div class="atabs pitabs${inv?'':' one'}" id="pitabs"><button class="t-c${np?'':' miss'}${PIT==='P'?' on':''}" data-pit="P">📄 P.O <i>${np||'missing'}</i></button>${inv?`<button class="t-s${im?' miss':''}${PIT==='I'?' on':''}" data-pit="I">🧾 Invoice <i>${iw}</i></button>`:''}</div>
+ <div class="apane ${PIT==='I'?'t-s':'t-c'}" id="pipane">${PIT&&(PIT==='P'||inv)?piPane(o,PIT):''}</div>
+ <div class="atabs pitabs${inv?'':' one'}" style="margin-top:8px"><button class="t-c" data-piadd="P">➕ Add P.O</button>${inv?'<button class="t-s" data-piadd="I">➕ Add Invoice</button>':''}</div><input type="file" id="pifile" accept="application/pdf,image/*" multiple hidden>${inv?'':'<div class="xs mut">Service requisition – P.O only, no invoice needed</div>'}`}
+function piPane(o,k){const L=piDocs(o,k),nm=k==='P'?'P.O':'Invoice';
+ const empty=k==='I'&&o.cancelled?'Cancelled by office – no invoice expected.':k==='I'&&!piRcv(o)?'No invoice yet – spares not received yet. Add it when it comes.':k==='I'?'Spares received but invoice missing – please add it.':`No ${nm} in the folder yet – use ➕ Add ${nm} below.`;
+ return `${L.map(d=>`<div class="srf" data-pif="${esc(d.f.fid)}"><b>${/^image\//.test(d.f.mime)?'🖼️':'📕'}</b><span>${esc(d.f.name)}<small>${fmtMB(d.f.size)}${d.t?' · '+esc(longD(new Date(d.t).toISOString().slice(0,10))):''}${d.by?' · added by '+esc(d.by):''}${d.pend?' · 🕓 waiting to send':''} · <em class="pist">tap to open</em></small></span></div>`).join('')||`<div class="s mut" style="padding:4px 2px">${esc(empty)}</div>`}
+ <div class="xs mut" style="margin-top:6px">${PI&&PI.time?'Folder list checked '+esc(longD(new Date(PI.time).toISOString().slice(0,10)))+' '+new Date(PI.time).toTimeString().slice(0,5):'Folder list not loaded yet – needs internet once'} · opened files stay on this phone for offline</div>`}
+function piRedraw(o){const w=$("#piw");if(!w||w.dataset.no!==o.no||!$('#sheet').classList.contains('show'))return;w.innerHTML=piTabsHtml(o);piBind(o,true)}
+async function piBind(o,noFetch){await piLoad();if(!$('#pitabs'))return;
+ if(!noFetch){piRedraw(o);if(Date.now()-(PI.time||0)>5*60*1000)piRefresh().then(ok=>{if(ok)piRedraw(o)});return}
+ $('#pitabs').querySelectorAll('[data-pit]').forEach(b=>b.onclick=()=>{PIT=PIT===b.dataset.pit?'':b.dataset.pit;piRedraw(o)});
+ $('#piw').querySelectorAll('[data-piadd]').forEach(b=>b.onclick=()=>{const i=$('#pifile');i.onchange=()=>piAdd(o,b.dataset.piadd,i);i.click()});
+ const pane=$('#pipane');if(!pane||!PIT)return;
+ pane.querySelectorAll('[data-pif]').forEach(async v=>{const d=piDocs(o,PIT).find(x=>x.f.fid===v.dataset.pif);if(!d)return;const st=v.querySelector('.pist');
+  try{if(await DB.get('blobs',d.f.fid))st.textContent='✔ on this phone – tap to open'}catch(e){}
+  v.onclick=async()=>{st.textContent='⏳ opening…';const u=await fileURL(d.f);if(!u){st.textContent='needs internet to open the first time';return}st.textContent='✔ on this phone – tap to open';
+   if(/^image\//.test(d.f.mime)){viewImg(u);return}const a=document.createElement('a');a.href=u;a.download=d.f.name||'file.pdf';document.body.appendChild(a);a.click();a.remove()}});
+}
+async function piAdd(o,k,inp){const list=[...inp.files];inp.value='';if(!list.length)return;
+ const d=new Date(),st=d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'_'+pad(d.getHours())+pad(d.getMinutes())+pad(d.getSeconds());const files=[];
+ for(const f of list){if(f.size>PIMAX){toast(`${f.name} is ${fmtMB(f.size)} – maximum is 20 MB`,5000);continue}
+  const isImg=/^image\//.test(f.type)&&!/heic|heif/i.test(f.type);const b=isImg?await compress(f):f;const ext=isImg?'jpg':((String(f.name||'').match(/\.([A-Za-z0-9]{1,5})$/)||[,'pdf'])[1].toLowerCase());
+  const fid='p'+uid();await DB.put('blobs',b,fid);files.push({fid,name:`${o.no}_added_${st}${files.length?'_'+(files.length+1):''}.${ext}`,mime:isImg?'image/jpeg':(f.type||piMime('.'+ext)),size:b.size})}
+ if(!files.length)return;
+ const e={id:'p'+uid(),kind:'podoc',order:o.no,dkind:k,dept:'',perf:'',job:'',status:'',text:(k==='P'?'P.O ':'Invoice ')+o.no,rank:S.user.rank,name:S.user.name,device:S.user.device,date:today(),time:nowTime(),ts:new Date().toISOString(),files,test:!!S.testMode,deleted:false,pending:true,updated:Date.now()};
+ try{await saveEntry(e)}catch(err){toast('Could not save on this phone: '+err.message,5000);return}
+ PIT=k;toast(navigator.onLine?`✅ ${k==='P'?'P.O':'Invoice'} saved – sending to Drive…`:'📱 Saved on this phone – it will go to Drive when internet is back',4000,true);piRedraw(o);
+ await sendReceive('save');piRedraw(o)}
 /* ---------- ask: jobs closest-match first, each with 4 tabs ---------- */
 let CHAT=[];
 const ASK_EX=['ER vent fans VFD','main engine fuel pump','stern tube seal','M/E air cooler','sea chest','turbocharger','steering gear','EGCS'];
@@ -871,7 +915,7 @@ function renderSettings(){const all=S.entries.length;
  if($('#rhs'))$('#rhs').onclick=async()=>{try{const r=await api('settings',{reportHour:+$('#rh').value});S.reportHour=r.reportHour;await DB.put('kv',S.reportHour,'reportHour');toast('Daily email set to '+pad(r.reportHour)+':00 ✔')}catch(e){toast(e.message)}};
  if($('#tmon')){const setTM=async on=>{try{const r=await api('settings',{testMode:on});S.testMode=r.testMode;await DB.put('kv',S.testMode,'testMode');toast('Test mode '+(on?'ON':'OFF')+' ✔');renderSettings()}catch(e){toast(e.message)}};$('#tmon').onclick=()=>setTM(true);$('#tmoff').onclick=()=>setTM(false);
   $('#purge').onclick=async()=>{const b=$('#purge');if(!b.dataset.c){b.dataset.c=1;b.textContent='Tap again – delete all TEST data';return}if(!b.dataset.c2){b.dataset.c2=1;b.textContent='Last check – tap to DELETE';return}
-   b.disabled=true;b.textContent='Deleting…';try{await sendReceive(false);const r=await api('purgeTest',{},300000);for(const e of S.entries.filter(x=>x.test||r.ids.includes(x.id))){for(const f of (e.files||[]))await DB.del('blobs',f.fid);await DB.del('entries',e.id)}
+   b.disabled=true;b.textContent='Deleting…';try{await sendReceive(false);const r=await api('purgeTest',{},300000);if(PI){PI.time=0;DB.put('kv',PI,'poinv').catch(()=>{})}for(const e of S.entries.filter(x=>x.test||r.ids.includes(x.id))){for(const f of (e.files||[]))await DB.del('blobs',f.fid);await DB.del('entries',e.id)}
     S.entries=await DB.all('entries');rebuildEntryIdx();S.testMode=false;await DB.put('kv',false,'testMode');toast(`✅ Deleted ${r.deleted} test entries and ${r.files} files. App is now LIVE.`,5000,true);renderSettings()}catch(e){toast(e.message);b.disabled=false}}}
  $('#app').querySelectorAll('[data-th]').forEach(b=>b.onclick=async()=>{const v=b.dataset.th;if(v)document.documentElement.setAttribute('data-theme',v);else document.documentElement.removeAttribute('data-theme');await DB.put('kv',v,'theme')});
  $('#rr').onclick=()=>{S.view='home';fetchRecords()};if($('#edl2'))$('#edl2').onclick=startEdit;$('#ihelp').onclick=doInstall;if($('#otsb'))$('#otsb').onclick=openTsEdit;$('#ishare').onclick=async()=>{const u=location.href.split('#')[0].split('?')[0];const t='Front Duke DD 2026 crew app. Open in Chrome (Android) or Safari (iPhone), then tap 📲 Install: '+u;try{if(navigator.share){await navigator.share({title:'Duke DD app',text:t,url:u});return}}catch(e){return}try{await navigator.clipboard.writeText(t);toast('Link copied – paste it in WhatsApp')}catch(e){toast(u,8000)}};
