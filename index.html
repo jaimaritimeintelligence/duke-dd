@@ -73,6 +73,22 @@ main{zoom:var(--z,1)}
 .prog{margin-top:12px}.pbar{height:10px;border-radius:99px;background:var(--chip);overflow:hidden;margin:8px 0 4px}.pbar i{display:block;height:100%;background:#17803f;border-radius:99px}
 .pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.pg{display:flex;flex-direction:column;align-items:center;padding:9px 2px;border-radius:12px;border:1.5px solid var(--c);background:var(--cb);color:var(--c);font-weight:700;font-size:11.5px;line-height:1.2}.pg b{font-size:22px}.pg.on{background:var(--c);color:#fff}
 .stnow{margin:10px 0;padding:10px 12px;border-radius:12px;border:2px solid var(--c);background:var(--cb);color:var(--c)}.stnow b{font-size:17px}
+.tile{position:relative}.tbadge{position:absolute;top:6px;right:8px;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#d93025;color:#fff;font-size:12px;font-weight:800;line-height:20px}
+body.chatview main{padding-bottom:150px}#cl{display:flex;flex-direction:column;gap:6px}
+.cday{align-self:center;font-size:11.5px;font-weight:700;color:var(--mut);background:var(--chip);border-radius:99px;padding:3px 10px;margin:8px 0 2px}
+.cm{display:flex}.cm.me{justify-content:flex-end}.cb{max-width:82%;background:var(--card);border:1px solid var(--line);border-radius:14px 14px 14px 4px;padding:7px 10px;cursor:pointer}
+.cm.me .cb{background:#dcefff;border-color:#b9dcfa;border-radius:14px 14px 4px 14px}.cb.tome{border:2px solid #f0a020}.cb.del{font-style:italic;color:var(--mut);cursor:default}
+.cw{font-size:11.5px;font-weight:700;color:var(--sea);margin-bottom:2px}.ct{white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.4}.men{color:#c25e00}
+.cs{font-size:10.5px;color:var(--mut);text-align:right;margin-top:2px}.cdel{margin-top:6px;background:var(--badb);color:var(--bad);font-size:13px;padding:6px 10px}
+.cmedia{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}.cmedia .m{width:150px;height:150px;border-radius:10px;overflow:hidden;background:var(--chip);display:flex;align-items:center;justify-content:center}.cmedia .m img{width:100%;height:100%;object-fit:cover}
+.cv{width:150px;height:110px;border-radius:10px;background:#0b2942;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;text-align:center}.cvid{width:230px;max-width:100%;border-radius:10px;background:#000}
+.cfoot{position:fixed;left:0;right:0;bottom:0;z-index:11;background:var(--card);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom))}
+.crow{display:flex;gap:6px;align-items:flex-end}.crow textarea{flex:1;min-height:42px;max-height:120px;resize:none;padding:10px 12px;border-radius:21px;font-size:16px}.cbtn{width:44px;height:44px;padding:0;border-radius:22px;font-size:19px;flex:0 0 auto}.cbtn.rec{background:var(--bad);color:#fff}
+.cmen{display:flex;flex-wrap:wrap;gap:6px;max-height:150px;overflow:auto;padding-bottom:8px}.cmen button{padding:7px 11px;font-size:13.5px;border-radius:99px;background:var(--chip);color:var(--ink)}
+.catt{display:flex;gap:6px;padding-bottom:8px}.ca{position:relative;width:60px;height:60px;border-radius:10px;overflow:hidden;background:#0b2942;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px}.ca img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}.ca .x{position:absolute;top:2px;right:2px;width:22px;height:22px;padding:0;border-radius:11px;font-size:12px;background:rgba(0,0,0,.6);color:#fff}
+.mpop{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.45);display:none;align-items:flex-start;justify-content:center;padding:70px 16px 16px}.mpop.show{display:flex}
+.mp{background:var(--card);color:var(--ink);border-radius:16px;padding:14px 16px;width:100%;max-width:460px;border:3px solid #f0a020;box-shadow:0 10px 40px rgba(0,0,0,.35)}.mph{font-weight:800;font-size:17px;margin-bottom:8px;color:#c25e00}.mpi{border-top:1px solid var(--line);padding:7px 0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cm.me .cb{background:#173a5c;border-color:#24557f}}:root[data-theme="dark"] .cm.me .cb{background:#173a5c;border-color:#24557f}
 .hero .txt{position:relative}.hero h1{margin:0;font-size:24px;letter-spacing:.3px}.hero p{margin:2px 0 0;opacity:.85;font-size:13.5px}
 .big2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .bigbtn{border-radius:20px;padding:20px 14px;min-height:118px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;text-align:left;font-size:18px;box-shadow:0 6px 18px rgba(11,41,66,.18)}
@@ -131,13 +147,13 @@ table.t{border-collapse:collapse;width:100%;font-size:13px}table.t td,table.t th
 <div id="app"></div>
 <div class="sheet" id="sheet"><div class="in" id="sheetIn"></div></div>
 <div class="viewer" id="viewer"><img id="vimg" alt=""><button class="ghost sm" id="vclose">✕ Close</button></div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast"></div><div class="mpop" id="mpop"></div>
 <input type="file" id="fCam" accept="image/*" capture="environment" class="hidden">
 <input type="file" id="fGal" accept="image/*,video/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx" multiple class="hidden">
 <script>
 "use strict";
 /* ================= constants ================= */
-const VERSION='1.9.0';
+const VERSION='2.0.0';
 const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
 const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
 const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager'];
@@ -175,7 +191,7 @@ function setData(raw){D=typeof raw==='string'?JSON.parse(raw):raw;J={};O={};D.jo
  motors:D.motors.map(m=>({r:m,f:[[norm(m.motor+' '+m.job+' '+m.std+' '+m.po),5]]})),
  msgs:(D.msgs||[]).map(m=>({r:m,f:[[norm(m.subj+' '+m.pos.join(' ')+' '+m.jobs.join(' ')),5],[norm(m.frm),2],[norm(m.text),1]]})),docs:D.docs.map(d=>({r:d,f:[[norm(d.text),1]]})),entries:[]}}
 function rebuildEntryIdx(){if(!IDX)return;IDX.entries=live().map(e=>({r:e,f:[[norm((e.text)+' '+(e.transcript||'')+' '+(e.job||'')+' '+(e.jobTitle||'')+' '+(e.order||'')),3],[norm(e.rank+' '+e.name),1]]}))}
-const live=()=>S.entries.filter(e=>!e.deleted);
+const live=()=>S.entries.filter(e=>!e.deleted&&e.kind!=='chat');
 const pending=()=>S.entries.filter(e=>e.pending).length+0;
 /* ================= search engine (records) ================= */
 const GROUPS=[
@@ -240,7 +256,7 @@ async function sendReceive(manual){const saveMode=manual==='save';if(saveMode)ma
   if(r.testMode!=null){S.testMode=!!r.testMode;await DB.put('kv',S.testMode,'testMode')}
   S.since=Math.max(0,r.serverTime-5000);S.lastSync=Date.now();if(r.reportHour!=null)S.reportHour=r.reportHour;
   await DB.put('kv',S.since,'since');await DB.put('kv',S.lastSync,'lastSync');await DB.put('kv',S.reportHour,'reportHour');
-  S.entries=await DB.all('entries');rebuildEntryIdx();
+  S.entries=await DB.all('entries');rebuildEntryIdx();afterSync();
   if(r.dataStamp&&r.dataStamp!==(await DB.get('kv','dataStamp'))){try{const rr=await api('records',{},120000);await DB.put('kv',rr.data,'records');await DB.put('kv',rr.dataStamp,'dataStamp');setData(rr.data);rebuildEntryIdx();toast('Drydock records updated ✔')}catch(e){}}
   if(r.layoutStamp!=null&&r.layoutStamp!==((await DB.get('kv','layoutStamp'))||0)){try{await fetchLayout()}catch(e){}}
   const ff=fileFail?`\n⚠ ${fileFail} photo/file not sent yet – it will retry automatically`:'';
@@ -289,8 +305,8 @@ function isChief(){return role()==='chief'}
 function editAny(){return ['chief','master','vm'].includes(role())}
 function canEdit(e){return editAny()||(e.device===S.user.device&&e.date===today())}
 function canMeeting(){return ['chief','master'].includes(role())}
-function render(){if(!S.user||!D){renderLogin();return}({home:renderHome,ask:renderAsk,update:renderUpdate,meeting:renderMeeting,photos:renderPhotos,timeline:renderTimeline,jobs:renderJobs,spares:renderSpares,reports:renderReports,settings:renderSettings,progress:renderProgress})[S.view]()}
-function shell(title,sub,body,opts){opts=opts||{};const p=pending();
+function render(){if(!S.user||!D){renderLogin();return}({home:renderHome,ask:renderAsk,update:renderUpdate,meeting:renderMeeting,photos:renderPhotos,timeline:renderTimeline,jobs:renderJobs,spares:renderSpares,reports:renderReports,settings:renderSettings,progress:renderProgress,chat:renderChat})[S.view]()}
+function shell(title,sub,body,opts){opts=opts||{};const p=pending();document.body.classList.remove('chatview');
  $('#app').innerHTML=`<div class="top">${opts.back?'<button id="bk" aria-label="Back">←</button>':''}<div class="t">${esc(title)}<small>${esc(sub||'')}</small></div><button class="sync" id="sr">${S.syncing?'⟳ Syncing…':'⇅ Send / Receive'}${p?` <span class="badge">${p}</span>`:''}</button></div>
  <main>${S.testMode?'<div class="banner test">🧪 TEST MODE – everything entered now is test data and will be deleted by the Chief Engineer</div>':''}${body}</main>${opts.foot||navBar()}`;
  $('#sr').onclick=()=>sendReceive(true);if($('#bk'))$('#bk').onclick=opts.back}
@@ -341,7 +357,7 @@ function renderHome(){if(ED&&isChief())return renderEditHome();const L=lay();app
  <div class="xs mut" style="margin-top:4px">Last sync: ${last?last.toLocaleString():'never'} · auto every hour while the app is open</div></div>
  ${isChief()?'<div style="text-align:center;margin-top:10px"><button class="ghost sm" id="edl">✏️ Edit home screen</button></div>':''}
  ${creditHTML(L)}`);
- if($('#edl'))$('#edl').onclick=startEdit;$('#app').querySelectorAll('[data-pg]').forEach(b=>b.onclick=()=>{PG.st=b.dataset.pg;go('progress')})}
+ updChatBadge();if($('#edl'))$('#edl').onclick=startEdit;$('#app').querySelectorAll('[data-pg]').forEach(b=>b.onclick=()=>{PG.st=b.dataset.pg;go('progress')})}
 /* ---------- DD progress ---------- */
 let PG={st:'ip'};
 function progData(){const R={ns:[],ip:[],co:[],ca:[]};D.jobs.forEach(j=>{if(OUT.has(j.id))return;const s=jobState(j.id);R[s.jst].push({j,last:s.last})});
@@ -787,9 +803,9 @@ function renderSettings(){const all=S.entries.length;
  $('#bk2').onclick=()=>downloadBlob(new Blob([JSON.stringify({exported:new Date().toISOString(),user:{rank:S.user.rank,name:S.user.name},entries:S.entries},null,1)],{type:'application/json'}),'FrontDuke_DD2026_backup_'+today()+'.json');
  $('#lo').onclick=async()=>{if(pending()){toast('Send / Receive first – '+pending()+' update(s) not sent',4000);return}if(!$('#lo').dataset.c){$('#lo').dataset.c=1;$('#lo').textContent='Tap again to log out';return}await DB.del('kv','user');S.user=null;ED=null;render()}}
 /* ================= home-screen layout (Chief edits, all phones get it) ================= */
-const LDEF={photo:'duke.jpg',px:50,py:50,zoom:1,photoH:230,order:['meeting','timeline','spares','jobs','reports','photos','settings'],hidden:[],tileSize:'m',cols:3,textScale:100,creditSize:10.5,creditAlign:'right',swapBig:false};
+const LDEF={photo:'duke.jpg',px:50,py:50,zoom:1,photoH:230,order:['chat','meeting','timeline','spares','jobs','reports','photos','settings'],hidden:[],tileSize:'m',cols:3,textScale:100,creditSize:10.5,creditAlign:'right',swapBig:false};
 const BUILTIN=[['ship1.jpg','Side view'],['duke.jpg','Bow quarter'],['ship3.jpg','Bow-on']];
-const TILEDEF={meeting:['🎙️','Daily meeting',()=>canMeeting()],timeline:['🕒','Timeline'],spares:['📦','Spares'],jobs:['🔧','Jobs'],reports:['📄','Reports'],photos:['🗂️','Extract photos',()=>canExtract()],settings:['⚙️','Settings']};
+const TILEDEF={chat:['💬','Chat'],meeting:['🎙️','Daily meeting',()=>canMeeting()],timeline:['🕒','Timeline'],spares:['📦','Spares'],jobs:['🔧','Jobs'],reports:['📄','Reports'],photos:['🗂️','Extract photos',()=>canExtract()],settings:['⚙️','Settings']};
 let ED=null,IC=null;
 function lay(){const L=Object.assign({},LDEF,S.layout||{});const known=Object.keys(TILEDEF);
  L.order=(L.order||[]).filter(k=>known.includes(k));known.forEach(k=>{if(!L.order.includes(k))L.order.push(k)});
@@ -804,7 +820,7 @@ function bigHTML(L){const a='<button class="bigbtn ask" data-go="ask"><span clas
  return `<div class="big2">${L.swapBig?u+a:a+u}</div>`}
 function tilesHTML(L,edit){const it=L.order.filter(k=>{const d=TILEDEF[k];return !d[2]||d[2]()}).filter(k=>edit||!L.hidden.includes(k));
  return `<div class="tiles ts-${L.tileSize}${edit?' editing':''}" id="tiles" style="grid-template-columns:repeat(${clamp(+L.cols||3,2,4)},1fr)">${it.map(k=>{const [i,l]=TILEDEF[k];const hid=L.hidden.includes(k);
-  return edit?`<div class="tile${hid?' hid':''}" data-tid="${k}"><b>${i}</b>${l}${k==='settings'?'<span class="eye lock" title="Always shown">🔒</span>':`<span class="eye" data-eye="${k}">${hid?'🚫':'👁'}</span>`}</div>`:`<button class="tile" data-go="${k}"><b>${i}</b>${l}</button>`}).join('')}</div>`}
+  return edit?`<div class="tile${hid?' hid':''}" data-tid="${k}"><b>${i}</b>${l}${k==='settings'?'<span class="eye lock" title="Always shown">🔒</span>':`<span class="eye" data-eye="${k}">${hid?'🚫':'👁'}</span>`}</div>`:`<button class="tile" data-go="${k}"><b>${i}</b>${l}${k==='chat'?'<span class="tbadge" data-chatbadge style="display:none"></span>':''}</button>`}).join('')}</div>`}
 function creditHTML(L){return `<div class="credit" style="font-size:${clamp(+L.creditSize||10.5,8,18)}px;text-align:${L.creditAlign||'right'}">Conceptualized by CE<br>Powered by Team Front Duke 2026</div>`}
 async function fetchLayout(){const r=await api('getLayout',{},60000);S.layout=r.layout||null;await DB.put('kv',S.layout,'layout');await DB.put('kv',r.layoutStamp||0,'layoutStamp');applyScale(lay())}
 /* --- pan / pinch helper --- */
@@ -900,10 +916,94 @@ function openIcon(){
   try{const img=await loadImg(IC.src);const files=[];for(const [n,z] of [['icon-512.png',512],['icon-192.png',192],['apple-touch-icon.png',180]])files.push({name:n,data:await pngBytes(img,z,IC)});
    downloadBlob(makeZip(files),'FrontDuke_App_Icons.zip');$('#icm').insertAdjacentHTML('afterbegin','<b style="color:var(--ok)">✔ FrontDuke_App_Icons.zip downloaded.</b><br>')}
   catch(e){toast('Could not create icons: '+e.message)}b.disabled=false;b.textContent='⬇ Create icon files (zip)'}}
+/* ================= chat (one group for everyone) ================= */
+const MENTION_RANKS=['Master','Chief Officer','Second Officer','Third Officer','Deck Cadet','Chief Engineer','Second Engineer','Third Engineer','Fourth Engineer','Electrical Engineer','Vessel Manager','Superintendent'];
+let CH={show:150,att:[],draft:'',delArm:'',delOpen:''};
+const chats=()=>S.entries.filter(e=>e.kind==='chat').sort((a,b)=>String(a.ts).localeCompare(String(b.ts)));
+const isMine=e=>e.rank===S.user.rank&&String(e.name||'').trim().toLowerCase()===String(S.user.name||'').trim().toLowerCase();
+async function chatUnread(){const rd=(await DB.get('kv','chatRead'))||'';return chats().filter(e=>!e.deleted&&!isMine(e)&&String(e.ts)>rd).length}
+async function markChatRead(){const L=chats();if(L.length)await DB.put('kv',String(L[L.length-1].ts),'chatRead');updChatBadge()}
+async function updChatBadge(){const n=S.user&&D?await chatUnread():0;document.querySelectorAll('[data-chatbadge]').forEach(b=>{b.textContent=n>99?'99+':String(n);b.style.display=n?'':'none'})}
+function mentionHTML(t){let h=esc(t);MENTION_RANKS.slice().sort((a,b)=>b.length-a.length).forEach(r=>{h=h.split('@'+esc(r)).join(`<b class="men">@${esc(r)}</b>`)});return h}
+function chatMsgHTML(e,prevDate){const me=isMine(e);const can=!e.deleted&&(me||isChief());
+ const day=e.date!==prevDate?`<div class="cday">${esc(longD(e.date))}</div>`:'';
+ if(e.deleted)return day+`<div class="cm ${me?'me':''}"><div class="cb del">🚫 Message deleted</div></div>`;
+ const ims=(e.files||[]);
+ return day+`<div class="cm ${me?'me':''}" data-cid="${e.id}"><div class="cb${(e.mentions||[]).includes(S.user.rank)&&!me?' tome':''}">
+  <div class="cw">${me?'You':esc(e.rank+' – '+e.name)} · ${esc(e.time)}${e.test?' <span class="chip test">TEST</span>':''}</div>
+  ${e.text?`<div class="ct">${mentionHTML(e.text)}</div>`:''}
+  ${ims.length?`<div class="cmedia">${ims.map(f=>/^video\//.test(f.mime)?`<div class="cv" data-cvid="${f.fid}" data-e="${e.id}">🎬 Video<br><small>tap to play</small></div>`:`<div class="m" data-e="${e.id}" data-fid="${f.fid}">…</div>`).join('')}</div>`:''}
+  <div class="cs">${e.pending?'🕓 waiting to send':e.rejected?'⚠ '+esc(e.rejected):'✓'}</div>
+  ${can?`<button class="cdel${CH.delOpen===e.id?'':' hidden'}" data-cdel="${e.id}"${CH.delArm===e.id?' data-c="1"':''}>${CH.delArm===e.id?'Tap again to delete':'🗑 Delete'}</button>`:''}</div></div>`}
+function chatListHTML(){const L=chats();const s=L.slice(-CH.show);let pd='';
+ return (L.length>CH.show?`<button class="ghost sm" id="cmore" style="display:block;margin:0 auto 10px">Show earlier messages</button>`:'')+(s.length?s.map(e=>{const h=chatMsgHTML(e,pd);pd=e.date;return h}).join(''):'<div class="mut s" style="text-align:center;margin-top:30px">No messages yet. Say hello 👋<br>Type @ to call a rank.</div>')}
+function renderChat(){
+ shell('Chat','Everyone · type @ to call a rank',`<div id="cl">${chatListHTML()}</div><div style="height:8px"></div>`,{back:()=>go('home'),foot:`<div class="cfoot">
+  <div id="cmen" class="cmen hidden"></div><div id="catt" class="catt${CH.att.length?'':' hidden'}"></div>
+  <div class="crow"><button class="ghost cbtn" id="cpl" aria-label="Attach">📎</button><textarea id="cin" rows="1" placeholder="Message…">${esc(CH.draft)}</textarea><button class="ghost cbtn" id="cmic" aria-label="Speak">🎤</button><button class="cbtn" id="csend" aria-label="Send">➤</button></div></div>
+  <input type="file" id="fVid" accept="video/*" capture="environment" class="hidden"><input type="file" id="fCg" accept="image/*,video/*" multiple class="hidden">`});
+ document.body.classList.add('chatview');
+ bindChatList();showAtt();
+ const ta=$('#cin');const grow=()=>{ta.style.height='auto';ta.style.height=Math.min(120,ta.scrollHeight)+'px'};grow();
+ ta.oninput=()=>{CH.draft=ta.value;grow();menList()};ta.onclick=menList;
+ $('#csend').onclick=chatSend;
+ $('#cpl').onclick=()=>{sheet(`<div class="h2">Add to message</div><div class="choice"><button id="ca1"><b>📷</b><span>Take photo</span></button><button id="ca2"><b>🎥</b><span>Record video<small>up to 30 seconds</small></span></button><button id="ca3"><b>🖼️</b><span>Gallery<small>photos or videos</small></span></button></div>`);
+  $('#ca1').onclick=()=>{closeSheet();pickChat($('#fCam'))};$('#ca2').onclick=()=>{closeSheet();pickChat($('#fVid'))};$('#ca3').onclick=()=>{closeSheet();pickChat($('#fCg'))}};
+ let rec=null;$('#cmic').onclick=()=>{if(rec){rec.stop();return}const base=ta.value?ta.value.replace(/\s+$/,'')+' ':'';
+  rec=startDictation((f,i)=>{ta.value=base+f+i;CH.draft=ta.value;grow()},why=>{rec=null;$('#cmic').classList.remove('rec');ta.value=ta.value.trim();CH.draft=ta.value;if(why==='not-allowed'||why==='service-not-allowed')toast('Microphone not allowed – use the mic on your keyboard')});
+  if(rec)$('#cmic').classList.add('rec');else{ta.focus();toast('Use the mic on your phone keyboard')}};
+ scrollChat();markChatRead()}
+function scrollChat(){requestAnimationFrame(()=>window.scrollTo(0,document.body.scrollHeight))}
+function bindChatList(){const cl=$('#cl');if(!cl)return;
+ if($('#cmore'))$('#cmore').onclick=()=>{CH.show+=150;$('#cl').innerHTML=chatListHTML();bindChatList()};
+ cl.querySelectorAll('.cb').forEach(b=>b.onclick=ev=>{if(ev.target.closest('.m,.cv,[data-cdel]'))return;const d=b.querySelector('[data-cdel]');if(d){d.classList.toggle('hidden');CH.delOpen=d.classList.contains('hidden')?'':d.dataset.cdel;CH.delArm=''}});
+ cl.querySelectorAll('[data-cdel]').forEach(b=>b.onclick=async()=>{if(!b.dataset.c){b.dataset.c=1;CH.delArm=b.dataset.cdel;b.textContent='Tap again to delete';return}CH.delOpen='';CH.delArm='';
+  const e=S.entries.find(x=>x.id===b.dataset.cdel);e.deleted=true;e.pending=true;e.editBy=S.user.rank+' '+S.user.name;await saveEntry(e);refreshChat();sendReceive(false)});
+ cl.querySelectorAll('[data-cvid]').forEach(v=>v.onclick=async()=>{const e=S.entries.find(x=>x.id===v.dataset.e);const f=e&&e.files.find(x=>x.fid===v.dataset.cvid);if(!f)return;v.innerHTML='⏳ loading…';
+  const u=await fileURL(f);if(!u){v.innerHTML='🎬 Video<br><small>not downloaded – needs internet</small>';return}v.outerHTML=`<video src="${u}" controls playsinline class="cvid"></video>`});
+ fillMinis(cl)}
+function refreshChat(){if(S.view!=='chat'||!$('#cl'))return;const atBottom=window.innerHeight+window.scrollY>=document.body.scrollHeight-80;$('#cl').innerHTML=chatListHTML();bindChatList();if(atBottom)scrollChat();if(document.visibilityState==='visible')markChatRead()}
+function menList(){const ta=$('#cin'),box=$('#cmen');const pre=ta.value.slice(0,ta.selectionStart);const m=pre.match(/(^|\s)@([A-Za-z ]{0,25})$/);
+ if(!m){box.classList.add('hidden');return}const q=m[2].toLowerCase().trim();const L=MENTION_RANKS.filter(r=>!q||r.toLowerCase().startsWith(q)||r.toLowerCase().includes(q));
+ if(!L.length){box.classList.add('hidden');return}
+ box.innerHTML=L.map(r=>`<button data-men="${esc(r)}">@${esc(r)}</button>`).join('');box.classList.remove('hidden');
+ box.querySelectorAll('[data-men]').forEach(b=>b.onclick=()=>{const pos=ta.selectionStart;const before=ta.value.slice(0,pos).replace(/@([A-Za-z ]{0,25})$/,'@'+b.dataset.men+' ');ta.value=before+ta.value.slice(pos);CH.draft=ta.value;box.classList.add('hidden');ta.focus();ta.setSelectionRange(before.length,before.length)})}
+function pickChat(inp){inp.value='';inp.onchange=async()=>{const files=[...inp.files];for(const f of files){
+  if(/^video\//.test(f.type)){if(f.size>20*1024*1024){toast('Video is over 20 MB – please send a shorter video (max 30 s)',4500);continue}
+   const dur=await videoSecs(f);if(dur>31){toast('Video is '+Math.round(dur)+' s – maximum is 30 seconds',4500);continue}}
+  else if(!/^image\//.test(f.type)){toast('Only photos and videos can be sent in chat');continue}
+  await addFiles([f],CH.att)}showAtt()};inp.click()}
+function videoSecs(f){return new Promise(res=>{const v=document.createElement('video');v.preload='metadata';const u=URL.createObjectURL(f);v.onloadedmetadata=()=>{URL.revokeObjectURL(u);res(isFinite(v.duration)?v.duration:0)};v.onerror=()=>res(0);v.src=u})}
+async function showAtt(){const box=$('#catt');if(!box)return;box.classList.toggle('hidden',!CH.att.length);
+ box.innerHTML=CH.att.map(f=>`<div class="ca" data-ca="${f.fid}">${/^video/.test(f.mime)?'🎬':''}<button class="x" data-carm="${f.fid}">✕</button></div>`).join('');
+ for(const f of CH.att){if(/^image/.test(f.mime)){const b=await DB.get('blobs',f.fid);const el=box.querySelector(`[data-ca="${f.fid}"]`);if(b&&el){const im=document.createElement('img');im.src=URL.createObjectURL(b);el.prepend(im)}}}
+ box.querySelectorAll('[data-carm]').forEach(b=>b.onclick=async()=>{await DB.del('blobs',b.dataset.carm);CH.att=CH.att.filter(f=>f.fid!==b.dataset.carm);showAtt()})}
+async function chatSend(){const ta=$('#cin');const text=ta.value.trim();if(!text&&!CH.att.length)return;
+ const e={id:'c'+uid(),kind:'chat',dept:'',perf:'',job:'',jobTitle:'',status:'',rank:S.user.rank,name:S.user.name,device:S.user.device,date:today(),time:nowTime(),ts:new Date().toISOString(),
+  text,mentions:MENTION_RANKS.filter(r=>text.includes('@'+r)),files:CH.att,test:!!S.testMode,deleted:false,pending:true,updated:Date.now()};
+ try{await saveEntry(e)}catch(err){toast('Could not save on this phone: '+err.message,5000);return}
+ CH.att=[];CH.draft='';ta.value='';ta.style.height='auto';showAtt();$('#cmen').classList.add('hidden');refreshChat();scrollChat();
+ if(!navigator.onLine)toast('📱 No internet – message saved on this phone and will be sent automatically');sendReceive(false)}
+/* mentions: tone + pop-up for the @ rank */
+let ACX=null;document.addEventListener('pointerdown',()=>{try{if(!ACX){const C=window.AudioContext||window.webkitAudioContext;if(C)ACX=new C()}if(ACX&&ACX.state==='suspended')ACX.resume()}catch(e){}},{passive:true});
+function tone(){try{if(navigator.vibrate)navigator.vibrate([200,100,200]);if(!ACX)return;const t=ACX.currentTime;[[880,0],[1175,0.18],[880,0.36]].forEach(([f,d])=>{const o=ACX.createOscillator(),g=ACX.createGain();o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(0.0001,t+d);g.gain.exponentialRampToValueAtTime(0.35,t+d+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+d+0.16);o.connect(g);g.connect(ACX.destination);o.start(t+d);o.stop(t+d+0.17)})}catch(e){}}
+async function checkMentions(){if(!S.user||!D)return;let seen=await DB.get('kv','mentionSeen');
+ if(seen==null){await DB.put('kv',new Date().toISOString(),'mentionSeen');return}
+ const L=chats().filter(e=>!e.deleted&&!isMine(e)&&(e.mentions||[]).includes(S.user.rank)&&String(e.ts)>seen);if(!L.length)return;
+ await DB.put('kv',String(L[L.length-1].ts),'mentionSeen');tone();
+ const show=L.slice(-3);$('#mpop').innerHTML=`<div class="mp"><div class="mph">🔔 You were mentioned${L.length>1?' ('+L.length+')':''}</div>${show.map(e=>`<div class="mpi"><b>${esc(e.rank+' – '+e.name)}</b> <span class="xs mut">${esc(e.time)}</span><div>${mentionHTML(e.text||'(photo / video)')}</div></div>`).join('')}
+  <div style="display:flex;gap:8px;margin-top:10px"><button class="ghost" id="mpx" style="flex:1">Close</button><button id="mpo" style="flex:2">Open chat</button></div></div>`;
+ $('#mpop').classList.add('show');$('#mpx').onclick=()=>$('#mpop').classList.remove('show');$('#mpo').onclick=()=>{$('#mpop').classList.remove('show');go('chat')}}
+function afterSync(){updChatBadge();checkMentions();refreshChat()}
+/* poll every 15 s while the app is open – fetches only when something new is on the server */
+async function chatPoll(){if(!S.user||!D||document.visibilityState!=='visible'||!navigator.onLine||!CFG.SERVER_URL||S.syncing)return;
+ if(pending()){sendReceive(false);return}
+ try{const r=await api('poll',{},15000);if(r&&r.stamp&&r.stamp>S.since+5000)sendReceive(false)}catch(e){}}
+setInterval(chatPoll,15000);
 /* ================= boot ================= */
 let SWREG=null;
 async function boot(){try{await loadState()}catch(e){$('#app').innerHTML='<div style="padding:20px">This browser blocks offline storage (private mode?). Open the app in normal Safari/Chrome.</div>';return}
- render();if(S.user&&D)autoSync();
+ render();if(S.user&&D){autoSync();afterSync()}
  setInterval(()=>{if(S.user&&D)sendReceive(false)},60*60*1000);
  window.addEventListener('online',()=>{if(S.user&&D)sendReceive(false)});
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&S.user&&D)autoSync()});
