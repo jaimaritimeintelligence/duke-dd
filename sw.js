@@ -1,4 +1,4 @@
-const CACHE='fduke-dd2026-v2.0.0';
+const CACHE='fduke-dd2026-v2.0.1';
 const SHELL=['./','index.html','config.js','manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png','duke.jpg','ship1.jpg','ship3.jpg'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>{}))});
 self.addEventListener('message',e=>{if(e.data==='skip')self.skipWaiting()});

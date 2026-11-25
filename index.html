@@ -89,6 +89,8 @@ body.chatview main{padding-bottom:150px}#cl{display:flex;flex-direction:column;g
 .mpop{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.45);display:none;align-items:flex-start;justify-content:center;padding:70px 16px 16px}.mpop.show{display:flex}
 .mp{background:var(--card);color:var(--ink);border-radius:16px;padding:14px 16px;width:100%;max-width:460px;border:3px solid #f0a020;box-shadow:0 10px 40px rgba(0,0,0,.35)}.mph{font-weight:800;font-size:17px;margin-bottom:8px;color:#c25e00}.mpi{border-top:1px solid var(--line);padding:7px 0}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cm.me .cb{background:#173a5c;border-color:#24557f}}:root[data-theme="dark"] .cm.me .cb{background:#173a5c;border-color:#24557f}
+.inst{background:linear-gradient(135deg,#0b2942,#1f6fb8);color:#fff;border-radius:16px;padding:12px 14px;margin:12px 0;font-size:14px;line-height:1.4}.inst button{padding:10px}.inst .ghost{background:rgba(255,255,255,.15);color:#fff}
+a.btn{display:block;text-align:center;text-decoration:none;border-radius:12px;padding:14px 16px;background:var(--sea);color:#fff;font-weight:700;font-size:16px}.isteps{padding-left:22px;margin:10px 0}.isteps li{margin:8px 0;font-size:15px}
 .hero .txt{position:relative}.hero h1{margin:0;font-size:24px;letter-spacing:.3px}.hero p{margin:2px 0 0;opacity:.85;font-size:13.5px}
 .big2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .bigbtn{border-radius:20px;padding:20px 14px;min-height:118px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;text-align:left;font-size:18px;box-shadow:0 6px 18px rgba(11,41,66,.18)}
@@ -151,9 +153,55 @@ table.t{border-collapse:collapse;width:100%;font-size:13px}table.t td,table.t th
 <input type="file" id="fCam" accept="image/*" capture="environment" class="hidden">
 <input type="file" id="fGal" accept="image/*,video/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx" multiple class="hidden">
 <script>
+/* ================= easy install ================= */
+let BIP=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();BIP=e;document.querySelectorAll('[data-inst]').forEach(b=>b.textContent='📲 Install');if($('#instDiag'))instDiag()});
+window.addEventListener('appinstalled',()=>{BIP=null;document.querySelectorAll('.inst').forEach(b=>b.remove());toast('✅ App installed – open it from your home screen',5000,true)});
+const UA=navigator.userAgent;
+const ENV={standalone:matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches||navigator.standalone===true,
+ ios:/iPhone|iPad|iPod/.test(UA)||(/Macintosh/.test(UA)&&navigator.maxTouchPoints>1),android:/Android/.test(UA),
+ inapp:/WhatsApp|FBAN|FBAV|Instagram|Line\/|Telegram|GSA\/|; wv\)/.test(UA),samsung:/SamsungBrowser/.test(UA),
+ mi:/MiuiBrowser|XiaoMi/.test(UA),huawei:/HuaweiBrowser|HMSCore/.test(UA),edge:/EdgA\//.test(UA),firefox:/Firefox\//.test(UA),opera:/OPR\/|Opera/.test(UA)};
+ENV.chrome=ENV.android&&/Chrome\//.test(UA)&&!ENV.inapp&&!ENV.samsung&&!ENV.mi&&!ENV.huawei&&!ENV.edge&&!ENV.opera;
+ENV.safari=ENV.ios&&/Safari\//.test(UA)&&!/CriOS|FxiOS|EdgiOS/.test(UA)&&!ENV.inapp;
+function browserName(){return ENV.inapp?'App inside WhatsApp / other app':ENV.samsung?'Samsung Internet':ENV.mi?'Mi Browser':ENV.huawei?'Huawei Browser':ENV.edge?'Edge':ENV.firefox?'Firefox':ENV.opera?'Opera':ENV.chrome?'Chrome':ENV.safari?'Safari':ENV.ios?'iPhone – not Safari':'Other'}
+const chromeIntent=()=>`intent://${location.host}${location.pathname}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(location.href)};end`;
+function instBanner(){if(ENV.standalone)return '';let off=0;try{off=+localStorage.getItem('instLater')||0}catch(e){}if(Date.now()-off<3*86400000)return '';
+ return `<div class="inst"><span>📲 <b>Install this app</b> on your phone – opens like a normal app, works offline.</span><div style="display:flex;gap:8px;margin-top:8px"><button data-inst style="flex:2">${BIP?'📲 Install':'📲 How to install'}</button><button class="ghost" data-instlater style="flex:1">Later</button></div></div>`}
+function bindInst(root){(root||document).querySelectorAll('[data-inst]').forEach(b=>b.onclick=doInstall);
+ (root||document).querySelectorAll('[data-instlater]').forEach(b=>b.onclick=()=>{try{localStorage.setItem('instLater',String(Date.now()))}catch(e){}b.closest('.inst').remove()})}
+async function doInstall(){if(BIP){const e=BIP;BIP=null;try{await e.prompt();const c=await e.userChoice;if(c&&c.outcome==='accepted')return}catch(err){}}openInstallHelp()}
+function stepsHTML(L){return `<ol class="isteps">${L.map(x=>`<li>${x}</li>`).join('')}</ol>`}
+function openInstallHelp(){let h='';
+ if(ENV.standalone)h=`<div class="banner info">✅ You are already using the installed app.</div>`;
+ else if(ENV.android&&!ENV.chrome){h=`<div class="s">This page is open in <b>${esc(browserName())}</b>. The app installs best from <b>Chrome</b>.</div>
+  <a class="btn" href="${chromeIntent()}" style="margin:12px 0">🌐 Open in Chrome</a><div class="xs mut">Then tap 📲 Install there.</div>
+  ${ENV.samsung?`<div class="h2" style="font-size:16px">Or install in Samsung Internet</div>${stepsHTML(['Tap the menu <b>≡</b> (bottom right)','Tap <b>Add page to</b>','Tap <b>Home screen</b> (or <b>Apps</b>) → <b>Add</b>'])}`:''}`}
+ else if(ENV.android){h=`<div class="s">Chrome has not offered the 1-tap install yet. Do this:</div>${stepsHTML(['Tap <b>⋮</b> (top right of Chrome)','Tap <b>Install app</b> – or <b>Add to Home screen</b>','If a box shows <b>Install</b> and <b>Create shortcut</b>, tap <b>Install</b>','Open <b>Duke DD</b> from your home screen'])}
+  <div class="xs mut">If you only see "Create shortcut", that's fine too – the app works the same.</div>`}
+ else if(ENV.ios&&!ENV.safari){h=`<div class="s">On iPhone the app can only be installed from <b>Safari</b>.</div>${stepsHTML(['Copy this link: <b>'+esc(location.href.split('#')[0])+'</b> <button class="ghost sm" id="icopy">Copy</button>','Open <b>Safari</b> and paste it','Then follow the Safari steps (Share ⬆ → Add to Home Screen)'])}`}
+ else if(ENV.ios){h=stepsHTML(['Tap <b>Share</b> ⬆ (bottom middle of Safari)','Scroll down, tap <b>Add to Home Screen</b>','Tap <b>Add</b> (top right)','Open <b>Duke DD</b> from your home screen'])}
+ else h=`<div class="s">Open this link on your phone in <b>Chrome</b> (Android) or <b>Safari</b> (iPhone).</div>`;
+ sheet(`<div class="h2">📲 Install the app</div>${h}<details style="margin-top:14px"><summary class="s" style="cursor:pointer;font-weight:700">Still not working? Check this phone</summary><div id="instDiag" class="xs" style="margin-top:8px">checking…</div></details>`);
+ if($('#icopy'))$('#icopy').onclick=()=>{try{navigator.clipboard.writeText(location.href.split('#')[0]);toast('Link copied')}catch(e){toast('Copy failed – long-press the link')}};
+ instDiag()}
+async function instDiag(){const el=$('#instDiag');if(!el)return;const row=(ok,t,d)=>`<div>${ok===true?'✅':ok===false?'❌':'➖'} <b>${t}</b>${d?' – '+d:''}</div>`;const out=[];
+ out.push(row(null,'Browser',esc(browserName())+(ENV.android?' · Android':ENV.ios?' · iPhone':'')));
+ out.push(row(ENV.standalone?true:null,'Opened as installed app',ENV.standalone?'yes':'no (opened in the browser)'));
+ out.push(row(location.protocol==='https:','Secure link (https)',location.protocol.replace(':','')));
+ let reg=null;try{reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration()}catch(e){}
+ out.push(row(!!(reg&&reg.active),'Offline part ready',reg&&reg.active?'yes':'not yet – wait 30 s on the login page, then reload'));
+ let man=null;try{const r=await fetch('manifest.webmanifest',{cache:'no-store'});man=r.ok?await r.json():null}catch(e){}
+ out.push(row(!!man,'App details file (manifest)',man?esc(man.name||''):'missing on GitHub – upload manifest.webmanifest'));
+ const ic=async(src,sz)=>new Promise(res=>{const i=new Image();i.onload=()=>res(i.naturalWidth===sz&&i.naturalHeight===sz?'ok':i.naturalWidth+'×'+i.naturalHeight);i.onerror=()=>res('missing');i.src=src+'?v='+Date.now()});
+ for(const [f,sz] of [['icon-192.png',192],['icon-512.png',512]]){const r=await ic(f,sz);out.push(row(r==='ok','Icon '+f,r==='ok'?sz+'×'+sz:r==='missing'?'missing on GitHub – upload '+f:'wrong size '+r))}
+ if(ENV.android)out.push(row(BIP?true:null,'Chrome 1-tap install offered',BIP?'yes – tap 📲 Install':ENV.chrome?'not yet (Chrome waits until the page has been used for a short time, or the phone has no Google Play Services)':'only in Chrome'));
+ const rep=`Duke DD install check · v${VERSION} · ${browserName()} · ${UA}`;
+ el.innerHTML=out.join('')+`<button class="ghost sm" id="dcopy" style="margin-top:8px">Copy this check for Chief</button>`;
+ $('#dcopy').onclick=()=>{const t=rep+'\n'+el.innerText.replace('Copy this check for Chief','');try{navigator.clipboard.writeText(t);toast('Copied – paste it in WhatsApp to the Chief')}catch(e){toast('Copy not allowed on this phone')}}}
 "use strict";
 /* ================= constants ================= */
-const VERSION='2.0.0';
+const VERSION='2.0.1';
 const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
 const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
 const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager'];
@@ -331,7 +379,7 @@ function renderLogin(){const needData=S.user&&!D;
  <label class="l" for="pin" id="pinl">${pinLabel(LG==='v'?'Vessel Manager':'')}</label><input id="pin" type="password" inputmode="numeric" placeholder="PIN">
  <div class="xs mut" style="margin-top:6px">Chief Engineer, Master and Vessel Manager use their own PIN. Everyone else uses the vessel PIN.</div>
  <button id="li" style="width:100%;margin-top:18px">Log in</button>`}
- <p class="xs mut" id="lmsg" style="margin:10px 0 0">${CFG.SERVER_URL?'Login is needed once on this phone. After that the app works without internet.':'⚠ Server link not set in config.js – see setup guide.'}</p></div></div>`;
+ <p class="xs mut" id="lmsg" style="margin:10px 0 0">${CFG.SERVER_URL?'Login is needed once on this phone. After that the app works without internet.':'⚠ Server link not set in config.js – see setup guide.'}</p></div>${instBanner()}</div>`;bindInst($('#app'));
  if(needData){$('#dl').onclick=()=>fetchRecords();return}
  $('#tO').onclick=()=>{LG='o';renderLogin()};$('#tG').onclick=()=>{LG='g';renderLogin()};$('#tV').onclick=()=>{LG='v';renderLogin()};
  if(LG==='o')$('#rk').onchange=()=>{$('#pinl').textContent=pinLabel($('#rk').value)};
@@ -349,6 +397,7 @@ function renderHome(){if(ED&&isChief())return renderEditHome();const L=lay();app
  const last=S.lastSync?new Date(S.lastSync):null;
  shell('Front Duke · DD 2026',`${S.user.rank} · ${S.user.name}`,`
  ${heroHTML(L,false)}
+ ${instBanner()}
  ${p?`<div class="banner">⚠ ${p} update(s) waiting to be sent. Tap Send / Receive when you have internet.</div>`:''}
  ${bigHTML(L)}
  ${progCard()}
@@ -357,7 +406,7 @@ function renderHome(){if(ED&&isChief())return renderEditHome();const L=lay();app
  <div class="xs mut" style="margin-top:4px">Last sync: ${last?last.toLocaleString():'never'} · auto every hour while the app is open</div></div>
  ${isChief()?'<div style="text-align:center;margin-top:10px"><button class="ghost sm" id="edl">✏️ Edit home screen</button></div>':''}
  ${creditHTML(L)}`);
- updChatBadge();if($('#edl'))$('#edl').onclick=startEdit;$('#app').querySelectorAll('[data-pg]').forEach(b=>b.onclick=()=>{PG.st=b.dataset.pg;go('progress')})}
+ updChatBadge();bindInst($('#app'));if($('#edl'))$('#edl').onclick=startEdit;$('#app').querySelectorAll('[data-pg]').forEach(b=>b.onclick=()=>{PG.st=b.dataset.pg;go('progress')})}
 /* ---------- DD progress ---------- */
 let PG={st:'ip'};
 function progData(){const R={ns:[],ip:[],co:[],ca:[]};D.jobs.forEach(j=>{if(OUT.has(j.id))return;const s=jobState(j.id);R[s.jst].push({j,last:s.last})});
@@ -790,6 +839,7 @@ function renderSettings(){const all=S.entries.length;
  <button class="danger" id="purge" style="width:100%;margin-top:10px">🗑 Delete ALL test entries and their photos</button><div class="xs mut" style="margin-top:4px">Removes them from Google Sheet, Drive and every phone, and switches Test mode OFF. Cannot be undone.</div></div>`:''}
  ${isChief()?`<div class="card"><b>Daily email time (ship time)</b><div style="display:flex;gap:8px;margin-top:8px"><select id="rh">${[...Array(24).keys()].map(h=>`<option value="${h}" ${h===S.reportHour?'selected':''}>${pad(h)}:00</option>`).join('')}</select><button id="rhs">Save</button></div></div>`:''}
  ${isChief()?'<div class="card"><b>✏️ Home screen layout</b><div class="s mut">Ship photo, tile order and size, text size, credit line, app icon. Saved for all phones.</div><button id="edl2" style="width:100%;margin-top:8px">Edit home screen</button></div>':''}
+ <div class="card"><b>📲 Install / share the app</b><div class="s mut">${ENV.standalone?'This phone uses the installed app.':'Not installed on this phone yet.'}</div><div style="display:flex;gap:8px;margin-top:8px"><button id="ihelp" style="flex:1">Install help</button><button class="ghost" id="ishare" style="flex:1">Share app link</button></div></div>
  <div class="card"><b>Appearance</b><div class="seg">${[['','Auto'],['light','Light'],['dark','Dark']].map(([v,l])=>`<button data-th="${v}">${l}</button>`).join('')}</div></div>
  <div class="card"><button class="ghost" id="rr" style="width:100%">⟳ Re-download drydock records</button><button class="ghost" id="bk2" style="width:100%;margin-top:8px">⬇ Backup my entries (file)</button>
  <button class="danger" id="lo" style="width:100%;margin-top:8px">Log out of this phone</button><div class="xs mut" style="margin-top:6px">Log out is blocked while updates are not sent.</div></div>`,{back:()=>go('home')});
@@ -799,7 +849,7 @@ function renderSettings(){const all=S.entries.length;
    b.disabled=true;b.textContent='Deleting…';try{await sendReceive(false);const r=await api('purgeTest',{},300000);for(const e of S.entries.filter(x=>x.test||r.ids.includes(x.id))){for(const f of (e.files||[]))await DB.del('blobs',f.fid);await DB.del('entries',e.id)}
     S.entries=await DB.all('entries');rebuildEntryIdx();S.testMode=false;await DB.put('kv',false,'testMode');toast(`✅ Deleted ${r.deleted} test entries and ${r.files} files. App is now LIVE.`,5000,true);renderSettings()}catch(e){toast(e.message);b.disabled=false}}}
  $('#app').querySelectorAll('[data-th]').forEach(b=>b.onclick=async()=>{const v=b.dataset.th;if(v)document.documentElement.setAttribute('data-theme',v);else document.documentElement.removeAttribute('data-theme');await DB.put('kv',v,'theme')});
- $('#rr').onclick=()=>{S.view='home';fetchRecords()};if($('#edl2'))$('#edl2').onclick=startEdit;
+ $('#rr').onclick=()=>{S.view='home';fetchRecords()};if($('#edl2'))$('#edl2').onclick=startEdit;$('#ihelp').onclick=doInstall;$('#ishare').onclick=async()=>{const u=location.href.split('#')[0].split('?')[0];const t='Front Duke DD 2026 crew app. Open in Chrome (Android) or Safari (iPhone), then tap 📲 Install: '+u;try{if(navigator.share){await navigator.share({title:'Duke DD app',text:t,url:u});return}}catch(e){return}try{await navigator.clipboard.writeText(t);toast('Link copied – paste it in WhatsApp')}catch(e){toast(u,8000)}};
  $('#bk2').onclick=()=>downloadBlob(new Blob([JSON.stringify({exported:new Date().toISOString(),user:{rank:S.user.rank,name:S.user.name},entries:S.entries},null,1)],{type:'application/json'}),'FrontDuke_DD2026_backup_'+today()+'.json');
  $('#lo').onclick=async()=>{if(pending()){toast('Send / Receive first – '+pending()+' update(s) not sent',4000);return}if(!$('#lo').dataset.c){$('#lo').dataset.c=1;$('#lo').textContent='Tap again to log out';return}await DB.del('kv','user');S.user=null;ED=null;render()}}
 /* ================= home-screen layout (Chief edits, all phones get it) ================= */
