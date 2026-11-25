@@ -63,6 +63,16 @@ main{zoom:var(--z,1)}
 .apane .arow,.apane .amail,.apane .aupd{background:var(--card);border-radius:10px;padding:9px 11px;margin-bottom:8px}.apane .arow{cursor:pointer}.apane>:last-child{margin-bottom:0}
 .amail .d,.aupd .d{font-weight:800;color:var(--c);font-size:13px;margin-bottom:2px}.amail .why{color:var(--mut);margin:2px 0 6px;font-style:italic}.mt{white-space:pre-wrap;font-size:14px;line-height:1.45;overflow-wrap:anywhere}
 .apane .kv{background:var(--card);border-radius:10px;padding:8px 10px}.apane pre.scope{background:var(--card)}
+.stpick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}.stpick button{padding:14px 6px;font-size:15px;font-weight:800;border-radius:12px;border:2px solid var(--c);background:var(--cb);color:var(--c)}.stpick button.on{background:var(--c);color:#fff}
+.st-ns{--c:#5d6d7a;--cb:#eef2f5}.st-ip{--c:#c27c00;--cb:#fff4de}.st-co{--c:#17803f;--cb:#e5f4ea}.st-ca{--c:#c0392b;--cb:#fbe9e7}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .st-ns{--cb:#1d2a36;--c:#9cadbc}:root:not([data-theme="light"]) .st-ip{--cb:#33270f;--c:#f0b257}:root:not([data-theme="light"]) .st-co{--cb:#12301e;--c:#5ccf8a}:root:not([data-theme="light"]) .st-ca{--cb:#3a1a16;--c:#f08a7e}}
+:root[data-theme="dark"] .st-ns{--cb:#1d2a36;--c:#9cadbc}:root[data-theme="dark"] .st-ip{--cb:#33270f;--c:#f0b257}:root[data-theme="dark"] .st-co{--cb:#12301e;--c:#5ccf8a}:root[data-theme="dark"] .st-ca{--cb:#3a1a16;--c:#f08a7e}
+.seg.wrap{flex-wrap:wrap}.req{color:var(--bad);font-size:11px;font-weight:700;margin-left:4px}.stc{margin-top:4px;padding:6px 9px;border-left:3px solid var(--sea);background:var(--bg);border-radius:6px}
+.capi{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;margin-top:10px}.capi .ci{width:96px;height:72px;border-radius:8px;overflow:hidden;background:var(--chip);flex:0 0 auto}.capi .ci img{width:100%;height:100%;object-fit:cover}.cmic.rec{background:var(--bad);color:#fff;border-color:var(--bad)}.capi textarea{min-height:56px}
+.minis .mf{margin:0;width:64px}.minis figcaption{font-size:10px;line-height:1.2;color:var(--mut);margin-top:2px;overflow-wrap:anywhere}
+.prog{margin-top:12px}.pbar{height:10px;border-radius:99px;background:var(--chip);overflow:hidden;margin:8px 0 4px}.pbar i{display:block;height:100%;background:#17803f;border-radius:99px}
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.pg{display:flex;flex-direction:column;align-items:center;padding:9px 2px;border-radius:12px;border:1.5px solid var(--c);background:var(--cb);color:var(--c);font-weight:700;font-size:11.5px;line-height:1.2}.pg b{font-size:22px}.pg.on{background:var(--c);color:#fff}
+.stnow{margin:10px 0;padding:10px 12px;border-radius:12px;border:2px solid var(--c);background:var(--cb);color:var(--c)}.stnow b{font-size:17px}
 .hero .txt{position:relative}.hero h1{margin:0;font-size:24px;letter-spacing:.3px}.hero p{margin:2px 0 0;opacity:.85;font-size:13.5px}
 .big2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .bigbtn{border-radius:20px;padding:20px 14px;min-height:118px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;text-align:left;font-size:18px;box-shadow:0 6px 18px rgba(11,41,66,.18)}
@@ -127,12 +137,17 @@ table.t{border-collapse:collapse;width:100%;font-size:13px}table.t td,table.t th
 <script>
 "use strict";
 /* ================= constants ================= */
-const VERSION='1.8.0';
+const VERSION='1.9.0';
 const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
 const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
-const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Vessel Manager'];
-const STAT=['Not started','In progress / given to yard','Received back','Done','Class/Owner accepted'];
-const STC=['','warn','','ok','ok'];
+const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager'];
+const EXTRACT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Vessel Manager'];
+const JST={ns:['Not started',''],ip:['In progress','warn'],co:['Completed','ok'],ca:['Cancelled','bad']};
+const SUBS=['Dis-assembly in progress','Given to Yard','Received from Yard','Assembly in progress','Testing in progress','Service Engineer work in progress'];
+function stText(e){if(!e||!JST[e.jst])return '';const L=JST[e.jst][0];if(e.jst==='ip')return L+(e.sub?' – '+e.sub:'');if(e.jst==='co')return L+(e.cdate?' on '+longD(e.cdate):'');if(e.jst==='ca')return L+' – VM/Owner approval: '+(e.appr||'—');return L}
+function stLabel(e){return e.jst==='ip'?'Status details':e.jst==='ca'?'Reason for cancellation':'Comment'}
+function jobState(id){let last=null;for(const e of S.entries){if(!e.deleted&&e.job===id&&JST[e.jst]&&(!last||String(e.ts)>String(last.ts)))last=e}return {jst:last?last.jst:'ns',last}}
+const imgsOf=u=>u.files.filter(f=>!f.voice&&/^image\//.test(f.mime));
 const PERF=[['Yard','Yard job','🏗️','Work done by COSCO yard'],['Service Engineer','Service engineer job','🧰','Maker / service engineer attendance'],['Ship Staff','Ship staff job','⚓','Work by our own crew']];
 const OUT=new Set(['350.03','710.01','740.02']);
 const $=s=>document.querySelector(s);
@@ -232,7 +247,7 @@ async function sendReceive(manual){const saveMode=manual==='save';if(saveMode)ma
   if(manual)toast(`✅ Sent updates to CE Sethu Database successfully\n(${sent} update(s) sent${up?', '+up+' photo/file(s)':''}, ${dn} received)`+ff,4500,true);
   else if(wantMsg)toast('✅ Update sent to CE Sethu Database successfully'+ff,4000,true);
  }catch(err){if(manual||wantMsg)toast('📱 Your update is SAFE on this phone.\nNot sent yet ('+String(err.message||err).slice(0,60)+').\nIt will be sent automatically – or press Send / Receive later.',6000)}
- finally{S.syncing=false;if(['home','timeline','spares','jobs'].includes(S.view)&&!$('#sheet').classList.contains('show')&&!(S.view==='home'&&ED))render();else renderTop();if(S.manualAfter){S.manualAfter=false;setTimeout(()=>sendReceive(true),50)}else if(S.saveAfter){setTimeout(()=>sendReceive('save'),50)}}}
+ finally{S.syncing=false;if(['home','timeline','spares','jobs','progress'].includes(S.view)&&!$('#sheet').classList.contains('show')&&!(S.view==='home'&&ED))render();else renderTop();if(S.manualAfter){S.manualAfter=false;setTimeout(()=>sendReceive(true),50)}else if(S.saveAfter){setTimeout(()=>sendReceive('save'),50)}}}
 function autoSync(){if(Date.now()-S.lastSync>55*60*1000||pending())sendReceive(false)}
 /* ================= media helpers ================= */
 async function compress(file){if(!/^image\//.test(file.type)||/gif|svg/.test(file.type))return file;
@@ -269,11 +284,12 @@ const extOf=m=>/mp4|aac/.test(m)?'m4a':/ogg/.test(m)?'ogg':'webm';
 function deptOf(rank){if(rank==='Guest')return 'Guest';const r=RANKS.find(x=>x[0]===rank);return r?r[1]:'Engine'}
 function role(){return S.user?(S.user.role||(S.user.chief?'chief':'crew')):''}
 function canReport(){return S.user&&(['chief','master','vm'].includes(role())||REPORT_RANKS.includes(S.user.rank))}
+function canExtract(){return S.user&&(['chief','master','vm'].includes(role())||EXTRACT_RANKS.includes(S.user.rank))}
 function isChief(){return role()==='chief'}
 function editAny(){return ['chief','master','vm'].includes(role())}
 function canEdit(e){return editAny()||(e.device===S.user.device&&e.date===today())}
 function canMeeting(){return ['chief','master'].includes(role())}
-function render(){if(!S.user||!D){renderLogin();return}({home:renderHome,ask:renderAsk,update:renderUpdate,meeting:renderMeeting,photos:renderPhotos,timeline:renderTimeline,jobs:renderJobs,spares:renderSpares,reports:renderReports,settings:renderSettings})[S.view]()}
+function render(){if(!S.user||!D){renderLogin();return}({home:renderHome,ask:renderAsk,update:renderUpdate,meeting:renderMeeting,photos:renderPhotos,timeline:renderTimeline,jobs:renderJobs,spares:renderSpares,reports:renderReports,settings:renderSettings,progress:renderProgress})[S.view]()}
 function shell(title,sub,body,opts){opts=opts||{};const p=pending();
  $('#app').innerHTML=`<div class="top">${opts.back?'<button id="bk" aria-label="Back">←</button>':''}<div class="t">${esc(title)}<small>${esc(sub||'')}</small></div><button class="sync" id="sr">${S.syncing?'⟳ Syncing…':'⇅ Send / Receive'}${p?` <span class="badge">${p}</span>`:''}</button></div>
  <main>${S.testMode?'<div class="banner test">🧪 TEST MODE – everything entered now is test data and will be deleted by the Chief Engineer</div>':''}${body}</main>${opts.foot||navBar()}`;
@@ -319,26 +335,52 @@ function renderHome(){if(ED&&isChief())return renderEditHome();const L=lay();app
  ${heroHTML(L,false)}
  ${p?`<div class="banner">⚠ ${p} update(s) waiting to be sent. Tap Send / Receive when you have internet.</div>`:''}
  ${bigHTML(L)}
+ ${progCard()}
  ${tilesHTML(L,false)}
  <div class="card" style="margin-top:12px"><b>Today ${t}</b><div class="s mut">${td.length} update(s) · Deck ${td.filter(e=>e.dept==='Deck').length} · Engine ${td.filter(e=>e.dept==='Engine').length} · Meetings ${td.filter(e=>e.kind==='meeting').length}</div>
  <div class="xs mut" style="margin-top:4px">Last sync: ${last?last.toLocaleString():'never'} · auto every hour while the app is open</div></div>
  ${isChief()?'<div style="text-align:center;margin-top:10px"><button class="ghost sm" id="edl">✏️ Edit home screen</button></div>':''}
  ${creditHTML(L)}`);
- if($('#edl'))$('#edl').onclick=startEdit}
+ if($('#edl'))$('#edl').onclick=startEdit;$('#app').querySelectorAll('[data-pg]').forEach(b=>b.onclick=()=>{PG.st=b.dataset.pg;go('progress')})}
+/* ---------- DD progress ---------- */
+let PG={st:'ip'};
+function progData(){const R={ns:[],ip:[],co:[],ca:[]};D.jobs.forEach(j=>{if(OUT.has(j.id))return;const s=jobState(j.id);R[s.jst].push({j,last:s.last})});
+ const tot=D.jobs.length-[...OUT].filter(x=>J[x]).length;const base=tot-R.ca.length;return {R,tot,pct:base?Math.round(R.co.length/base*100):0}}
+function progCard(){const {R,tot,pct}=progData();
+ return `<div class="card prog"><div style="display:flex;justify-content:space-between;align-items:baseline"><b>📊 DD progress</b><span class="xs mut">${tot} DD spec jobs</span></div>
+ <div class="pbar"><i style="width:${pct}%"></i></div><div class="xs mut" style="margin-bottom:8px">${pct}% complete · ${R.co.length} completed of ${tot-R.ca.length} (cancelled not counted)</div>
+ <div class="pgrid">${Object.entries(JST).map(([k,[l]])=>`<button class="pg st-${k}" data-pg="${k}"><b>${R[k].length}</b><span>${l}</span></button>`).join('')}</div></div>`}
+function renderProgress(){const {R}=progData();const L=R[PG.st].slice().sort((a,b)=>a.j.id.localeCompare(b.j.id));
+ shell('DD progress',`${JST[PG.st][0]} · ${L.length} job(s)`,`<div class="pgrid" style="margin-bottom:12px">${Object.entries(JST).map(([k,[l]])=>`<button class="pg st-${k}${PG.st===k?' on':''}" data-pg="${k}"><b>${R[k].length}</b><span>${l}</span></button>`).join('')}</div>
+ <div class="card" style="padding:4px 14px">${L.map(({j,last})=>`<div class="item" data-st="${j.id}" style="cursor:pointer"><span class="jid">${j.id}</span> <b>${esc(j.title)}</b>
+  <div class="xs mut">${esc(j.dept)} · ${esc(j.perf)}${last?' · '+esc(longD(last.date)):''}</div>${last&&PG.st!=='ns'?`<span class="chip ${JST[last.jst][1]}">${esc(stText(last))}</span>`:''}</div>`).join('')||'<div class="item mut">No jobs.</div>'}</div>`);
+ $('#app').querySelectorAll('[data-pg]').forEach(b=>b.onclick=()=>{PG.st=b.dataset.pg;renderProgress();window.scrollTo(0,0)});
+ $('#app').querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>openStatus(b.dataset.st))}
+function openStatus(id){const j=J[id];const st=jobState(id);const last=st.last;
+ const hist=live().filter(e=>e.job===id&&JST[e.jst]).sort((a,b)=>String(b.ts).localeCompare(String(a.ts)));
+ sheet(`<div><span class="jid" style="font-size:19px">${j.id}</span> <b style="font-size:18px">${esc(j.title)}</b></div><div class="xs mut">${esc(j.dept)} · ${esc(j.perf)}</div>
+ <div class="stnow st-${st.jst}"><div class="xs">Present status</div><b>${esc(last?stText(last):'Not started')}</b>${last?`<div class="xs">Updated ${esc(longD(last.date))} · ${esc(last.rank)}</div>`:'<div class="xs">No status update posted yet</div>'}</div>
+ ${last?`<div class="card">${last.stc?`<div class="s"><b>${stLabel(last)}:</b> ${esc(last.stc)}</div>`:''}<div class="mt" style="margin-top:6px">${esc(last.text||'')}</div>${miniHTML(last)}</div>`:''}
+ ${hist.length>1?`<div class="xs mut" style="font-weight:700;margin:12px 0 4px">Earlier status updates</div>${hist.slice(1).map(e=>`<div class="item"><b>${esc(longD(e.date))}</b> · ${esc(e.rank)} <span class="chip ${JST[e.jst][1]}">${esc(stText(e))}</span>${e.stc?`<div class="xs">${esc(e.stc)}</div>`:''}</div>`).join('')}`:''}
+ <div class="xs mut" style="font-weight:700;margin:14px 0 4px">Requisitions · Mails · Spec · All updates</div><div id="stx">${ajCard(j)}</div>`);
+ const r=$('#sheetIn');r.querySelector('#stx').onclick=ajClick;bindEntryButtons(r);fillMinis(r)}
 /* ---------- update wizard ---------- */
 let UPD={step:0};
-function resetUpd(){UPD={step:1,dept:'',perf:'',text:'',job:'',jobTitle:'',status:'',files:[],kind:'update',order:'',temp:null};}
+function resetUpd(){UPD={step:1,dept:'',perf:'',text:'',job:'',jobTitle:'',jst:'',sub:'',stc:'',cdate:'',appr:'',files:[],kind:'update',order:'',temp:null};}
 function updFoot(backFn,nextLbl,nextFn,nextDis){return `<div class="foot"><button class="ghost" id="ub">${backFn?'← Back':'Cancel'}</button><button id="un" ${nextDis?'disabled':''}>${nextLbl}</button></div>`}
-function stepsBar(n){return `<div class="steps">${[1,2,3,4,5,6].map(i=>`<i class="${i<=n?'on':''}"></i>`).join('')}</div>`}
+function updSteps(u){const s=[1,2,3,4,5];if(imgsOf(u).length)s.push(6);if(u.job)s.push(7);s.push(8);return s}
+const nextOf=(u,n)=>{const s=updSteps(u);return s[s.indexOf(n)+1]},prevOf=(u,n)=>{const s=updSteps(u);return s[s.indexOf(n)-1]};
+function stepSub(n){const s=updSteps(UPD);return 'Step '+(s.indexOf(n)+1)+' of '+s.length}
+function stepsBar(n){const s=updSteps(UPD);const k=s.indexOf(n);return `<div class="steps">${s.map((x,i)=>`<i class="${i<=k?'on':''}"></i>`).join('')}</div>`}
 function renderUpdate(){const u=UPD;if(!u.step)resetUpd();
  const title=u.kind==='spares'?'Spares received':'Update';
- if(u.step===1){shell(title,'Step 1 of 6',stepsBar(1)+`<div class="h2">Which department?</div><div class="choice">
+ if(u.step===1){shell(title,stepSub(1),stepsBar(1)+`<div class="h2">Which department?</div><div class="choice">
   <button data-d="Deck" class="${u.dept==='Deck'?'sel':''}"><b>⚓</b><span>Deck<small>Hull, tanks, deck machinery, LSA/FFA</small></span></button>
   <button data-d="Engine" class="${u.dept==='Engine'?'sel':''}"><b>⚙️</b><span>Engine &amp; Electrical<small>Machinery, electrical, automation</small></span></button></div>`,{back:()=>{go('home')},foot:updFoot(false,'Next →',null,!u.dept)});
   $('#app').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{u.dept=b.dataset.d;u.step=2;renderUpdate()});$('#ub').onclick=()=>{resetUpd();go('home')};$('#un').onclick=()=>{u.step=2;renderUpdate()};return}
- if(u.step===2){shell(title,'Step 2 of 6',stepsBar(2)+`<div class="h2">Whose work is it?</div><div class="choice">${PERF.map(([k,l,i,s])=>`<button data-p="${k}" class="${u.perf===k?'sel':''}"><b>${i}</b><span>${l}<small>${s}</small></span></button>`).join('')}</div>`,{back:()=>{u.step=1;renderUpdate()},foot:updFoot(true,'Next →',null,!u.perf)});
+ if(u.step===2){shell(title,stepSub(2),stepsBar(2)+`<div class="h2">Whose work is it?</div><div class="choice">${PERF.map(([k,l,i,s])=>`<button data-p="${k}" class="${u.perf===k?'sel':''}"><b>${i}</b><span>${l}<small>${s}</small></span></button>`).join('')}</div>`,{back:()=>{u.step=1;renderUpdate()},foot:updFoot(true,'Next →',null,!u.perf)});
   $('#app').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{u.perf=b.dataset.p;u.step=3;renderUpdate()});$('#ub').onclick=()=>{u.step=1;renderUpdate()};$('#un').onclick=()=>{u.step=3;renderUpdate()};return}
- if(u.step===3){shell(title,'Step 3 of 6',stepsBar(3)+`<div class="h2">What happened?</div>
+ if(u.step===3){shell(title,stepSub(3),stepsBar(3)+`<div class="h2">What happened?</div>
   <div class="s mut">Type, or tap the mic and speak. You can also use the mic on your phone keyboard.</div>
   <button class="mic" id="mic" aria-label="Speak">🎤</button><div class="xs mut" style="text-align:center" id="mst">${SR?'Tap to speak · tap again to stop':'Live voice typing not available in this browser – use the keyboard mic'}</div>
   <textarea id="tx" placeholder="e.g. Manhole doors for cargo tanks opened">${esc(u.text)}</textarea>
@@ -349,15 +391,13 @@ function renderUpdate(){const u=UPD;if(!u.step)resetUpd();
    if(rec){$('#mic').classList.add('rec');$('#mst').textContent='Listening… tap to stop'}else toast('Use the mic on your phone keyboard')};
   $('#vn').onclick=()=>voiceNote(u);
   $('#ub').onclick=()=>{if(rec)rec.stop();u.step=2;renderUpdate()};$('#un').onclick=()=>{if(rec)rec.stop();u.text=tx.value.trim();if(!u.text&&!u.files.some(f=>f.voice)){toast('Please type or speak the update first');return}u.step=4;renderUpdate()};return}
- if(u.step===4){const cand=suggestJobs(u);shell(title,'Step 4 of 6',stepsBar(4)+`<div class="h2">Which spec job?</div><div class="s mut">Best matches for ${esc(u.dept)} · ${esc(u.perf)} work. Tap one, or choose General.</div>
+ if(u.step===4){const cand=suggestJobs(u);shell(title,stepSub(4),stepsBar(4)+`<div class="h2">Which spec job?</div><div class="s mut">Best matches for ${esc(u.dept)} · ${esc(u.perf)} work. Tap one, or choose General.</div>
   <input id="js" placeholder="Search job by word or number…" style="margin:10px 0">
-  <div class="card" id="jl" style="padding:4px 14px">${jobChoices(cand,u)}</div>
-  <div class="card"><b>Job status after this update</b> <span class="xs mut">(optional)</span><div class="seg" id="sts">${['',...STAT.keys()].map(i=>`<button data-s="${i}" class="${String(u.status)===String(i)?'on':''}">${i===''?'No change':STAT[i]}</button>`).join('')}</div></div>`,{back:()=>{u.step=3;renderUpdate()},foot:updFoot(true,'Next →')});
+  <div class="card" id="jl" style="padding:4px 14px">${jobChoices(cand,u)}</div>`,{back:()=>{u.step=3;renderUpdate()},foot:updFoot(true,'Next →')});
   const bind=()=>$('#jl').querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{const v=b.dataset.pick;u._picked=true;u.job=v==='GEN'?'':v;u.jobTitle=v==='GEN'?'':J[v].title;$('#jl').innerHTML=jobChoices(cand,u);bind()});bind();
   $('#js').oninput=e=>{const q=e.target.value.trim();const list=q?(J[q]?[J[q]]:search(q,'jobs',12).map(x=>x.r)):cand;$('#jl').innerHTML=jobChoices(list,u);bind()};
-  $('#sts').querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{u.status=b.dataset.s===''?'':+b.dataset.s;$('#sts').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))});
   $('#ub').onclick=()=>{u.step=3;renderUpdate()};$('#un').onclick=()=>{if(u.job===undefined)u.job='';u.step=5;renderUpdate()};return}
- if(u.step===5){shell(title,'Step 5 of 6',stepsBar(5)+`<div class="h2">Add photos?</div>
+ if(u.step===5){shell(title,stepSub(5),stepsBar(5)+`<div class="h2">Add photos?</div>
   ${u.files.filter(f=>!f.voice).length?'':`<div class="choice" id="yn"><button id="yes"><b>📷</b><span>Yes, add photos<small>Camera, gallery, PDF or video</small></span></button><button id="no"><b>⏭️</b><span>No, skip photos</span></button></div>`}
   <div id="ph" class="${u.files.filter(f=>!f.voice).length?'':'hidden'}"><div style="display:flex;gap:10px"><button id="cam" style="flex:1">📷 Take photo</button><button id="gal" class="ghost" style="flex:1">🖼️ Gallery / files</button></div>
   <div class="xs mut" style="margin-top:6px">Take as many as you need – tap Take photo again after each one. Photos are made smaller to save space.</div><div class="thumbs" id="th"></div></div>`,{back:()=>{u.step=4;renderUpdate()},foot:updFoot(true,'Next →')});
@@ -365,21 +405,56 @@ function renderUpdate(){const u=UPD;if(!u.step)resetUpd();
    for(const f of fs){if(/^image/.test(f.mime)){const b=await DB.get('blobs',f.fid);if(b){const el=th.querySelector(`[data-t="${f.fid}"]`);if(el){const im=document.createElement('img');im.src=URL.createObjectURL(b);el.prepend(im)}}}}
    th.querySelectorAll('[data-rm]').forEach(b=>b.onclick=async()=>{await DB.del('blobs',b.dataset.rm);u.files=u.files.filter(f=>f.fid!==b.dataset.rm);showTh()})};
   const openPh=()=>{const yn=$('#yn');if(yn)yn.remove();$('#ph').classList.remove('hidden')};
-  if($('#yes')){$('#yes').onclick=()=>{openPh();pickCam(u,showTh)};$('#no').onclick=()=>{u.step=6;renderUpdate()}}
+  if($('#yes')){$('#yes').onclick=()=>{openPh();pickCam(u,showTh)};$('#no').onclick=()=>{u.step=nextOf(u,5);renderUpdate()}}
   $('#cam').onclick=()=>pickCam(u,showTh);$('#gal').onclick=()=>pickGal(u,showTh);showTh();
-  $('#ub').onclick=()=>{u.step=4;renderUpdate()};$('#un').onclick=()=>{u.step=6;renderUpdate()};return}
- if(u.step===6){const nph=u.files.filter(f=>!f.voice).length;shell(title,'Step 6 of 6',stepsBar(6)+`<div class="h2">Check and send</div>
+  $('#ub').onclick=()=>{u.step=4;renderUpdate()};$('#un').onclick=()=>{u.step=nextOf(u,5);renderUpdate()};return}
+ if(u.step===6){const L=imgsOf(u);const need=Math.min(2,L.length);
+  shell(title,stepSub(6),stepsBar(6)+`<div class="h2">Name the photos</div><div class="s mut">Write what each photo shows. It is printed under the photo in every report. ${need===1?'Name this photo.':'Name at least 2 photos – the rest can stay empty.'}</div>
+  <div id="caps">${L.map((f,i)=>`<div class="capi"><div class="ci" data-ct="${f.fid}"></div><div style="flex:1"><div style="display:flex;justify-content:space-between;align-items:center"><label class="l" style="margin:0">Photo ${i+1}</label><button class="ghost sm cmic" data-cmic="${f.fid}">🎤 Talk</button></div><textarea data-cap="${f.fid}" rows="2" placeholder="Type, or tap 🎤 Talk and say what the photo shows">${esc(f.cap||'')}</textarea></div></div>`).join('')}</div>
+  <div class="xs mut" style="margin-top:6px">🎤 Talk: speak, then tap ■ Stop. The words appear in the box – you can correct them by typing.</div>`,{back:()=>{u.step=5;renderUpdate()},foot:updFoot(true,'Next →')});
+  (async()=>{for(const f of L){const b=await DB.get('blobs',f.fid);const el=$('#caps')&&$('#caps').querySelector(`[data-ct="${f.fid}"]`);if(b&&el){const im=document.createElement('img');im.src=URL.createObjectURL(b);el.appendChild(im)}}})();
+  $('#caps').querySelectorAll('[data-cap]').forEach(t=>t.oninput=()=>{const f=u.files.find(x=>x.fid===t.dataset.cap);if(f)f.cap=t.value});
+  let crec=null,cbtn=null;const cstop=()=>{if(crec)crec.stop()};
+  $('#caps').querySelectorAll('[data-cmic]').forEach(btn=>btn.onclick=()=>{const was=cbtn===btn;cstop();if(was)return;
+   const t=$('#caps').querySelector(`[data-cap="${btn.dataset.cmic}"]`);const base=t.value.trim()?t.value.trim()+' ':'';const f=u.files.find(x=>x.fid===btn.dataset.cmic);
+   crec=startDictation((fin,int)=>{t.value=base+fin+int;if(f)f.cap=t.value},why=>{crec=null;if(cbtn){cbtn.textContent='🎤 Talk';cbtn.classList.remove('rec')}cbtn=null;t.value=t.value.trim();if(f)f.cap=t.value;if(why==='not-allowed'||why==='service-not-allowed')toast('Microphone not allowed – use the mic on your keyboard')});
+   if(crec){cbtn=btn;btn.textContent='■ Stop';btn.classList.add('rec')}else{t.focus();toast('Use the mic on your phone keyboard')}});
+  $('#ub').onclick=()=>{cstop();u.step=5;renderUpdate()};
+  $('#un').onclick=()=>{cstop();const n=L.filter(f=>(f.cap||'').trim()).length;if(n<need){toast(need===1?'Please name the photo':'Please name at least 2 photos ('+n+' named)');return}L.forEach(f=>{f.cap=(f.cap||'').trim()});u.step=nextOf(u,6);renderUpdate()};return}
+ if(u.step===7){const cur=jobState(u.job);const today_=today();
+  const det=u.jst==='ip'?`<label class="l">Which stage?</label><div class="seg wrap" id="subs">${SUBS.map(x=>`<button data-sub="${esc(x)}" class="${u.sub===x?'on':''}">${esc(x)}</button>`).join('')}</div>
+   <label class="l">What is the job status now? <span class="req">required</span></label><textarea id="stc" placeholder="e.g. Motor sent to yard workshop for bearing renewal">${esc(u.stc)}</textarea>`
+  :u.jst==='co'?`<label class="l">Completed on <span class="req">required</span></label><input type="date" id="cd" value="${esc(u.cdate||today_)}" max="${today_}">
+   <label class="l">Comment <span class="req">required</span></label><textarea id="stc" placeholder="e.g. Tested OK, running normal">${esc(u.stc)}</textarea>`
+  :u.jst==='ca'?`<label class="l">Reason for cancellation <span class="req">required</span></label><textarea id="stc" placeholder="Why is this job cancelled?">${esc(u.stc)}</textarea>
+   <label class="l">VM / Owner approval obtained? <span class="req">required</span></label><div class="seg" id="apr">${['Yes','No'].map(x=>`<button data-apr="${x}" class="${u.appr===x?'on':''}">${x}</button>`).join('')}</div>`
+  :u.jst==='ns'?`<label class="l">Comment <span class="xs mut">(optional)</span></label><textarea id="stc">${esc(u.stc)}</textarea>`:'';
+  shell(title,stepSub(7),stepsBar(7)+`<div class="h2">Job status</div><div class="s"><span class="jid">${u.job}</span> ${esc(u.jobTitle)}</div>
+  <div class="xs mut" style="margin:4px 0 10px">Now: <b>${esc(cur.last?stText(cur.last):'Not started')}</b>${cur.last?' · '+esc(longD(cur.last.date))+' · '+esc(cur.last.rank):''}</div>
+  <div class="stpick">${Object.entries(JST).map(([k,[l]])=>`<button data-jst="${k}" class="st-${k}${u.jst===k?' on':''}">${l}</button>`).join('')}</div><div id="stdet">${det}</div>`,{back:()=>{u.step=prevOf(u,7);renderUpdate()},foot:updFoot(true,'Next →')});
+  const keep=()=>{const t=$('#stc');if(t)u.stc=t.value;const d=$('#cd');if(d)u.cdate=d.value};
+  $('#app').querySelectorAll('[data-jst]').forEach(b=>b.onclick=()=>{keep();u.jst=b.dataset.jst;if(u.jst==='co'&&!u.cdate)u.cdate=today_;renderUpdate()});
+  $('#app').querySelectorAll('[data-sub]').forEach(b=>b.onclick=()=>{keep();u.sub=b.dataset.sub;renderUpdate()});
+  $('#app').querySelectorAll('[data-apr]').forEach(b=>b.onclick=()=>{keep();u.appr=b.dataset.apr;renderUpdate()});
+  $('#ub').onclick=()=>{keep();u.step=prevOf(u,7);renderUpdate()};
+  $('#un').onclick=()=>{keep();u.stc=(u.stc||'').trim();const bad=statusProblem(u);if(bad){toast(bad);return}u.step=8;renderUpdate()};return}
+ if(u.step===8){const nph=u.files.filter(f=>!f.voice).length;shell(title,stepSub(8),stepsBar(8)+`<div class="h2">Check and send</div>
   <div class="card"><div class="kv"><div>Date & time</div><div>${today()} ${nowTime()}</div><div>By</div><div>${esc(S.user.rank)} – ${esc(S.user.name)}</div>
   <div>Department</div><div><span class="chip ${u.dept==='Deck'?'deck':'eng'}">${esc(u.dept)}</span></div><div>Work by</div><div>${esc(u.perf||'—')}</div>
   <div>Spec job</div><div>${u.job?`<span class="jid">${u.job}</span> ${esc(u.jobTitle)}`:'General (no spec job)'}</div>${u.order?`<div>Requisition</div><div>${esc(u.order)}</div>`:''}
-  <div>Status</div><div>${u.status===''?'No change':STAT[u.status]}</div><div>Update</div><div style="white-space:pre-wrap">${esc(u.text||'(voice note only)')}</div>
-  <div>Attachments</div><div>${nph} photo/file(s)${u.files.some(f=>f.voice)?' + voice note':''}</div></div></div>
-  <div class="xs mut">Saved on this phone first, then sent at the next Send / Receive.</div>`,{back:()=>{u.step=5;renderUpdate()},foot:updFoot(true,'✔ Save & send')});
-  $('#ub').onclick=()=>{u.step=5;renderUpdate()};$('#un').onclick=async()=>{$('#un').disabled=true;
+  <div>Job status</div><div>${u.job?`<span class="chip ${JST[u.jst][1]}">${esc(stText(u))}</span>${u.stc?`<div class="s" style="white-space:pre-wrap"><b>${stLabel(u)}:</b> ${esc(u.stc)}</div>`:''}`:'General – no job status'}</div><div>Update</div><div style="white-space:pre-wrap">${esc(u.text||'(voice note only)')}</div>
+  <div>Attachments</div><div>${nph} photo/file(s)${u.files.some(f=>f.voice)?' + voice note':''}${imgsOf(u).map((f,i)=>`<div class="xs">Photo ${i+1}: ${esc(f.cap||'(no name)')}</div>`).join('')}</div></div></div>
+  <div class="xs mut">Saved on this phone first, then sent at the next Send / Receive.</div>`,{back:()=>{u.step=prevOf(u,8);renderUpdate()},foot:updFoot(true,'✔ Save & send')});
+  $('#ub').onclick=()=>{u.step=prevOf(u,8);renderUpdate()};$('#un').onclick=async()=>{$('#un').disabled=true;
    const e={id:'e'+uid(),kind:u.kind,dept:u.dept,perf:u.perf,rank:S.user.rank,name:S.user.name,device:S.user.device,chiefEntry:isChief(),date:today(),time:nowTime(),ts:new Date().toISOString(),
-    text:u.text,job:u.job||'',jobTitle:u.jobTitle||'',status:u.status,order:u.order||'',test:!!S.testMode,confirmed:u.kind==='spares'&&isChief(),files:u.files,deleted:false,pending:true,updated:Date.now()};
+    text:u.text,job:u.job||'',jobTitle:u.jobTitle||'',status:'',jst:u.job?u.jst:'',sub:u.job&&u.jst==='ip'?u.sub:'',stc:u.job?u.stc:'',cdate:u.job&&u.jst==='co'?u.cdate:'',appr:u.job&&u.jst==='ca'?u.appr:'',order:u.order||'',test:!!S.testMode,confirmed:u.kind==='spares'&&isChief(),files:u.files,deleted:false,pending:true,updated:Date.now()};
    try{await saveEntry(e)}catch(err){toast('Could not save on this phone: '+err.message+' – phone storage may be full',6000);$('#un').disabled=false;return}
    resetUpd();UPD.step=0;S.view='timeline';render();toast('📱 Saved on this phone – sending…');sendReceive('save')};return}}
+function statusProblem(u){if(!u.job)return '';if(!JST[u.jst])return 'Please choose the job status';
+ if(u.jst==='ip'){if(!u.sub)return 'Please choose the stage of work';if(!u.stc)return 'Please write the job status'}
+ if(u.jst==='co'){if(!u.cdate)return 'Please choose the completion date';if(u.cdate>today())return 'Completion date cannot be in the future';if(!u.stc)return 'Please write a comment'}
+ if(u.jst==='ca'){if(!u.stc)return 'Please write the reason for cancellation';if(!u.appr)return 'Please answer: VM / Owner approval obtained?'}
+ return ''}
 function jobChoices(list,u){return `<div class="item" data-pick="GEN" style="cursor:pointer">${u.job===''&&u._picked?'✅ ':'○ '}<b>General – no spec job</b></div>`+list.map(j=>`<div class="item" data-pick="${j.id}" style="cursor:pointer">${u.job===j.id?'✅':'○'} <span class="jid">${j.id}</span> ${esc(j.title)}<div class="xs mut">${esc(j.comp)} · ${esc(j.perf)} · ${esc(j.dept)}${OUT.has(j.id)?' · out of this dock':''}</div></div>`).join('')}
 function suggestJobs(u){const txt=(u.text||'').replace(/\b(today|yesterday|given|handed|sent|to|the|yard|workshop|for|received|back|done|completed|started|we|have|has|been|and|of|from|shore|service|engineer|ship|staff|opened|closed|by|for|in|on|at|no)\b/gi,' ');
  const cs=parseQ(txt);let r=[];if(cs.length&&IDX){const sc=[];for(const it of IDX.jobs){let t=0,m=0;for(const c of cs){if(hit(it.f[0][0],c)||hit(it.f[1][0],c))t++;if(it.f.some(f=>hit(f[0],c)))m++}if(m)sc.push([it.r,t*10+m*3])}r=sc.sort((a,b)=>b[1]-a[1]).slice(0,40).map(x=>x[0])}const byPref=j=>(j.perf===u.perf?2:0)+(j.dept===u.dept?1:0);
@@ -428,11 +503,12 @@ let TF={dept:'All',date:''};
 function entryCard(e){const dcls=e.kind==='meeting'?'meeting':e.dept==='Deck'?'Deck':'Engine';
  const tr=e.transcript||'';const txt=e.kind==='meeting'?`🎙️ Daily meeting\n${tr?tr.slice(0,500)+(tr.length>500?'…':''):'(transcript attached as file)'}`:(e.text);
  return `<div class="entry ${dcls}"><div class="who"><b>${esc(e.time)}</b> · ${esc(e.rank)} – ${esc(e.name)} ${e.kind!=='meeting'?`<span class="chip ${e.dept==='Deck'?'deck':'eng'}">${esc(e.dept)}</span>`:''}${e.perf?`<span class="chip">${esc(e.perf)}</span>`:''}</div>
- <div class="txt">${esc(txt)}</div>
- <div>${e.job?`<span class="chip" data-job="${e.job}">${e.job} ${esc((e.jobTitle||'').slice(0,40))}</span>`:''}${e.status!==''&&e.status!=null?`<span class="chip ${STC[e.status]}">${STAT[e.status]}</span>`:''}${e.kind==='spares'?`<span class="chip ${e.confirmed?'ok':'warn'}" data-order="${esc(e.order)}">${esc(e.order)} ${e.confirmed?'received ✔ confirmed':'received – pending Chief'}</span>`:''}
+ <div class="txt">${esc(txt)}</div>${e.stc?`<div class="s stc"><b>${stLabel(e)}:</b> ${esc(e.stc)}</div>`:''}
+ <div>${e.job?`<span class="chip" data-job="${e.job}">${e.job} ${esc((e.jobTitle||'').slice(0,40))}</span>`:''}${e.job&&JST[e.jst]?`<span class="chip ${JST[e.jst][1]}">${esc(stText(e))}</span>`:''}${e.kind==='spares'?`<span class="chip ${e.confirmed?'ok':'warn'}" data-order="${esc(e.order)}">${esc(e.order)} ${e.confirmed?'received ✔ confirmed':'received – pending Chief'}</span>`:''}
  ${e.pending?'<span class="chip warn">📱 on phone – not sent yet</span>':'<span class="chip ok">✓ in database</span>'}${(e.files||[]).some(f=>f.upErr)?'<span class="chip warn">photo retry pending</span>':''}${e.rejected?`<span class="chip bad">${esc(e.rejected)}</span>`:''}${e.test?'<span class="chip test">TEST</span>':''}${e.kind==='meeting'&&(e.transcript||'').length>500?`<button class="ghost sm" data-full="${e.id}">Read full transcript</button>`:''}</div>
- ${(e.files||[]).length?`<div class="minis">${e.files.map(f=>`<div class="m" data-e="${e.id}" data-fid="${f.fid}">…</div>`).join('')}</div>`:''}
+ ${miniHTML(e)}
  ${canEdit(e)||(isChief()&&e.kind==='spares'&&!e.confirmed)?`<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">${canEdit(e)?`<button class="ghost sm" data-ed="${e.id}">✏️ Edit</button>`:''}${isChief()?`<button class="ghost sm" data-dl="${e.id}">🗑 Delete</button>`:''}${isChief()&&e.kind==='spares'&&!e.confirmed?`<button class="sm" data-cf="${e.id}">✔ Confirm received</button>`:''}</div>`:''}</div>`}
+function miniHTML(e){return (e.files||[]).length?`<div class="minis">${e.files.map(f=>`<figure class="mf"><div class="m" data-e="${e.id}" data-fid="${f.fid}">…</div>${f.cap?`<figcaption>${esc(f.cap)}</figcaption>`:''}</figure>`).join('')}</div>`:''}
 function renderTimeline(){let L=live();if(TF.dept==='Deck')L=L.filter(e=>e.dept==='Deck'||e.kind==='meeting');if(TF.dept==='Engine')L=L.filter(e=>e.dept==='Engine'||e.kind==='meeting');if(TF.date)L=L.filter(e=>e.date===TF.date);
  L.sort((a,b)=>String(b.ts).localeCompare(String(a.ts)));const days={};L.forEach(e=>(days[e.date]=days[e.date]||[]).push(e));
  shell('Timeline',`${L.length} entries`,`<div class="seg">${['All','Deck','Engine'].map(d=>`<button data-tf="${d}" class="${TF.dept===d?'on':''}">${d==='Engine'?'Engine & Elec.':d}</button>`).join('')}<input type="date" id="tfd" value="${TF.date}" style="width:auto;padding:7px 10px">${TF.date?'<button class="ghost" id="tfc">All dates</button>':''}</div>
@@ -443,12 +519,25 @@ function bindEntryButtons(root){root.querySelectorAll('[data-ed]').forEach(b=>b.
  root.querySelectorAll('[data-dl]').forEach(b=>b.onclick=async()=>{if(!b.dataset.c){b.dataset.c=1;b.textContent='Tap again to delete';return}const e=S.entries.find(x=>x.id===b.dataset.dl);e.deleted=true;e.pending=true;e.editBy=S.user.rank+' '+S.user.name;await saveEntry(e);render();sendReceive('save')});
  root.querySelectorAll('[data-full]').forEach(b=>b.onclick=()=>{const e=S.entries.find(x=>x.id===b.dataset.full);sheet(`<div class="h2">Daily meeting ${esc(e.date)} ${esc(e.time)}</div><pre class="scope" style="max-height:none">${esc(e.transcript)}</pre>`)});
  root.querySelectorAll('[data-cf]').forEach(b=>b.onclick=async()=>{const e=S.entries.find(x=>x.id===b.dataset.cf);e.confirmed=true;e.pending=true;e.editBy=S.user.rank+' '+S.user.name;await saveEntry(e);toast('Confirmed ✔ – sending…');render();sendReceive('save')})}
-function editEntry(id){const e=S.entries.find(x=>x.id===id);sheet(`<div class="h2">Edit update</div><label class="l">Text</label><textarea id="etx">${esc(e.kind==='meeting'?e.transcript:e.text)}</textarea>
- ${e.kind!=='meeting'?`<label class="l">Status</label><select id="est"><option value="">No change</option>${STAT.map((s,i)=>`<option value="${i}" ${String(e.status)===String(i)?'selected':''}>${s}</option>`).join('')}</select>`:''}
+function editEntry(id){const e=S.entries.find(x=>x.id===id);const E={jst:e.jst||'',sub:e.sub||'',stc:e.stc||'',cdate:e.cdate||'',appr:e.appr||'',job:e.job};const ims=(e.files||[]).filter(f=>/^image\//.test(f.mime));
+ sheet(`<div class="h2">Edit update</div><label class="l">Text</label><textarea id="etx">${esc(e.kind==='meeting'?e.transcript:e.text)}</textarea>
+ ${e.kind!=='meeting'&&e.job?`<label class="l">Job status</label><select id="ejs">${Object.entries(JST).map(([k,[l]])=>`<option value="${k}" ${E.jst===k?'selected':''}>${l}</option>`).join('')}</select>
+  <div id="esub"><label class="l">Stage</label><select id="esb"><option value="">– choose –</option>${SUBS.map(x=>`<option ${E.sub===x?'selected':''}>${esc(x)}</option>`).join('')}</select></div>
+  <div id="ecd"><label class="l">Completed on</label><input type="date" id="ecdv" value="${esc(E.cdate||today())}" max="${today()}"></div>
+  <div id="eap"><label class="l">VM / Owner approval obtained?</label><select id="eapv"><option value="">– choose –</option>${['Yes','No'].map(x=>`<option ${E.appr===x?'selected':''}>${x}</option>`).join('')}</select></div>
+  <label class="l" id="estl">Comment</label><textarea id="estc">${esc(E.stc)}</textarea>`:''}
+ ${ims.map((f,i)=>`<label class="l">Photo ${i+1} name</label><input data-ecap="${f.fid}" value="${esc(f.cap||'')}">`).join('')}
  <button id="esv" style="width:100%;margin-top:14px">Save change</button><div class="xs mut" style="margin-top:6px">The earlier text is kept in the history on the server.</div>`);
- $('#esv').onclick=async()=>{if(e.kind==='meeting')e.transcript=$('#etx').value;else{e.text=$('#etx').value;e.status=$('#est').value===''?'':+$('#est').value}e.pending=true;e.editBy=S.user.rank+' '+S.user.name;await saveEntry(e);closeSheet();render();sendReceive('save')}}
+ const vis=()=>{if(!$('#ejs'))return;const v=$('#ejs').value;$('#esub').style.display=v==='ip'?'':'none';$('#ecd').style.display=v==='co'?'':'none';$('#eap').style.display=v==='ca'?'':'none';$('#estl').textContent=v==='ip'?'Job status (required)':v==='ca'?'Reason for cancellation (required)':v==='co'?'Comment (required)':'Comment (optional)'};
+ if($('#ejs')){if(!E.jst)$('#ejs').value='';$('#ejs').onchange=vis;vis()}
+ $('#esv').onclick=async()=>{if(e.kind==='meeting')e.transcript=$('#etx').value;else{
+   if($('#ejs')&&$('#ejs').value){const n={job:e.job,jst:$('#ejs').value,sub:$('#esb').value,stc:$('#estc').value.trim(),cdate:$('#ecdv').value,appr:$('#eapv').value};const bad=statusProblem(n);if(bad){toast(bad);return}
+    e.jst=n.jst;e.sub=n.jst==='ip'?n.sub:'';e.stc=n.stc;e.cdate=n.jst==='co'?n.cdate:'';e.appr=n.jst==='ca'?n.appr:''}
+   const ims2=ims.filter(f=>true);const caps=[...document.querySelectorAll('[data-ecap]')].map(i=>[i.dataset.ecap,i.value.trim()]);const need=Math.min(2,ims2.length);
+   if(caps.filter(c=>c[1]).length<need){toast(need===1?'Please name the photo':'Please name at least 2 photos');return}caps.forEach(([fid,v])=>{const f=e.files.find(x=>x.fid===fid);if(f)f.cap=v});
+   e.text=$('#etx').value}
+  e.pending=true;e.editBy=S.user.rank+' '+S.user.name;await saveEntry(e);closeSheet();render();sendReceive('save')}}
 /* ---------- status from timeline ---------- */
-function jobStatus(id){let s=0,last=null;live().filter(e=>e.job===id&&e.status!==''&&e.status!=null).sort((a,b)=>String(a.ts).localeCompare(String(b.ts))).forEach(e=>{s=+e.status;last=e});return {s,last}}
 function orderStatus(o){const u=live().filter(e=>e.kind==='spares'&&e.order===o.no).sort((a,b)=>String(a.ts).localeCompare(String(b.ts)));
  if(u.length){const l=u[u.length-1];return {txt:l.confirmed?'RECEIVED ONBOARD '+l.date+' (confirmed by Chief)':'RECEIVED ONBOARD '+l.date+' – pending Chief confirmation',src:'Ship timeline',cls:l.confirmed?'ok':'warn'}}
  const up=o.updates||[];const sw=up.filter(x=>/Swift/.test(x.src));const st=up.filter(x=>!/Swift/.test(x.src));
@@ -458,7 +547,7 @@ function orderStatus(o){const u=live().filter(e=>e.kind==='spares'&&e.order===o.
 function recv(t){t=(t||'').toUpperCase();if(/CANCEL/.test(t))return 'bad';if(/NOT RECEIVED|PENDING|IN KOREA|IN CHINA/.test(t))return 'warn';if(/RECEIVED|DONE|SUPPLIED|INSTALLED/.test(t))return 'ok';return ''}
 /* ---------- jobs ---------- */
 let JF={q:'',perf:'',dept:''};
-function jobRow(j){const st=jobStatus(j.id);return `<div class="item" data-job="${j.id}" style="cursor:pointer"><span class="jid">${j.id}</span> <b>${esc(j.title)}</b><div class="xs mut">${esc(j.comp)} · ${esc(j.perf)} · ${esc(j.dept)} <span class="chip ${STC[st.s]}">${STAT[st.s]}</span>${OUT.has(j.id)?'<span class="chip bad">out of this dock</span>':j.flag?'<span class="chip warn">'+esc(j.flag)+'</span>':''}</div></div>`}
+function jobRow(j){const st=jobState(j.id);return `<div class="item" data-job="${j.id}" style="cursor:pointer"><span class="jid">${j.id}</span> <b>${esc(j.title)}</b><div class="xs mut">${esc(j.comp)} · ${esc(j.perf)} · ${esc(j.dept)} <span class="chip ${JST[st.jst][1]}">${esc(st.last?stText(st.last):'Not started')}</span>${OUT.has(j.id)?'<span class="chip bad">out of this dock</span>':j.flag?'<span class="chip warn">'+esc(j.flag)+'</span>':''}</div></div>`}
 function renderJobs(){let L=JF.q?search(JF.q,'jobs',300).map(x=>x.r):D.jobs.slice().sort((a,b)=>a.id.localeCompare(b.id));if(JF.perf)L=L.filter(j=>j.perf===JF.perf);if(JF.dept)L=L.filter(j=>j.dept===JF.dept);
  shell('Spec jobs',`${L.length} of ${D.jobs.length} · TM Master 22 Oct 2026`,`<input id="jq" placeholder="Search: ME fuel pump, pipe, 600.13…" value="${esc(JF.q)}">
  <div class="seg">${['','Yard','Service Engineer','Ship Staff'].map(p=>`<button data-jp="${p}" class="${JF.perf===p?'on':''}">${p||'All'}</button>`).join('')}</div>
@@ -466,11 +555,11 @@ function renderJobs(){let L=JF.q?search(JF.q,'jobs',300).map(x=>x.r):D.jobs.slic
  <div class="card" style="padding:4px 14px">${L.slice(0,150).map(jobRow).join('')||'<div class="item mut">No jobs.</div>'}${L.length>150?'<div class="item xs mut">Showing first 150 – type to narrow.</div>':''}</div>`);
  $('#jq').oninput=e=>{JF.q=e.target.value;clearTimeout(renderJobs.t);renderJobs.t=setTimeout(()=>{renderJobs();const i=$('#jq');i.focus();i.setSelectionRange(i.value.length,i.value.length)},400)};
  $('#app').querySelectorAll('[data-jp]').forEach(b=>b.onclick=()=>{JF.perf=b.dataset.jp;renderJobs()});$('#app').querySelectorAll('[data-jd]').forEach(b=>b.onclick=()=>{JF.dept=b.dataset.jd;renderJobs()})}
-function openJob(id){const j=J[id];if(!j)return;const st=jobStatus(id);const lo=D.orders.filter(o=>o.jobs.some(x=>x.id===id));const ents=live().filter(e=>e.job===id).sort((a,b)=>String(b.ts).localeCompare(String(a.ts)));
+function openJob(id){const j=J[id];if(!j)return;const st=jobState(id);const lo=D.orders.filter(o=>o.jobs.some(x=>x.id===id));const ents=live().filter(e=>e.job===id).sort((a,b)=>String(b.ts).localeCompare(String(a.ts)));
  const att=[j.att.classs?'Class surveyor':'',j.att.owner?"Owner's rep / Supt":'',j.att.maker?"Maker's rep":''].filter(Boolean);
  sheet(`<div><span class="jid" style="font-size:19px">${j.id}</span> <b style="font-size:18px">${esc(j.title)}</b></div><div class="xs mut">${esc(j.series)} – ${esc(j.sname)} · spec page ${j.page}</div>
  ${j.flag?`<div class="banner" style="margin-top:8px">${esc(j.flag)}</div>`:''}${j.note?`<div class="banner info" style="margin-top:8px">${esc(j.note)}</div>`:''}
- <div style="margin:8px 0"><span class="chip ${STC[st.s]}">Status: ${STAT[st.s]}</span>${st.last?`<span class="xs mut">${esc(st.last.date)} by ${esc(st.last.rank)}</span>`:''}</div>
+ <div style="margin:8px 0"><span class="chip ${JST[st.jst][1]}">Status: ${esc(st.last?stText(st.last):'Not started')}</span>${st.last?`<span class="xs mut">${esc(longD(st.last.date))} · ${esc(st.last.rank)}</span>${st.last.stc?`<div class="s"><b>${stLabel(st.last)}:</b> ${esc(st.last.stc)}</div>`:''}`:''}</div>
  <div class="card" style="background:var(--bg)"><b>Work:</b> ${esc(j.brief)}</div>
  <div class="kv"><div>Who does it</div><div><b>${esc(j.perf)}</b>${j.perf!==j.tperf?` <span class="xs mut">(TM Master: ${esc(j.tperf)})</span>`:''}</div><div>Department</div><div>${esc(j.dept)}</div><div>Component</div><div>${esc(j.comp)}</div><div>TMM PMS ID</div><div>${esc(j.pms||'—')}</div>
  <div>Ship's person</div><div>${esc(j.assigned||'—')}</div><div>Attendance</div><div>${att.map(a=>`<span class="chip">${a}</span>`).join('')||'—'}<div class="xs mut">TMM "Surveyed by": ${esc(j.surveyed||'blank')}</div></div><div>Materials</div><div>${esc(j.supply||'—')}</div></div>
@@ -526,10 +615,13 @@ function renderAsk(){shell('Ask me anything','DD spec jobs · answers only from 
  let rec=null;$('#amic').onclick=()=>{if(rec){rec.stop();return}rec=startDictation((f,i)=>{$('#aq').value=f+i},()=>{rec=null;$('#amic').textContent='🎤';if($('#aq').value.trim())ask()});if(rec)$('#amic').textContent='■';else toast('Use the mic on your keyboard')};
  const chat=$('#chat');
  chat.querySelectorAll('[data-more]').forEach(b=>b.onclick=()=>{CHAT[+b.dataset.more].show+=12;renderAsk()});
- chat.onclick=e=>{const t=e.target.closest('[data-tab]');if(!t)return;const card=t.closest('.aj');const id=card.dataset.id,tab=t.dataset.tab;const pane=card.querySelector('.apane');
+ chat.onclick=ajClick}
+function ajClick(e){const t=e.target.closest('[data-tab]');if(!t)return;const card=t.closest('.aj');const id=card.dataset.id,tab=t.dataset.tab;const pane=card.querySelector('.apane');
   const was=card.dataset.open===tab;card.querySelectorAll('[data-tab]').forEach(b=>b.classList.remove('on'));
   if(was){card.dataset.open='';pane.className='apane';pane.innerHTML='';return}
-  card.dataset.open=tab;t.classList.add('on');pane.className='apane t-'+tab;pane.innerHTML=tabHTML(id,tab);bindEntryButtons(pane);fillMinis(pane)}}
+  card.dataset.open=tab;t.classList.add('on');pane.className='apane t-'+tab;pane.innerHTML=tabHTML(id,tab);bindEntryButtons(pane);fillMinis(pane)}
+function updBlock(e){return `<div class="aupd"><div class="d">${esc(longD(e.date))} · ${esc(e.rank)}${e.test?' <span class="chip test">TEST</span>':''}</div>${e.job&&JST[e.jst]?`<div><span class="chip ${JST[e.jst][1]}">${esc(stText(e))}</span></div>`:''}<div class="mt">${esc(e.text||'')}</div>${e.stc?`<div class="s stc"><b>${stLabel(e)}:</b> ${esc(e.stc)}</div>`:''}
+   ${miniHTML(e)}</div>`}
 function askBlock(c,ci){const L=c.jobs.slice(0,c.show);
  return `<div class="card askq"><div class="xs mut">You asked</div><b>${esc(c.q)}</b><div class="s mut" style="margin:6px 0 4px">${esc(c.sum)}</div>
  ${L.map(id=>ajCard(J[id])).join('')}${c.jobs.length>c.show?`<button class="ghost" data-more="${ci}" style="width:100%;margin-top:8px">Show more (${c.jobs.length-c.show} more)</button>`:''}</div>`}
@@ -595,8 +687,7 @@ function tabHTML(id,tab){const j=J[id];
   <div>Attachments</div><div>${(j.attach||[]).length?esc(j.attach.join(' ')):'—'}</div></div>
   <div class="xs mut" style="margin:10px 0 4px;font-weight:700">Full DD spec text</div><pre class="scope" style="max-height:none">${esc(j.scope||'Not in the spec.')}</pre>`}
  if(tab==='u'){const L=jobUpdates(id);if(!L.length)return '<div class="s mut">No updates yet. No crew member has posted an update for this job.</div>';
-  return L.map(e=>`<div class="aupd"><div class="d">${esc(longD(e.date))} · ${esc(e.rank)}${e.test?' <span class="chip test">TEST</span>':''}</div><div class="mt">${esc(e.text||'')}</div>
-   ${(e.files||[]).length?`<div class="minis">${e.files.map(f=>`<div class="m" data-e="${e.id}" data-fid="${f.fid}">…</div>`).join('')}</div>`:''}</div>`).join('')}
+  return L.map(updBlock).join('')}
  return ''}
 function orderRowA(o){const s=orderStatus(o);return `<div class="item" data-order="${esc(o.no)}" style="cursor:pointer"><span class="jid">${esc(o.no)}</span> ${esc(o.name)}<div><span class="chip ${s.cls}">${esc(s.txt)}</span></div></div>`}
 function shiftD(d,n){const t=new Date(d+'T12:00:00');t.setDate(t.getDate()+n);return t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate())}
@@ -656,7 +747,7 @@ function makeZip(files){const enc=new TextEncoder();const parts=[],central=[];le
 async function getBlob(f){let b=await DB.get('blobs',f.fid);if(!b&&f.driveId&&navigator.onLine&&CFG.SERVER_URL){const r=await api('file',{driveId:f.driveId},180000);b=b64ToBlob(r.b64,r.mime);await DB.put('blobs',b,f.fid)}return b||null}
 const safeName=t=>String(t||'Update').replace(/[\\/:*?"<>|\r\n\t]+/g,' ').replace(/\s+/g,' ').trim().replace(/^(.{90}).*$/,(m,x)=>x.replace(/\s+\S*$/,'')).replace(/[. ]+$/,'')||'Update';
 function photoEntries(){return live().filter(e=>e.date===PX.date&&(!PX.from||e.time>=PX.from)&&(!PX.to||e.time<=PX.to)&&(PX.dept==='All'||e.dept===PX.dept||e.kind==='meeting')&&(e.files||[]).some(f=>/^image\//.test(f.mime))).sort((a,b)=>String(a.ts).localeCompare(String(b.ts)))}
-function renderPhotos(){if(!canReport()){go('home');return}const L=photoEntries();const n=L.reduce((a,e)=>a+e.files.filter(f=>/^image\//.test(f.mime)).length,0);
+function renderPhotos(){if(!canExtract()){go('home');return}const L=photoEntries();const n=L.reduce((a,e)=>a+e.files.filter(f=>/^image\//.test(f.mime)).length,0);
  shell('Extract photos','Zip of all photos for one day',`<div class="card"><label class="l">Date (required)</label><input type="date" id="pxd" value="${PX.date}">
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="min-width:0"><label class="l">From time (optional)</label><input type="time" id="pxf" value="${PX.from}"></div><div style="min-width:0"><label class="l">To time (optional)</label><input type="time" id="pxt" value="${PX.to}"></div></div>
  <label class="l">Department</label><div class="seg">${['All','Deck','Engine'].map(d=>`<button data-px="${d}" class="${PX.dept===d?'on':''}">${d==='Engine'?'Engine & Elec.':d}</button>`).join('')}</div>
@@ -698,7 +789,7 @@ function renderSettings(){const all=S.entries.length;
 /* ================= home-screen layout (Chief edits, all phones get it) ================= */
 const LDEF={photo:'duke.jpg',px:50,py:50,zoom:1,photoH:230,order:['meeting','timeline','spares','jobs','reports','photos','settings'],hidden:[],tileSize:'m',cols:3,textScale:100,creditSize:10.5,creditAlign:'right',swapBig:false};
 const BUILTIN=[['ship1.jpg','Side view'],['duke.jpg','Bow quarter'],['ship3.jpg','Bow-on']];
-const TILEDEF={meeting:['🎙️','Daily meeting',()=>canMeeting()],timeline:['🕒','Timeline'],spares:['📦','Spares'],jobs:['🔧','Jobs'],reports:['📄','Reports'],photos:['🗂️','Extract photos',()=>canReport()],settings:['⚙️','Settings']};
+const TILEDEF={meeting:['🎙️','Daily meeting',()=>canMeeting()],timeline:['🕒','Timeline'],spares:['📦','Spares'],jobs:['🔧','Jobs'],reports:['📄','Reports'],photos:['🗂️','Extract photos',()=>canExtract()],settings:['⚙️','Settings']};
 let ED=null,IC=null;
 function lay(){const L=Object.assign({},LDEF,S.layout||{});const known=Object.keys(TILEDEF);
  L.order=(L.order||[]).filter(k=>known.includes(k));known.forEach(k=>{if(!L.order.includes(k))L.order.push(k)});
