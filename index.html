@@ -54,7 +54,7 @@ main{zoom:var(--z,1)}
 .icbox{position:relative;width:min(260px,70vw);aspect-ratio:1;margin:8px auto 0;border-radius:22%;overflow:hidden;touch-action:none;cursor:grab;background:#0b2942}.icbox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .icsafe{position:absolute;inset:10%;border:2px dashed rgba(255,255,255,.85);border-radius:50%;pointer-events:none}
 .aj{border-top:1px solid var(--line);padding:12px 0 10px}.aj:first-of-type{border-top:0}.ajt{cursor:pointer;font-size:15.5px;line-height:1.35}.ajb{font-size:13.5px;color:var(--mut);margin:4px 0 8px;line-height:1.4}
-.atabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.atabs button{padding:8px 2px;font-size:12.5px;font-weight:700;border-radius:10px;border:1.5px solid var(--c);background:var(--cb);color:var(--c);min-height:40px;line-height:1.15}
+.atabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.atabs button{padding:8px 2px;font-size:12.5px;font-weight:700;border-radius:10px;border:1.5px solid var(--c);background:var(--cb);color:var(--c);min-height:40px;line-height:1.15}
 .atabs button i{font-style:normal;display:inline-block;min-width:18px;padding:0 4px;border-radius:9px;background:var(--c);color:#fff;font-size:11px;margin-left:2px}.atabs button.on{background:var(--c);color:#fff}.atabs button.on i{background:#fff;color:var(--c)}
 .tr,.t-r{--c:#d9730d;--cb:#fdf0e3}.tc,.t-c{--c:#1f6fb8;--cb:#e6f0fa}.ts,.t-s{--c:#17803f;--cb:#e5f4ea}.tu,.t-u{--c:#7a3fb8;--cb:#f1e9fa}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tr,:root:not([data-theme="light"]) .t-r{--c:#f0a050;--cb:#3a2510}:root:not([data-theme="light"]) .tc,:root:not([data-theme="light"]) .t-c{--c:#6fb3ec;--cb:#12283c}:root:not([data-theme="light"]) .ts,:root:not([data-theme="light"]) .t-s{--c:#5ccf8a;--cb:#12301e}:root:not([data-theme="light"]) .tu,:root:not([data-theme="light"]) .t-u{--c:#b994f0;--cb:#2a1c3c}}
@@ -93,6 +93,11 @@ body.chatview main{padding-bottom:150px}#cl{display:flex;flex-direction:column;g
 a.btn{display:block;text-align:center;text-decoration:none;border-radius:12px;padding:14px 16px;background:var(--sea);color:#fff;font-weight:700;font-size:16px}.isteps{padding-left:22px;margin:10px 0}.isteps li{margin:8px 0;font-size:15px}
 .cfile{display:flex;gap:8px;align-items:center;background:var(--chip);border-radius:10px;padding:10px 12px;cursor:pointer;max-width:260px}.cfile b{font-size:26px}.cfile span{font-size:13px;font-weight:600;overflow-wrap:anywhere}.cfile small{display:block;font-weight:400;color:var(--mut)}
 .chip.sec{background:#e8eefc;color:#28407a}
+.tv,.t-v{--c:#0e7c86;--cb:#e1f4f5}:root[data-theme="dark"] .tv,:root[data-theme="dark"] .t-v{--c:#5fd0d8;--cb:#0f2e31}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tv,:root:not([data-theme="light"]) .t-v{--c:#5fd0d8;--cb:#0f2e31}}
+.atabs button{font-size:11.5px!important;padding:7px 1px!important}
+.srr{border-top:1px solid var(--line);padding:9px 0}.srj .srr:first-of-type{border-top:0}.srjh{cursor:pointer;margin-bottom:4px}.srt{font-size:15px}
+.srf{display:flex;gap:8px;align-items:center;background:var(--chip);border-radius:10px;padding:8px 10px;margin-top:6px;cursor:pointer}.srf b{font-size:22px}.srf span{flex:1;font-size:13.5px;font-weight:600;overflow-wrap:anywhere}.srf small{display:block;font-weight:400;color:var(--mut)}.srdel{margin-top:6px}
 .hero .txt{position:relative}.hero h1{margin:0;font-size:24px;letter-spacing:.3px}.hero p{margin:2px 0 0;opacity:.85;font-size:13.5px}
 .big2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .bigbtn{border-radius:20px;padding:20px 14px;min-height:118px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;text-align:left;font-size:18px;box-shadow:0 6px 18px rgba(11,41,66,.18)}
@@ -203,11 +208,11 @@ async function instDiag(){const el=$('#instDiag');if(!el)return;const row=(ok,t,
  $('#dcopy').onclick=()=>{const t=rep+'\n'+el.innerText.replace('Copy this check for Chief','');try{navigator.clipboard.writeText(t);toast('Copied – paste it in WhatsApp to the Chief')}catch(e){toast('Copy not allowed on this phone')}}}
 "use strict";
 /* ================= constants ================= */
-const VERSION='2.1.0';
+const VERSION='2.2.0';
 const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
 const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
 const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager'];
-const EXTRACT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Vessel Manager'];
+const EXTRACT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager'];
 const JST={ns:['Not started',''],ip:['In progress','warn'],co:['Completed','ok'],ca:['Cancelled','bad']};
 const SUBS=['Dis-assembly in progress','Given to Yard','Received from Yard','Assembly in progress','Testing in progress','Service Engineer work in progress'];
 function stText(e){if(!e||!JST[e.jst])return '';const L=JST[e.jst][0];if(e.jst==='ip')return L+(e.sub?' – '+e.sub:'');if(e.jst==='co')return L+(e.cdate?' on '+longD(e.cdate):'');if(e.jst==='ca')return L+' – VM/Owner approval: '+(e.appr||'—');return L}
@@ -246,7 +251,7 @@ function setData(raw){D=typeof raw==='string'?JSON.parse(raw):raw;J={};O={};D.jo
  motors:D.motors.map(m=>({r:m,f:[[norm(m.motor+' '+m.job+' '+m.std+' '+m.po),5]]})),
  msgs:(D.msgs||[]).map(m=>({r:m,f:[[norm(m.subj+' '+m.pos.join(' ')+' '+m.jobs.join(' ')),5],[norm(m.frm),2],[norm(m.text),1]]})),docs:D.docs.map(d=>({r:d,f:[[norm(d.text),1]]})),entries:[]}}
 function rebuildEntryIdx(){if(!IDX)return;IDX.entries=live().map(e=>({r:e,f:[[norm((e.text)+' '+(e.transcript||'')+' '+(e.job||'')+' '+(e.jobTitle||'')+' '+(e.order||'')),3],[norm(e.rank+' '+e.name),1]]}))}
-const live=()=>S.entries.filter(e=>!e.deleted&&e.kind!=='chat');
+const live=()=>S.entries.filter(e=>!e.deleted&&e.kind!=='chat'&&e.kind!=='sreport');
 const pending=()=>S.entries.filter(e=>e.pending).length+0;
 /* ================= search engine (records) ================= */
 const GROUPS=[
@@ -360,7 +365,7 @@ function isChief(){return role()==='chief'}
 function editAny(){return ['chief','master','vm'].includes(role())}
 function canEdit(e){return editAny()||(e.device===S.user.device&&e.date===today())}
 function canMeeting(){return ['chief','master'].includes(role())}
-function render(){if(!S.user||!D){renderLogin();return}({home:renderHome,ask:renderAsk,update:renderUpdate,meeting:renderMeeting,photos:renderPhotos,timeline:renderTimeline,jobs:renderJobs,spares:renderSpares,reports:renderReports,settings:renderSettings,progress:renderProgress,chat:renderChat,office:renderOffice})[S.view]()}
+function render(){if(!S.user||!D){renderLogin();return}({home:renderHome,ask:renderAsk,update:renderUpdate,meeting:renderMeeting,photos:renderPhotos,timeline:renderTimeline,jobs:renderJobs,spares:renderSpares,reports:renderReports,settings:renderSettings,progress:renderProgress,chat:renderChat,office:renderOffice,sreports:renderSreports,sradd:renderSrAdd})[S.view]()}
 function shell(title,sub,body,opts){opts=opts||{};const p=pending();document.body.classList.remove('chatview');
  $('#app').innerHTML=`<div class="top">${opts.back?'<button id="bk" aria-label="Back">←</button>':''}<div class="t">${esc(title)}<small>${esc(sub||'')}</small></div><button class="sync" id="sr">${S.syncing?'⟳ Syncing…':'⇅ Send / Receive'}${p?` <span class="badge">${p}</span>`:''}</button></div>
  <main>${S.testMode?'<div class="banner test">🧪 TEST MODE – everything entered now is test data and will be deleted by the Chief Engineer</div>':''}${body}</main>${opts.foot||navBar()}`;
@@ -448,8 +453,9 @@ function renderUpdate(){const u=UPD;if(!u.step)resetUpd();
  const title=u.kind==='spares'?'Spares received':'Update';
  if(u.step===1){shell(title,stepSub(1),stepsBar(1)+`<div class="h2">Which department?</div><div class="choice">
   <button data-d="Deck" class="${u.dept==='Deck'?'sel':''}"><b>⚓</b><span>Deck<small>Hull, tanks, deck machinery, LSA/FFA</small></span></button>
-  <button data-d="Engine" class="${u.dept==='Engine'?'sel':''}"><b>⚙️</b><span>Engine &amp; Electrical<small>Machinery, electrical, automation</small></span></button></div>`,{back:()=>{go('home')},foot:updFoot(false,'Next →',null,!u.dept)});
-  $('#app').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(u.dept!==b.dataset.d){u.sec='';u.ssec=''}u.dept=b.dataset.d;u.step=2;renderUpdate()});$('#ub').onclick=()=>{resetUpd();go('home')};$('#un').onclick=()=>{u.step=2;renderUpdate()};return}
+  <button data-d="Engine" class="${u.dept==='Engine'?'sel':''}"><b>⚙️</b><span>Engine &amp; Electrical<small>Machinery, electrical, automation</small></span></button>
+  ${u.kind==='update'?`<button id="srgo"><b>📑</b><span>Service reports<small>Add a service report / document (PDF, photos, files) under a DD job</small></span></button>`:''}</div>`,{back:()=>{go('home')},foot:updFoot(false,'Next →',null,!u.dept)});
+  if($('#srgo'))$('#srgo').onclick=()=>{resetUpd();SRP.add=true;SRP.q='';SRP.show=40;go('sreports')};$('#app').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(u.dept!==b.dataset.d){u.sec='';u.ssec=''}u.dept=b.dataset.d;u.step=2;renderUpdate()});$('#ub').onclick=()=>{resetUpd();go('home')};$('#un').onclick=()=>{u.step=2;renderUpdate()};return}
  if(u.step===2){shell(title,stepSub(2),stepsBar(2)+`<div class="h2">Which section?</div><div class="s mut">${esc(u.dept==='Deck'?'Deck':'Engine & Electrical')} · as in the office daily report (Form 047C)</div><div class="choice">${SECS.map(([k,l,i,sd])=>`<button data-sec="${k}" class="${u.sec===k?'sel':''}"><b>${i}</b><span>Section ${k} – ${l}<small>${sd}</small></span></button>`).join('')}</div>`,{back:()=>{u.step=1;renderUpdate()},foot:updFoot(true,'Next →',null,!u.sec)});
   const pickSec=k=>{if(u.sec!==k)u.ssec='';u.sec=k;u.perf=SECS.find(x=>x[0]===k)[4];if(k==='3'||k==='4')u.ssec=k;else{const L=subsFor(k,u.dept);if(L.length===1)u.ssec=L[0][0]}u.step=nextOf(u,2);renderUpdate()};
   $('#app').querySelectorAll('[data-sec]').forEach(b=>b.onclick=()=>pickSec(b.dataset.sec));$('#ub').onclick=()=>{u.step=1;renderUpdate()};$('#un').onclick=()=>{if(u.sec)pickSec(u.sec)};return}
@@ -696,7 +702,7 @@ function renderAsk(){shell('Ask me anything','DD spec jobs · answers only from 
 function ajClick(e){const t=e.target.closest('[data-tab]');if(!t)return;const card=t.closest('.aj');const id=card.dataset.id,tab=t.dataset.tab;const pane=card.querySelector('.apane');
   const was=card.dataset.open===tab;card.querySelectorAll('[data-tab]').forEach(b=>b.classList.remove('on'));
   if(was){card.dataset.open='';pane.className='apane';pane.innerHTML='';return}
-  card.dataset.open=tab;t.classList.add('on');pane.className='apane t-'+tab;pane.innerHTML=tabHTML(id,tab);bindEntryButtons(pane);fillMinis(pane)}
+  card.dataset.open=tab;t.classList.add('on');pane.className='apane t-'+tab;pane.innerHTML=tabHTML(id,tab);bindEntryButtons(pane);fillMinis(pane);bindSr(pane);pane.querySelectorAll('[data-sradd]').forEach(b=>b.onclick=()=>{closeSheet();SRP.job=b.dataset.sradd;SRP.title='';SRP.files=[];go('sradd')})}
 function updBlock(e){return `<div class="aupd"><div class="d">${esc(longD(e.date))} · ${esc(e.rank)}${e.test?' <span class="chip test">TEST</span>':''}</div>${e.job&&JST[e.jst]?`<div><span class="chip ${JST[e.jst][1]}">${esc(stText(e))}</span></div>`:''}<div class="mt">${esc(e.text||'')}</div>${e.stc?`<div class="s stc"><b>${stLabel(e)}:</b> ${esc(e.stc)}</div>`:''}
    ${miniHTML(e)}</div>`}
 function askBlock(c,ci){const L=c.jobs.slice(0,c.show);
@@ -705,7 +711,7 @@ function askBlock(c,ci){const L=c.jobs.slice(0,c.show);
 function ajCard(j){const nr=jobOrders(j.id).length,nm=jobMails(j.id).length,nu=jobUpdates(j.id).length;
  return `<div class="aj" data-id="${j.id}" data-open=""><div class="ajt" data-job="${j.id}"><span class="jid">${j.id}</span> <b>${esc(j.title)}</b></div>
  <div class="ajb">${esc(j.brief||'')}</div>
- <div class="atabs"><button data-tab="r" class="tr">📦 Reqns <i>${nr}</i></button><button data-tab="c" class="tc">✉️ Mails <i>${nm}</i></button><button data-tab="s" class="ts">📋 Spec</button><button data-tab="u" class="tu">🕒 Updates <i>${nu}</i></button></div>
+ <div class="atabs"><button data-tab="r" class="tr">📦 Reqns <i>${nr}</i></button><button data-tab="c" class="tc">✉️ Mails <i>${nm}</i></button><button data-tab="s" class="ts">📋 Spec</button><button data-tab="u" class="tu">🕒 Updates <i>${nu}</i></button><button data-tab="v" class="tv">📑 Svc rpts <i>${srOf(j.id).length}</i></button></div>
  <div class="apane"></div></div>`}
 /* matching */
 function answer(q){
@@ -763,6 +769,7 @@ function tabHTML(id,tab){const j=J[id];
   <div>Services</div><div>${esc(j.services||'—')}</div><div>Attendance</div><div>${att.join(', ')||'—'}</div><div>Materials</div><div>${esc(j.supply||'—')}</div>
   <div>Attachments</div><div>${(j.attach||[]).length?esc(j.attach.join(' ')):'—'}</div></div>
   <div class="xs mut" style="margin:10px 0 4px;font-weight:700">Full DD spec text</div><pre class="scope" style="max-height:none">${esc(j.scope||'Not in the spec.')}</pre>`}
+ if(tab==='v'){const L=srOf(id);return `<button class="ghost sm" data-sradd="${id}" style="margin-bottom:8px">➕ Add service report</button>`+(L.length?L.map(srCard).join(''):'<div class="s mut">No service reports for this job yet.</div>')}
  if(tab==='u'){const L=jobUpdates(id);if(!L.length)return '<div class="s mut">No updates yet. No crew member has posted an update for this job.</div>';
   return L.map(updBlock).join('')}
  return ''}
@@ -807,7 +814,7 @@ function renderReports(){const ok=canReport();
   catch(e){m.textContent='Report failed: '+e.message}finally{$('#rJ').disabled=!ok}}}
 function downloadBlob(b,name){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}
 /* ---------- extract photos (zip built on the phone) ---------- */
-let PX={date:today(),from:'',to:'',dept:'All'};
+let PX={date:today(),date2:today(),from:'',to:''};
 const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
 function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}
 function makeZip(files){const enc=new TextEncoder();const parts=[],central=[];let off=0;const d=new Date();
@@ -823,24 +830,29 @@ function makeZip(files){const enc=new TextEncoder();const parts=[],central=[];le
  return new Blob([...parts,...central,new Uint8Array(e.buffer)],{type:'application/zip'})}
 async function getBlob(f){let b=await DB.get('blobs',f.fid);if(!b&&f.driveId&&navigator.onLine&&CFG.SERVER_URL){const r=await api('file',{driveId:f.driveId},180000);b=b64ToBlob(r.b64,r.mime);await DB.put('blobs',b,f.fid)}return b||null}
 const safeName=t=>String(t||'Update').replace(/[\\/:*?"<>|\r\n\t]+/g,' ').replace(/\s+/g,' ').trim().replace(/^(.{90}).*$/,(m,x)=>x.replace(/\s+\S*$/,'')).replace(/[. ]+$/,'')||'Update';
-function photoEntries(){return live().filter(e=>e.date===PX.date&&(!PX.from||e.time>=PX.from)&&(!PX.to||e.time<=PX.to)&&(PX.dept==='All'||e.dept===PX.dept||e.kind==='meeting')&&(e.files||[]).some(f=>/^image\//.test(f.mime))).sort((a,b)=>String(a.ts).localeCompare(String(b.ts)))}
+function photoEntries(){const a=PX.date+' '+(PX.from||'00:00'),b=(PX.date2||PX.date)+' '+(PX.to||'23:59');return live().filter(e=>e.kind==='update'&&e.ssec&&(e.date+' '+e.time)>=a&&(e.date+' '+e.time)<=b&&(e.files||[]).some(f=>/^image\//.test(f.mime))).sort((a,b)=>String(a.ts).localeCompare(String(b.ts)))}
+const fsn=t=>safeName(String(t||'').replace(/\//g,'-'));
+function pxTop(e){return e.sec==='1'?'Shipyard':e.sec==='2'?(e.dept==='Deck'?'Crew Deck':'Crew Engine'):e.sec==='3'?'Contractor':e.sec==='4'?'Class surveys':''}
+function pxFolder(e){const top=pxTop(e);const jf=e.job?fsn(e.job+' '+(e.jobTitle||(J[e.job]?J[e.job].title:''))):'';
+ if(e.sec==='1'||e.sec==='2'){const sub=fsn(secLabel(e.ssec));return top+'/'+sub+(jf?'/'+jf:'')}
+ return top+'/'+(jf||fsn(secLabel(e.sec)))}
 function renderPhotos(){if(!canExtract()){go('home');return}const L=photoEntries();const n=L.reduce((a,e)=>a+e.files.filter(f=>/^image\//.test(f.mime)).length,0);
- shell('Extract photos','Zip of all photos for one day',`<div class="card"><label class="l">Date (required)</label><input type="date" id="pxd" value="${PX.date}">
+ const cnt={};L.forEach(e=>{const t=pxTop(e);cnt[t]=(cnt[t]||0)+e.files.filter(f=>/^image\//.test(f.mime)).length});
+ shell('Extract photos','Zip of section photos for a date range',`<div class="card"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="min-width:0"><label class="l">From date (required)</label><input type="date" id="pxd" value="${PX.date}"></div><div style="min-width:0"><label class="l">To date (required)</label><input type="date" id="pxd2" value="${PX.date2}"></div></div>
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="min-width:0"><label class="l">From time (optional)</label><input type="time" id="pxf" value="${PX.from}"></div><div style="min-width:0"><label class="l">To time (optional)</label><input type="time" id="pxt" value="${PX.to}"></div></div>
- <label class="l">Department</label><div class="seg">${['All','Deck','Engine'].map(d=>`<button data-px="${d}" class="${PX.dept===d?'on':''}">${d==='Engine'?'Engine & Elec.':d}</button>`).join('')}</div>
- <div class="banner info" style="margin-top:10px">${L.length} update(s) with ${n} photo(s). One folder per update, named after the update.</div>
+ <div class="xs mut" style="margin-top:4px">From time applies to the first date, To time to the last date.</div>
+ <div class="banner info" style="margin-top:10px">${L.length} update(s) with ${n} photo(s).<br>${['Shipyard','Crew Deck','Crew Engine','Contractor','Class surveys'].map(t=>`${t}: ${cnt[t]||0}`).join(' · ')}<br><span class="xs">Folders: top folder → sub-section → job (no.+name). Photos named by date, time and photo comment.</span></div>
  <button id="pxgo" style="width:100%" ${n?'':'disabled'}>🗂️ Create zip and download</button><div class="xs mut" id="pxm" style="margin-top:8px">Send / Receive runs first so photos from all phones are included. Needs internet for photos taken on other phones.</div></div>`,{back:()=>go('home')});
- $('#pxd').onchange=e=>{PX.date=e.target.value;renderPhotos()};$('#pxf').onchange=e=>{PX.from=e.target.value;renderPhotos()};$('#pxt').onchange=e=>{PX.to=e.target.value;renderPhotos()};
- $('#app').querySelectorAll('[data-px]').forEach(b=>b.onclick=()=>{PX.dept=b.dataset.px;renderPhotos()});
- $('#pxgo').onclick=async()=>{if(!PX.date){toast('Choose a date');return}const m=$('#pxm');$('#pxgo').disabled=true;
+ $('#pxd').onchange=e=>{PX.date=e.target.value;if(!PX.date2||PX.date2<PX.date)PX.date2=PX.date;renderPhotos()};$('#pxd2').onchange=e=>{PX.date2=e.target.value;renderPhotos()};$('#pxf').onchange=e=>{PX.from=e.target.value;renderPhotos()};$('#pxt').onchange=e=>{PX.to=e.target.value;renderPhotos()};
+ $('#pxgo').onclick=async()=>{if(!PX.date||!PX.date2){toast('Choose both dates');return}if(PX.date2<PX.date){toast('"To date" is before "From date"');return}const m=$('#pxm');$('#pxgo').disabled=true;
   try{if(navigator.onLine){m.textContent='Syncing first…';await sendReceive(false)}
-   const list=photoEntries();const used={};const files=[];const idx=['Front Duke DD 2026 – photos '+PX.date+(PX.from||PX.to?' '+(PX.from||'00:00')+'-'+(PX.to||'23:59'):'')+' – '+PX.dept,''];let k=0,miss=0;const tot=list.reduce((a,e)=>a+e.files.filter(f=>/^image\//.test(f.mime)).length,0);
-   for(const e of list){let base=safeName(e.kind==='meeting'?'Daily meeting':(e.text));let name=base,c=2;while(used[name])name=base+' ('+(c++)+')';used[name]=1;
-    idx.push(name+'  |  '+e.date+' '+e.time+'  |  '+e.dept+'  |  '+(e.text||''));let i=1;
-    for(const f of e.files.filter(f=>/^image\//.test(f.mime))){k++;m.textContent=`Collecting photo ${k} of ${tot}…`;const b=await getBlob(f).catch(()=>null);if(!b){miss++;continue}
-     files.push({name:name+'/photo_'+(i++)+'.jpg',data:new Uint8Array(await b.arrayBuffer())})}}
-   files.push({name:'_list_of_updates.txt',data:new TextEncoder().encode(idx.join('\r\n'))});
-   m.textContent='Making zip…';const z=makeZip(files);const fn='FrontDuke_Photos_'+PX.date+(PX.from||PX.to?'_'+(PX.from||'0000').replace(':','')+'-'+(PX.to||'2359').replace(':',''):'')+'_'+PX.dept+'.zip';
+   const list=photoEntries();const used={};const files=[];const rng=PX.date+(PX.from?' '+PX.from:'')+' to '+PX.date2+(PX.to?' '+PX.to:'');const idx=['Front Duke DD 2026 – section photos '+rng,''];let k=0,miss=0;const tot=list.reduce((a,e)=>a+e.files.filter(f=>/^image\//.test(f.mime)).length,0);
+   for(const e of list){const dir=pxFolder(e);let i=0;
+    for(const f of e.files.filter(f=>/^image\//.test(f.mime))){k++;i++;m.textContent=`Collecting photo ${k} of ${tot}…`;const b=await getBlob(f).catch(()=>null);if(!b){miss++;continue}
+     const ext=/png/.test(b.type||f.mime)?'png':'jpg';let base=dir+'/'+e.date+' '+String(e.time||'').replace(':','')+' '+fsn(f.cap||('photo '+i));let name=base+'.'+ext,c=2;while(used[name])name=base+' ('+(c++)+').'+ext;used[name]=1;
+     idx.push(name+'  |  '+(e.rank||'')+'  |  '+(e.text||''));files.push({name,data:new Uint8Array(await b.arrayBuffer())})}}
+   files.push({name:'_list_of_photos.txt',data:new TextEncoder().encode(idx.join('\r\n'))});
+   m.textContent='Making zip…';const z=makeZip(files);const fn='FrontDuke_Photos_'+PX.date+(PX.date2!==PX.date?'_to_'+PX.date2:'')+(PX.from||PX.to?'_'+(PX.from||'0000').replace(':','')+'-'+(PX.to||'2359').replace(':',''):'')+'.zip';
    downloadBlob(z,fn);m.textContent=`✔ ${fn} – ${files.length-1} photo(s)${miss?', '+miss+' could not be downloaded (sync later)':''}`}
   catch(e){m.textContent='Failed: '+e.message}finally{$('#pxgo').disabled=false}}}
 /* ---------- settings ---------- */
@@ -866,9 +878,9 @@ function renderSettings(){const all=S.entries.length;
  $('#bk2').onclick=()=>downloadBlob(new Blob([JSON.stringify({exported:new Date().toISOString(),user:{rank:S.user.rank,name:S.user.name},entries:S.entries},null,1)],{type:'application/json'}),'FrontDuke_DD2026_backup_'+today()+'.json');
  $('#lo').onclick=async()=>{if(pending()){toast('Send / Receive first – '+pending()+' update(s) not sent',4000);return}if(!$('#lo').dataset.c){$('#lo').dataset.c=1;$('#lo').textContent='Tap again to log out';return}await DB.del('kv','user');S.user=null;ED=null;render()}}
 /* ================= home-screen layout (Chief edits, all phones get it) ================= */
-const LDEF={photo:'duke.jpg',px:50,py:50,zoom:1,photoH:230,order:['chat','meeting','timeline','spares','jobs','reports','photos','settings'],hidden:[],tileSize:'m',cols:3,textScale:100,creditSize:10.5,creditAlign:'right',swapBig:false};
+const LDEF={photo:'duke.jpg',px:50,py:50,zoom:1,photoH:230,order:['chat','sreports','meeting','timeline','spares','jobs','reports','photos','settings'],hidden:[],tileSize:'m',cols:3,textScale:100,creditSize:10.5,creditAlign:'right',swapBig:false};
 const BUILTIN=[['ship1.jpg','Side view'],['duke.jpg','Bow quarter'],['ship3.jpg','Bow-on']];
-const TILEDEF={chat:['💬','Chat'],meeting:['🎙️','Daily meeting',()=>canMeeting()],timeline:['🕒','Timeline'],spares:['📦','Spares'],jobs:['🔧','Jobs'],reports:['📄','Reports'],photos:['🗂️','Extract photos',()=>canExtract()],settings:['⚙️','Settings']};
+const TILEDEF={chat:['💬','Chat'],sreports:['📑','Service reports'],meeting:['🎙️','Daily meeting',()=>canMeeting()],timeline:['🕒','Timeline'],spares:['📦','Spares'],jobs:['🔧','Jobs'],reports:['📄','Reports'],photos:['🗂️','Extract photos',()=>canExtract()],settings:['⚙️','Settings']};
 let ED=null,IC=null;
 function lay(){const L=Object.assign({},LDEF,S.layout||{});const known=Object.keys(TILEDEF);
  L.order=(L.order||[]).filter(k=>known.includes(k));known.forEach(k=>{if(!L.order.includes(k))L.order.push(k)});
@@ -1142,7 +1154,80 @@ async function openTsEdit(){if(!navigator.onLine){toast('Needs internet');return
 function othHTML(){return (OF.site.other||[]).map((r,i)=>`<div class="othr" style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-top:6px"><input data-od="${i}" value="${esc(r.d)}" placeholder="Designation"><input data-on="${i}" value="${esc(r.n)}" placeholder="Name"><button class="ghost sm" data-orm="${i}">✕</button></div>`).join('')||'<div class="xs mut">None</div>'}
 function readOth(){const L=[];document.querySelectorAll('#oth .othr').forEach(r=>{const d=r.querySelector('[data-od]').value.trim(),n=r.querySelector('[data-on]').value.trim();if(d||n)L.push({d:d||'Other',n})});OF.site.other=L}
 function bindOth(){const b=()=>{$('#oth').innerHTML=othHTML();bindOth()};$('#oadd').onclick=()=>{readOth();OF.site.other.push({d:'',n:''});b()};document.querySelectorAll('[data-orm]').forEach(x=>x.onclick=()=>{readOth();OF.site.other.splice(+x.dataset.orm,1);b()})}
-function blobToB64(b){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(b)})}
+/* ================= service reports (documents under DD jobs) ================= */
+let SRP={q:'',add:false,job:null,title:'',files:[],sel:{},from:'',to:'',show:40};
+const SRMAX=10*1024*1024;
+const srs=()=>S.entries.filter(e=>e.kind==='sreport'&&!e.deleted).sort((a,b)=>String(b.ts).localeCompare(String(a.ts)));
+const srOf=id=>srs().filter(e=>(e.job||'GEN')===id);
+const srJobName=id=>id==='GEN'?'General – no DD job':(J[id]?J[id].title:id);
+const fmtMB=n=>!n?'':n<1048576?Math.max(1,Math.round(n/1024))+' KB':(n/1048576).toFixed(1)+' MB';
+function srFileRow(e,f){return `<div class="srf" data-srdl="${f.fid}" data-e="${e.id}"><b>${/^image\//.test(f.mime)?'🖼️':/pdf/.test(f.mime)?'📕':'📄'}</b><span>${esc(f.name||'file')}<small>${fmtMB(f.size)}${f.size?' · ':''}tap to download</small></span></div>`}
+function srCard(e){return `<div class="srr"><div class="srt"><b>${esc(e.title)}</b>${e.test?' <span class="chip test">TEST</span>':''}</div><div class="xs mut">${esc(longD(e.date))} ${esc(e.time)} · ${esc(e.rank)} – ${esc(e.name)}${e.pending?' · 🕓 waiting to send':''}</div>
+ ${(e.files||[]).map(f=>srFileRow(e,f)).join('')}${isChief()?`<button class="ghost sm srdel" data-srdel="${e.id}">🗑 Delete</button>`:''}</div>`}
+function bindSr(root){root.querySelectorAll('[data-srdl]').forEach(v=>v.onclick=async()=>{const e=S.entries.find(x=>x.id===v.dataset.e);const f=e&&e.files.find(x=>x.fid===v.dataset.srdl);if(!f)return;const sm=v.querySelector('small');sm.textContent='⏳ downloading…';
+  const u=await fileURL(f);if(!u){sm.textContent='not downloaded – needs internet';return}const a=document.createElement('a');a.href=u;a.download=f.name||'file';document.body.appendChild(a);a.click();a.remove();sm.textContent='✔ downloaded';});
+ root.querySelectorAll('[data-srdel]').forEach(b=>b.onclick=async()=>{if(!b.dataset.c){b.dataset.c=1;b.textContent='Tap again to delete';return}const e=S.entries.find(x=>x.id===b.dataset.srdel);e.deleted=true;e.pending=true;e.editBy=S.user.rank+' '+S.user.name;await saveEntry(e);sendReceive(false);toast('Service report deleted');render()})}
+/* list of DD jobs (add mode) or jobs with reports (view mode) */
+function renderSreports(){const all=srs();const by={};all.forEach(e=>{const k=e.job||'GEN';(by[k]=by[k]||[]).push(e)});
+ if(SRP.add){let L=SRP.q?search(SRP.q,'jobs',300).map(x=>x.r):D.jobs.slice().sort((a,b)=>a.id.localeCompare(b.id));
+  shell('Add service report','Pick the DD job – or General',`<input id="srq" placeholder="Search job number or name, e.g. 600.13 or air cooler" value="${esc(SRP.q)}" enterkeyhint="search">
+  <div class="card" style="padding:4px 14px;margin-top:10px"><div class="item" data-srj="GEN" style="cursor:pointer"><b>📁 General – no DD job</b><div class="xs mut">${(by.GEN||[]).length} report(s)</div></div>
+  ${L.slice(0,SRP.show).map(j=>`<div class="item" data-srj="${j.id}" style="cursor:pointer"><span class="jid">${j.id}</span> <b>${esc(j.title)}</b><div class="xs mut">${esc(j.dept)} · ${esc(j.perf)}${(by[j.id]||[]).length?` · <b>${by[j.id].length} report(s)</b>`:''}</div></div>`).join('')}
+  ${L.length>SRP.show?`<button class="ghost" id="srmore" style="width:100%;margin:8px 0">Show more (${L.length-SRP.show})</button>`:''}</div>`,{back:()=>{SRP.add=false;go('home')}});
+  const q=$('#srq');q.oninput=()=>{SRP.q=q.value;SRP.show=40;const pos=q.selectionStart;renderSreports();const n=$('#srq');n.focus();n.setSelectionRange(pos,pos)};
+  if($('#srmore'))$('#srmore').onclick=()=>{SRP.show+=60;renderSreports()};
+  $('#app').querySelectorAll('[data-srj]').forEach(b=>b.onclick=()=>openSrJob(b.dataset.srj));return}
+ const keys=Object.keys(by).sort((a,b)=>a==='GEN'?1:b==='GEN'?-1:a.localeCompare(b));
+ const q=SRP.q.toLowerCase().trim();const vis=keys.filter(k=>!q||(k+' '+srJobName(k)+' '+by[k].map(e=>e.title).join(' ')).toLowerCase().includes(q));
+ shell('Service reports',`${all.length} report(s) under ${keys.length} job(s)`,`<button id="sradd" style="width:100%">➕ Add service report</button>
+ <input id="srq" placeholder="Search job or report title" value="${esc(SRP.q)}" style="margin-top:10px" enterkeyhint="search">
+ ${vis.map(k=>`<div class="card srj"><div class="srjh" data-srj="${k}">${k==='GEN'?'<b>📁 General – no DD job</b>':`<span class="jid">${k}</span> <b>${esc(srJobName(k))}</b>`} <span class="xs mut">· ${by[k].length} report(s)</span></div>${by[k].map(srCard).join('')}</div>`).join('')||'<div class="card mut s">No service reports yet.</div>'}
+ ${all.length?`<div class="card"><b>⬇ Download all as one zip</b><div class="s mut">Folder per job (number + name), General for documents without a job.</div>
+  <label class="l">Jobs</label><div class="seg wrap" id="srsel"><button data-srall="1" class="${Object.keys(SRP.sel).length?'':'on'}">All jobs</button>${keys.map(k=>`<button data-srk="${k}" class="${SRP.sel[k]?'on':''}">${k==='GEN'?'General':k}</button>`).join('')}</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="min-width:0"><label class="l">From date (optional)</label><input type="date" id="srf" value="${SRP.from}"></div><div style="min-width:0"><label class="l">To date (optional)</label><input type="date" id="srt" value="${SRP.to}"></div></div>
+  <button id="srzip" style="width:100%;margin-top:12px">⬇ Download zip</button><div class="xs mut" id="srzm" style="margin-top:6px">Needs internet for files added on other phones.</div></div>`:''}`,{back:()=>go('home')});
+ $('#sradd').onclick=()=>{SRP.add=true;SRP.q='';SRP.show=40;renderSreports()};
+ const qi=$('#srq');qi.oninput=()=>{SRP.q=qi.value;const pos=qi.selectionStart;renderSreports();const n=$('#srq');n.focus();n.setSelectionRange(pos,pos)};
+ $('#app').querySelectorAll('[data-srj]').forEach(b=>b.onclick=()=>openSrJob(b.dataset.srj));bindSr($('#app'));
+ if($('#srsel')){$('#srsel').querySelectorAll('[data-srk]').forEach(b=>b.onclick=()=>{if(SRP.sel[b.dataset.srk])delete SRP.sel[b.dataset.srk];else SRP.sel[b.dataset.srk]=1;renderSreports()});
+  $('#srsel').querySelector('[data-srall]').onclick=()=>{SRP.sel={};renderSreports()};
+  $('#srf').onchange=e=>{SRP.from=e.target.value};$('#srt').onchange=e=>{SRP.to=e.target.value};$('#srzip').onclick=srZip}}
+async function srZip(){const m=$('#srzm');if(SRP.from&&SRP.to&&SRP.to<SRP.from){toast('"To date" is before "From date"');return}
+ const L=srs().filter(e=>(!Object.keys(SRP.sel).length||SRP.sel[e.job||'GEN'])&&(!SRP.from||e.date>=SRP.from)&&(!SRP.to||e.date<=SRP.to));if(!L.length){m.textContent='No reports match.';return}
+ $('#srzip').disabled=true;try{if(navigator.onLine){m.textContent='Syncing first…';await sendReceive(false)}
+  const files=[],used={},idx=['Front Duke DD 2026 – service reports',''];let k=0,miss=0;const tot=L.reduce((a,e)=>a+e.files.length,0);
+  for(const e of L.slice().reverse()){const dir=e.job?fsn(e.job+' '+srJobName(e.job)):'General';
+   for(const f of e.files){k++;m.textContent=`Collecting file ${k} of ${tot}…`;const b=await getBlob(f).catch(()=>null);if(!b){miss++;continue}
+    const ext=(String(f.name||'').match(/\.[A-Za-z0-9]{1,5}$/)||[''])[0];let base=dir+'/'+e.date+' '+fsn(e.title)+(e.files.length>1?' - '+fsn(String(f.name||'file').replace(/\.[A-Za-z0-9]{1,5}$/,'')):'');let name=base+ext,c=2;while(used[name])name=base+' ('+(c++)+')'+ext;used[name]=1;
+    idx.push(name+'  |  '+e.rank+' – '+e.name);files.push({name,data:new Uint8Array(await b.arrayBuffer())})}}
+  files.push({name:'_list_of_reports.txt',data:new TextEncoder().encode(idx.join('\r\n'))});
+  m.textContent='Making zip…';const fn='FrontDuke_ServiceReports_'+today()+'.zip';downloadBlob(makeZip(files),fn);m.textContent=`✔ ${fn} – ${files.length-1} file(s)${miss?', '+miss+' could not be downloaded (sync later)':''}`}
+ catch(e){m.textContent='Failed: '+e.message}finally{$('#srzip').disabled=false}}
+function openSrJob(id){const L=srOf(id);const j=J[id];
+ sheet(`<div>${id==='GEN'?'<b style="font-size:18px">📁 General – no DD job</b>':`<span class="jid" style="font-size:19px">${id}</span> <b style="font-size:18px">${esc(j.title)}</b><div class="xs mut">${esc(j.dept)} · ${esc(j.perf)}</div>`}</div>
+ <button id="srnew" style="width:100%;margin:12px 0">➕ Add report</button>
+ ${L.length?L.map(srCard).join(''):'<div class="s mut">No service reports for this job yet.</div>'}`);
+ bindSr($('#sheetIn'));$('#srnew').onclick=()=>{closeSheet();SRP.job=id;SRP.title='';SRP.files=[];go('sradd')}}
+function renderSrAdd(){const id=SRP.job;if(!id){go('sreports');return}
+ shell('Add report',id==='GEN'?'General – no DD job':id+' '+srJobName(id),`<div class="card"><div>${id==='GEN'?'<b>📁 General – no DD job</b>':`<span class="jid">${id}</span> <b>${esc(srJobName(id))}</b>`}</div>
+ <label class="l">Report title <span class="req">required</span></label><input id="srti" value="${esc(SRP.title)}" placeholder="e.g. Everllence ME service report">
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px"><button class="ghost" id="srcam">📷 Take photo</button><button class="ghost" id="srfile">📁 Choose files</button></div>
+ <div class="xs mut" style="margin-top:6px">Any file type – PDF, photos, Word, Excel… Up to 10 MB per file. Photos are kept in original quality.</div>
+ <div id="srlist" style="margin-top:10px">${SRP.files.map(f=>`<div class="srf"><b>${/^image\//.test(f.mime)?'🖼️':/pdf/.test(f.mime)?'📕':'📄'}</b><span>${esc(f.name)}<small>${fmtMB(f.size)}</small></span><button class="ghost sm" data-srrm="${f.fid}">✕</button></div>`).join('')||'<div class="xs mut">No files added yet.</div>'}</div></div>
+ <input type="file" id="srIc" accept="image/*" capture="environment" class="hidden"><input type="file" id="srIf" multiple class="hidden">`,
+ {back:()=>{go('sreports')},foot:`<div class="foot"><button class="ghost" id="srx" style="flex:1">Cancel</button><button id="srsv" style="flex:2">✔ Save report</button></div>`});
+ $('#srti').oninput=e=>{SRP.title=e.target.value};
+ const add=async inp=>{for(const f of [...inp.files]){if(f.size>SRMAX){toast(`${f.name} is ${fmtMB(f.size)} – maximum is 10 MB per file`,5000);continue}
+   const fid='s'+uid();await DB.put('blobs',f,fid);let name=f.name||('photo_'+nowTime().replace(':','')+'.jpg');if(!/\.[A-Za-z0-9]{1,5}$/.test(name))name+=/^image\//.test(f.type)?'.jpg':'';
+   SRP.files.push({fid,name,mime:f.type||'application/octet-stream',size:f.size})}inp.value='';renderSrAdd()};
+ $('#srcam').onclick=()=>{const i=$('#srIc');i.onchange=()=>add(i);i.click()};$('#srfile').onclick=()=>{const i=$('#srIf');i.onchange=()=>add(i);i.click()};
+ $('#app').querySelectorAll('[data-srrm]').forEach(b=>b.onclick=async()=>{await DB.del('blobs',b.dataset.srrm);SRP.files=SRP.files.filter(f=>f.fid!==b.dataset.srrm);renderSrAdd()});
+ $('#srx').onclick=async()=>{for(const f of SRP.files)await DB.del('blobs',f.fid);SRP.files=[];go('sreports')};
+ $('#srsv').onclick=async()=>{const title=$('#srti').value.trim();if(!title){toast('Please write the report title');return}if(!SRP.files.length){toast('Please add at least one file');return}
+  const e={id:'s'+uid(),kind:'sreport',dept:'',perf:'',job:id==='GEN'?'':id,jobTitle:id==='GEN'?'':srJobName(id),status:'',title,text:title,rank:S.user.rank,name:S.user.name,device:S.user.device,date:today(),time:nowTime(),ts:new Date().toISOString(),
+   files:SRP.files,test:!!S.testMode,deleted:false,pending:true,updated:Date.now()};
+  try{await saveEntry(e)}catch(err){toast('Could not save on this phone: '+err.message,5000);return}
+  SRP.files=[];SRP.title='';toast(navigator.onLine?'✅ Service report saved – sending…':'📱 Saved on this phone – it will be sent when internet is back',4000,true);SRP.add=false;SRP.q='';go('sreports');openSrJob(id);sendReceive('save')}}
 /* ================= boot ================= */
 let SWREG=null;
 async function boot(){try{await loadState()}catch(e){$('#app').innerHTML='<div style="padding:20px">This browser blocks offline storage (private mode?). Open the app in normal Safari/Chrome.</div>';return}
