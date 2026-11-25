@@ -85,7 +85,7 @@ body.chatview main{padding-bottom:150px}#cl{display:flex;flex-direction:column;g
 .cfoot{position:fixed;left:0;right:0;bottom:0;z-index:11;background:var(--card);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom))}
 .crow{display:flex;gap:6px;align-items:flex-end}.crow textarea{flex:1;min-height:42px;max-height:120px;resize:none;padding:10px 12px;border-radius:21px;font-size:16px}.cbtn{width:44px;height:44px;padding:0;border-radius:22px;font-size:19px;flex:0 0 auto}.cbtn.rec{background:var(--bad);color:#fff}
 .cmen{display:flex;flex-wrap:wrap;gap:6px;max-height:150px;overflow:auto;padding-bottom:8px}.cmen button{padding:7px 11px;font-size:13.5px;border-radius:99px;background:var(--chip);color:var(--ink)}
-.catt{display:flex;gap:6px;padding-bottom:8px}.ca{position:relative;width:60px;height:60px;border-radius:10px;overflow:hidden;background:#0b2942;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px}.ca img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}.ca .x{position:absolute;top:2px;right:2px;width:22px;height:22px;padding:0;border-radius:11px;font-size:12px;background:rgba(0,0,0,.6);color:#fff}
+.catt{display:flex;gap:6px;padding-bottom:8px}.ca.cadoc{width:130px;font-size:20px;padding:0 24px 0 6px}.cadoc span{display:flex;flex-direction:column;align-items:center;min-width:0;width:100%}.cadoc small{font-size:10.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ca{position:relative;width:60px;height:60px;border-radius:10px;overflow:hidden;background:#0b2942;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px}.ca img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}.ca .x{position:absolute;top:2px;right:2px;width:22px;height:22px;padding:0;border-radius:11px;font-size:12px;background:rgba(0,0,0,.6);color:#fff}
 .mpop{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.45);display:none;align-items:flex-start;justify-content:center;padding:70px 16px 16px}.mpop.show{display:flex}
 .mp{background:var(--card);color:var(--ink);border-radius:16px;padding:14px 16px;width:100%;max-width:460px;border:3px solid #f0a020;box-shadow:0 10px 40px rgba(0,0,0,.35)}.mph{font-weight:800;font-size:17px;margin-bottom:8px;color:#c25e00}.mpi{border-top:1px solid var(--line);padding:7px 0}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cm.me .cb{background:#173a5c;border-color:#24557f}}:root[data-theme="dark"] .cm.me .cb{background:#173a5c;border-color:#24557f}
@@ -209,7 +209,7 @@ async function instDiag(){const el=$('#instDiag');if(!el)return;const row=(ok,t,
  $('#dcopy').onclick=()=>{const t=rep+'\n'+el.innerText.replace('Copy this check for Chief','');try{navigator.clipboard.writeText(t);toast('Copied – paste it in WhatsApp to the Chief')}catch(e){toast('Copy not allowed on this phone')}}}
 "use strict";
 /* ================= constants ================= */
-const VERSION='2.3.1';
+const VERSION='2.4.0';
 const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
 const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
 const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager'];
@@ -332,8 +332,15 @@ async function compress(file){if(!/^image\//.test(file.type)||/gif|svg/.test(fil
   const M=1600,k=Math.min(1,M/Math.max(img.naturalWidth,img.naturalHeight));const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);
   c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);
   const b=await new Promise(res=>c.toBlob(res,'image/jpeg',0.8));return b&&b.size<file.size?b:file}catch(e){return file}}
+const MAX5=5*1024*1024;
+const isPhoto=f=>/^image\//.test(f.type||'')&&!/gif|svg/.test(f.type||'');
+/* photo over 5 MB → made smaller until it is under 5 MB (null if the phone cannot read it) */
+async function fit5(f){if(!isPhoto(f)||f.size<=MAX5)return f;
+ try{const url=URL.createObjectURL(f);const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});URL.revokeObjectURL(url);
+  for(const [M,q] of [[3200,.85],[2600,.82],[2000,.8],[1600,.78],[1200,.75]]){const k=Math.min(1,M/Math.max(img.naturalWidth,img.naturalHeight));const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);
+   c.getContext('2d').drawImage(img,0,0,c.width,c.height);const b=await new Promise(res=>c.toBlob(res,'image/jpeg',q));if(b&&b.size<=MAX5)return b}}catch(e){}return null}
 async function addFiles(list,target){for(const f of list){if(f.size>40*1024*1024){toast(f.name+' is over 40 MB – too large, skipped',4000);continue}
- const b=await compress(f);const fid=uid();const isImg=/^image\//.test(b.type||f.type);const name=isImg?(f.name||'photo').replace(/\.[^.]+$/,'')+'.jpg':(f.name||'file');
+ let b=await compress(f);if(isPhoto(f)&&b.size>MAX5){b=await fit5(b);if(!b){toast(f.name+' – photo over 5 MB could not be made smaller, skipped',4500);continue}}const fid=uid();const isImg=/^image\//.test(b.type||f.type);const name=isImg?(f.name||'photo').replace(/\.[^.]+$/,'')+'.jpg':(f.name||'file');
  await DB.put('blobs',b,fid);target.push({fid,name:isImg&&!/\.jpe?g$/i.test(name)?name+'.jpg':name,mime:isImg?'image/jpeg':(b.type||f.type||'application/octet-stream'),size:b.size})}}
 const urlCache={};
 async function fileURL(f){if(urlCache[f.fid])return urlCache[f.fid];let b=await DB.get('blobs',f.fid);
@@ -374,7 +381,7 @@ function shell(title,sub,body,opts){opts=opts||{};const p=pending();document.bod
 function renderTop(){const b=$('#sr');if(b)b.innerHTML=S.syncing?'⟳ Syncing…':'⇅ Send / Receive'+(pending()?` <span class="badge">${pending()}</span>`:'')}
 function navBar(){const n=[['home','🏠','Home'],['timeline','🕒','Timeline'],['update','➕','Update'],['jobs','🔧','Jobs'],['reports','📄','Reports']];
  return `<nav>${n.map(([k,i,l])=>`<button data-go="${k}" class="${S.view===k?'on':''}"><b>${i}</b>${l}</button>`).join('')}</nav>`}
-function go(v){S.view=v;if(v==='update'&&UPD.step===0)resetUpd();render();window.scrollTo(0,0)}
+function go(v){if(v==='chat'&&noChat())v='home';S.view=v;if(v==='update'&&UPD.step===0)resetUpd();render();window.scrollTo(0,0)}
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){e.preventDefault();go(g.dataset.go)}const j=e.target.closest('[data-job]');if(j){e.preventDefault();openJob(j.dataset.job)}const o=e.target.closest('[data-order]');if(o){e.preventDefault();openOrder(o.dataset.order)}});
 function sheet(html){$('#sheetIn').innerHTML='<div style="text-align:right"><button class="ghost sm" id="shx">✕ Close</button></div>'+html;$('#sheet').classList.add('show');$('#shx').onclick=closeSheet;$('#sheetIn').scrollTop=0}
 function closeSheet(){$('#sheet').classList.remove('show')}
@@ -689,7 +696,7 @@ function openOrder(no){const o=O[no];if(!o)return;PIT='';const s=orderStatus(o);
  $('#orc').onclick=()=>{closeSheet();resetUpd();UPD.kind='spares';UPD.order=o.no;UPD.dept=/-(D|DO|B)(-\d)?$/.test(o.no)?'Deck':'Engine';UPD.perf='Ship Staff';UPD.text='Received onboard: '+o.no+' '+o.name;
   const lj=o.jobs[0];if(lj&&J[lj.id]){UPD.job=lj.id;UPD.jobTitle=J[lj.id].title}UPD.step=3;S.view='update';render()}}
 /* ---------- P.O / Invoice tabs (files in Drive › PO and › INVOICES + files added in the app) ---------- */
-let PI=null,PIT='';const PIMAX=20*1024*1024;
+let PI=null,PIT='';const PIMAX=5*1024*1024;
 const pkey=s=>{const m=/FDU-(\d{4})-\d{4}-[A-Z]+(-\d)?/i.exec(String(s||''));return m?m[1]+(m[2]||''):''};
 function okey(k){if(!O.__pk){const m={};Object.keys(O).forEach(n=>{if(n!=='__pk')m[pkey(n)]=1});Object.defineProperty(O,'__pk',{value:m,enumerable:false,configurable:true})}return O.__pk[k]||!O.__pk[k.slice(0,4)]?k:k.slice(0,4)}
 async function piLoad(){if(!PI){try{PI=await DB.get('kv','poinv')}catch(e){}PI=PI||{files:[],time:0}}return PI}
@@ -722,8 +729,8 @@ async function piBind(o,noFetch){await piLoad();if(!$('#pitabs'))return;
 }
 async function piAdd(o,k,inp){const list=[...inp.files];inp.value='';if(!list.length)return;
  const d=new Date(),st=d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'_'+pad(d.getHours())+pad(d.getMinutes())+pad(d.getSeconds());const files=[];
- for(const f of list){if(f.size>PIMAX){toast(`${f.name} is ${fmtMB(f.size)} – maximum is 20 MB`,5000);continue}
-  const isImg=/^image\//.test(f.type)&&!/heic|heif/i.test(f.type);const b=isImg?await compress(f):f;const ext=isImg?'jpg':((String(f.name||'').match(/\.([A-Za-z0-9]{1,5})$/)||[,'pdf'])[1].toLowerCase());
+ for(const f of list){const isImg=/^image\//.test(f.type)&&!/heic|heif/i.test(f.type);let b=isImg?await compress(f):f;if(isImg&&b.size>PIMAX)b=await fit5(b);
+  if(!b||b.size>PIMAX){toast(`${f.name} is ${fmtMB(f.size)} – maximum is 5 MB`,5000);continue}const ext=isImg?'jpg':((String(f.name||'').match(/\.([A-Za-z0-9]{1,5})$/)||[,'pdf'])[1].toLowerCase());
   const fid='p'+uid();await DB.put('blobs',b,fid);files.push({fid,name:`${o.no}_added_${st}${files.length?'_'+(files.length+1):''}.${ext}`,mime:isImg?'image/jpeg':(f.type||piMime('.'+ext)),size:b.size})}
  if(!files.length)return;
  const e={id:'p'+uid(),kind:'podoc',order:o.no,dkind:k,dept:'',perf:'',job:'',status:'',text:(k==='P'?'P.O ':'Invoice ')+o.no,rank:S.user.rank,name:S.user.name,device:S.user.device,date:today(),time:nowTime(),ts:new Date().toISOString(),files,test:!!S.testMode,deleted:false,pending:true,updated:Date.now()};
@@ -825,6 +832,8 @@ function renderReports(){const ok=canReport();
  const off=[['Deck',['Ship staff daily work done report','Ship staff photo album','Yard job report','Yard job photo album','Service engineer job report','Service engineer photo album']],['Engine & Electrical',['Ship staff daily work done report','Ship staff photo album','Yard job report','Yard job photo album','Service engineer job report','Service engineer photo album']]];
  shell('Reports',ok?'Word reports with photos':'Only Chief, Master, C/O, 2/E, ETO and VM can generate',`
  ${ok?'':'<div class="banner">Reports can be generated by the Chief Engineer, Master, Chief Officer, Second Engineer, Electrical Engineer and Vessel Manager. You can still see the full Timeline.</div>'}
+ <div class="card"><div class="h2" style="margin-top:0">📋 Office daily report – Form 047C</div><div class="s mut">OSM Thome Dry-docking Daily Report for one date: time sheet, site team, Sections 1–4 and Section 5 photo report. The app asks the open questions first.</div>
+ <button id="rO" style="width:100%;margin-top:10px" ${ok?'':'disabled'}>📋 Make office report</button></div>
  <div class="card"><div class="h2" style="margin-top:0">Daily reports for records</div><div class="s mut">All entries by time, with S.No, date &amp; time, rank &amp; name, description and photos. A4 portrait Word file. Meetings are included.</div>
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><div style="min-width:0"><label class="l">From</label><input type="date" id="rf" value="${RP.from}"></div><div style="min-width:0"><label class="l">To</label><input type="date" id="rt" value="${RP.to}"></div></div>
  <div style="display:flex;gap:10px;margin-top:12px"><button id="rD" style="flex:1" ${ok?'':'disabled'}>⚓ Deck report</button><button id="rE" style="flex:1;background:var(--eng)" ${ok?'':'disabled'}>⚙️ Engine report</button></div>
@@ -835,8 +844,6 @@ function renderReports(){const ok=canReport();
  ${(()=>{const c={};live().forEach(e=>{const ids=new Set([e.job,...((String(e.text||'')+' '+String(e.transcript||'')).match(/\b\d{3}\.\d{2}\b/g)||[])].filter(x=>x&&J[x]));ids.forEach(x=>c[x]=(c[x]||0)+1)});const top=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,15);return top.length?`<div class="xs mut" style="margin-top:8px">Jobs with updates:</div><div>${top.map(([k,n])=>`<span class="chip" data-rj="${k}" style="cursor:pointer">${k} (${n})</span>`).join('')}</div>`:'<div class="xs mut" style="margin-top:8px">No job has updates yet.</div>'})()}
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px"><div style="min-width:0"><label class="l">From (optional)</label><input type="date" id="rjf" value="${RP.jf||''}"></div><div style="min-width:0"><label class="l">To (optional)</label><input type="date" id="rjt" value="${RP.jt||''}"></div></div>
  <button id="rJ" style="width:100%;margin-top:12px" ${ok?'':'disabled'}>🔧 Generate job report</button><div class="xs mut" id="rjm" style="margin-top:8px"></div></div>
- <div class="card"><div class="h2" style="margin-top:0">📋 Office daily report – Form 047C</div><div class="s mut">OSM Thome Dry-docking Daily Report for one date: time sheet, site team, Sections 1–4 and Section 5 photo report. The app asks the open questions first.</div>
- <button id="rO" style="width:100%;margin-top:10px" ${ok?'':'disabled'}>📋 Make office report</button></div>
  <div class="card"><b>Automatic daily email</b><div class="s mut">Sent to the Chief Engineer every day at ${pad(S.reportHour)}:00 ship time.${isChief()?' Change it in Settings.':''}</div></div>`);
  $('#rf').onchange=e=>{RP.from=e.target.value;if(RP.to<RP.from){RP.to=RP.from;$('#rt').value=RP.to}};$('#rt').onchange=e=>{RP.to=e.target.value};
  const gen=async dept=>{if(!navigator.onLine){toast('Needs internet');return}if(RP.to<RP.from){toast('"To" date is before "From"');return}const m=$('#rmsg');$('#rD').disabled=$('#rE').disabled=true;
@@ -926,7 +933,7 @@ const LDEF={photo:'duke.jpg',px:50,py:50,zoom:1,photoH:230,order:['chat','srepor
 const BUILTIN=[['ship1.jpg','Side view'],['duke.jpg','Bow quarter'],['ship3.jpg','Bow-on']];
 const BIGDEF={ask:'Ask me anything',askSub:'Jobs, spares, who does what',upd:'Update',updSub:'Voice or text + photos'};
 const NMAX={askSub:50,updSub:50};
-const TILEDEF={chat:['💬','Chat'],sreports:['📑','Service reports'],meeting:['🎙️','Daily meeting',()=>canMeeting()],timeline:['🕒','Timeline'],spares:['📦','Spares'],jobs:['🔧','Jobs'],reports:['📄','Reports'],photos:['🗂️','Extract photos',()=>canExtract()],settings:['⚙️','Settings']};
+const TILEDEF={chat:['💬','Chat',()=>!noChat()],sreports:['📑','Service reports'],meeting:['🎙️','Daily meeting',()=>canMeeting()],timeline:['🕒','Timeline'],spares:['📦','Spares'],jobs:['🔧','Jobs'],reports:['📄','Reports'],photos:['🗂️','Extract photos',()=>canExtract()],settings:['⚙️','Settings']};
 let ED=null,IC=null;
 function lay(){const L=Object.assign({},LDEF,S.layout||{});const known=Object.keys(TILEDEF);
  L.order=(L.order||[]).filter(k=>known.includes(k));known.forEach(k=>{if(!L.order.includes(k))L.order.push(k)});
@@ -1051,13 +1058,15 @@ function openIcon(){
    downloadBlob(makeZip(files),'FrontDuke_App_Icons.zip');$('#icm').insertAdjacentHTML('afterbegin','<b style="color:var(--ok)">✔ FrontDuke_App_Icons.zip downloaded.</b><br>')}
   catch(e){toast('Could not create icons: '+e.message)}b.disabled=false;b.textContent='⬇ Create icon files (zip)'}}
 /* ================= chat (one group for everyone) ================= */
-const MENTION_RANKS=['Master','Chief Officer','Second Officer','Third Officer','Deck Cadet','Chief Engineer','Second Engineer','Third Engineer','Fourth Engineer','Electrical Engineer','Vessel Manager','Superintendent'];
+const MENTION_RANKS=['Master','Chief Officer','Second Officer','Third Officer','Deck Cadet','Chief Engineer','Second Engineer','Third Engineer','Fourth Engineer','Electrical Engineer'];
+const NOCHAT=['Vessel Manager','Superintendent'];const noChat=()=>!!S.user&&NOCHAT.includes(S.user.rank);
+const DOCRE=/\.(pdf|docx?)$/i;const docMime=n=>/\.pdf$/i.test(n)?'application/pdf':/\.docx$/i.test(n)?'application/vnd.openxmlformats-officedocument.wordprocessingml.document':'application/msword';
 let CH={show:150,att:[],draft:'',delArm:'',delOpen:''};
 const chats=()=>S.entries.filter(e=>e.kind==='chat').sort((a,b)=>String(a.ts).localeCompare(String(b.ts)));
 const isMine=e=>e.rank===S.user.rank&&String(e.name||'').trim().toLowerCase()===String(S.user.name||'').trim().toLowerCase();
 async function chatUnread(){const rd=(await DB.get('kv','chatRead'))||'';return chats().filter(e=>!e.deleted&&!isMine(e)&&String(e.ts)>rd).length}
 async function markChatRead(){const L=chats();if(L.length)await DB.put('kv',String(L[L.length-1].ts),'chatRead');updChatBadge()}
-async function updChatBadge(){const n=S.user&&D?await chatUnread():0;document.querySelectorAll('[data-chatbadge]').forEach(b=>{b.textContent=n>99?'99+':String(n);b.style.display=n?'':'none'})}
+async function updChatBadge(){const n=S.user&&D&&!noChat()?await chatUnread():0;document.querySelectorAll('[data-chatbadge]').forEach(b=>{b.textContent=n>99?'99+':String(n);b.style.display=n?'':'none'})}
 function mentionHTML(t){let h=esc(t);MENTION_RANKS.slice().sort((a,b)=>b.length-a.length).forEach(r=>{h=h.split('@'+esc(r)).join(`<b class="men">@${esc(r)}</b>`)});return h}
 function chatMsgHTML(e,prevDate){const me=isMine(e);const can=!e.deleted&&(me||isChief());
  const day=e.date!==prevDate?`<div class="cday">${esc(longD(e.date))}</div>`:'';
@@ -1066,7 +1075,7 @@ function chatMsgHTML(e,prevDate){const me=isMine(e);const can=!e.deleted&&(me||i
  return day+`<div class="cm ${me?'me':''}" data-cid="${e.id}"><div class="cb${(e.mentions||[]).includes(S.user.rank)&&!me?' tome':''}">
   <div class="cw">${me?'You':esc(e.rank+' – '+e.name)} · ${esc(e.time)}${e.test?' <span class="chip test">TEST</span>':''}</div>
   ${e.text?`<div class="ct">${mentionHTML(e.text)}</div>`:''}
-  ${ims.length?`<div class="cmedia">${ims.map(f=>/^video\//.test(f.mime)?`<div class="cv" data-cvid="${f.fid}" data-e="${e.id}">🎬 Video<br><small>tap to play</small></div>`:/^image\//.test(f.mime)?`<div class="m" data-e="${e.id}" data-fid="${f.fid}">…</div>`:`<div class="cfile" data-cfile="${f.fid}" data-e="${e.id}"><b>📄</b><span>${esc(f.name||'file')}<small>${f.size?(f.size/1048576).toFixed(1)+' MB · ':''}tap to download</small></span></div>`).join('')}</div>`:''}
+  ${ims.length?`<div class="cmedia">${ims.map(f=>/^video\//.test(f.mime)?`<div class="cv" data-cvid="${f.fid}" data-e="${e.id}">🎬 Video<br><small>tap to play</small></div>`:/^image\//.test(f.mime)?`<div class="m" data-e="${e.id}" data-fid="${f.fid}">…</div>`:`<div class="cfile" data-cfile="${f.fid}" data-e="${e.id}"><b>${/pdf/.test(f.mime)?'📕':/word/.test(f.mime)?'📘':'📄'}</b><span>${esc(f.name||'file')}<small>${f.size?(f.size/1048576).toFixed(1)+' MB · ':''}tap to download</small></span></div>`).join('')}</div>`:''}
   <div class="cs">${e.pending?'🕓 waiting to send':e.rejected?'⚠ '+esc(e.rejected):'✓'}</div>
   ${can?`<button class="cdel${CH.delOpen===e.id?'':' hidden'}" data-cdel="${e.id}"${CH.delArm===e.id?' data-c="1"':''}>${CH.delArm===e.id?'Tap again to delete':'🗑 Delete'}</button>`:''}</div></div>`}
 function chatListHTML(){const L=chats();const s=L.slice(-CH.show);let pd='';
@@ -1075,14 +1084,14 @@ function renderChat(){
  shell('Chat','Everyone · type @ to call a rank',`<div id="cl">${chatListHTML()}</div><div style="height:8px"></div>`,{back:()=>go('home'),foot:`<div class="cfoot">
   <div id="cmen" class="cmen hidden"></div><div id="catt" class="catt${CH.att.length?'':' hidden'}"></div>
   <div class="crow"><button class="ghost cbtn" id="cpl" aria-label="Attach">📎</button><textarea id="cin" rows="1" placeholder="Message…">${esc(CH.draft)}</textarea><button class="ghost cbtn" id="cmic" aria-label="Speak">🎤</button><button class="cbtn" id="csend" aria-label="Send">➤</button></div></div>
-  <input type="file" id="fVid" accept="video/*" capture="environment" class="hidden"><input type="file" id="fCg" accept="image/*,video/*" multiple class="hidden">`});
+  <input type="file" id="fVid" accept="video/*" capture="environment" class="hidden"><input type="file" id="fCg" accept="image/*,video/*" multiple class="hidden"><input type="file" id="fCdoc" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple class="hidden">`});
  document.body.classList.add('chatview');
  bindChatList();showAtt();
  const ta=$('#cin');const grow=()=>{ta.style.height='auto';ta.style.height=Math.min(120,ta.scrollHeight)+'px'};grow();
  ta.oninput=()=>{CH.draft=ta.value;grow();menList()};ta.onclick=menList;
  $('#csend').onclick=chatSend;
- $('#cpl').onclick=()=>{sheet(`<div class="h2">Add to message</div><div class="choice"><button id="ca1"><b>📷</b><span>Take photo</span></button><button id="ca2"><b>🎥</b><span>Record video<small>up to 30 seconds</small></span></button><button id="ca3"><b>🖼️</b><span>Gallery<small>photos or videos</small></span></button></div>`);
-  $('#ca1').onclick=()=>{closeSheet();pickChat($('#fCam'))};$('#ca2').onclick=()=>{closeSheet();pickChat($('#fVid'))};$('#ca3').onclick=()=>{closeSheet();pickChat($('#fCg'))}};
+ $('#cpl').onclick=()=>{sheet(`<div class="h2">Add to message</div><div class="choice"><button id="ca1"><b>📷</b><span>Take photo</span></button><button id="ca2"><b>🎥</b><span>Record video<small>up to 30 seconds</small></span></button><button id="ca3"><b>🖼️</b><span>Gallery<small>photos or videos</small></span></button><button id="ca4"><b>📄</b><span>Document<small>PDF or Word · max 5 MB</small></span></button></div>`);
+  $('#ca1').onclick=()=>{closeSheet();pickChat($('#fCam'))};$('#ca2').onclick=()=>{closeSheet();pickChat($('#fVid'))};$('#ca3').onclick=()=>{closeSheet();pickChat($('#fCg'))};$('#ca4').onclick=()=>{closeSheet();pickChat($('#fCdoc'))}};
  let rec=null;$('#cmic').onclick=()=>{if(rec){rec.stop();return}const base=ta.value?ta.value.replace(/\s+$/,'')+' ':'';
   rec=startDictation((f,i)=>{ta.value=base+f+i;CH.draft=ta.value;grow()},why=>{rec=null;$('#cmic').classList.remove('rec');ta.value=ta.value.trim();CH.draft=ta.value;if(why==='not-allowed'||why==='service-not-allowed')toast('Microphone not allowed – use the mic on your keyboard')});
   if(rec)$('#cmic').classList.add('rec');else{ta.focus();toast('Use the mic on your phone keyboard')}};
@@ -1107,11 +1116,13 @@ function menList(){const ta=$('#cin'),box=$('#cmen');const pre=ta.value.slice(0,
 function pickChat(inp){inp.value='';inp.onchange=async()=>{const files=[...inp.files];for(const f of files){
   if(/^video\//.test(f.type)){if(f.size>20*1024*1024){toast('Video is over 20 MB – please send a shorter video (max 30 s)',4500);continue}
    const dur=await videoSecs(f);if(dur>31){toast('Video is '+Math.round(dur)+' s – maximum is 30 seconds',4500);continue}}
-  else if(!/^image\//.test(f.type)){toast('Only photos and videos can be sent in chat');continue}
+  else if(DOCRE.test(f.name||'')){if(f.size>MAX5){toast(`${f.name} is ${fmtMB(f.size)} – maximum is 5 MB`,5000);continue}
+   const fid='c'+uid();await DB.put('blobs',f,fid);CH.att.push({fid,name:f.name,mime:docMime(f.name),size:f.size});continue}
+  else if(!/^image\//.test(f.type)){toast('Only photos, videos, PDF and Word files can be sent in chat');continue}
   await addFiles([f],CH.att)}showAtt()};inp.click()}
 function videoSecs(f){return new Promise(res=>{const v=document.createElement('video');v.preload='metadata';const u=URL.createObjectURL(f);v.onloadedmetadata=()=>{URL.revokeObjectURL(u);res(isFinite(v.duration)?v.duration:0)};v.onerror=()=>res(0);v.src=u})}
 async function showAtt(){const box=$('#catt');if(!box)return;box.classList.toggle('hidden',!CH.att.length);
- box.innerHTML=CH.att.map(f=>`<div class="ca" data-ca="${f.fid}">${/^video/.test(f.mime)?'🎬':''}<button class="x" data-carm="${f.fid}">✕</button></div>`).join('');
+ box.innerHTML=CH.att.map(f=>`<div class="ca${DOCRE.test(f.name||'')?' cadoc':''}" data-ca="${f.fid}">${/^video/.test(f.mime)?'🎬':DOCRE.test(f.name||'')?`<span>${/\.pdf$/i.test(f.name)?'📕':'📘'}<small>${esc(f.name)}</small></span>`:''}<button class="x" data-carm="${f.fid}">✕</button></div>`).join('');
  for(const f of CH.att){if(/^image/.test(f.mime)){const b=await DB.get('blobs',f.fid);const el=box.querySelector(`[data-ca="${f.fid}"]`);if(b&&el){const im=document.createElement('img');im.src=URL.createObjectURL(b);el.prepend(im)}}}
  box.querySelectorAll('[data-carm]').forEach(b=>b.onclick=async()=>{await DB.del('blobs',b.dataset.carm);CH.att=CH.att.filter(f=>f.fid!==b.dataset.carm);showAtt()})}
 async function chatSend(){const ta=$('#cin');const text=ta.value.trim();if(!text&&!CH.att.length)return;
@@ -1123,14 +1134,16 @@ async function chatSend(){const ta=$('#cin');const text=ta.value.trim();if(!text
 /* mentions: tone + pop-up for the @ rank */
 let ACX=null;document.addEventListener('pointerdown',()=>{try{if(!ACX){const C=window.AudioContext||window.webkitAudioContext;if(C)ACX=new C()}if(ACX&&ACX.state==='suspended')ACX.resume()}catch(e){}},{passive:true});
 function tone(){try{if(navigator.vibrate)navigator.vibrate([200,100,200]);if(!ACX)return;const t=ACX.currentTime;[[880,0],[1175,0.18],[880,0.36]].forEach(([f,d])=>{const o=ACX.createOscillator(),g=ACX.createGain();o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(0.0001,t+d);g.gain.exponentialRampToValueAtTime(0.35,t+d+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+d+0.16);o.connect(g);g.connect(ACX.destination);o.start(t+d);o.stop(t+d+0.17)})}catch(e){}}
-async function checkMentions(){if(!S.user||!D)return;let seen=await DB.get('kv','mentionSeen');
+async function checkMentions(){if(!S.user||!D||noChat())return;let seen=await DB.get('kv','mentionSeen');
  if(seen==null){await DB.put('kv',new Date().toISOString(),'mentionSeen');return}
  const L=chats().filter(e=>!e.deleted&&!isMine(e)&&(e.mentions||[]).includes(S.user.rank)&&String(e.ts)>seen);if(!L.length)return;
  await DB.put('kv',String(L[L.length-1].ts),'mentionSeen');tone();
- const show=L.slice(-3);$('#mpop').innerHTML=`<div class="mp"><div class="mph">🔔 You were mentioned${L.length>1?' ('+L.length+')':''}</div>${show.map(e=>`<div class="mpi"><b>${esc(e.rank+' – '+e.name)}</b> <span class="xs mut">${esc(e.time)}</span><div>${mentionHTML(e.text||'(photo / video)')}</div></div>`).join('')}
+ const show=L.slice(-3);$('#mpop').innerHTML=`<div class="mp"><div class="mph">🔔 You were mentioned${L.length>1?' ('+L.length+')':''}</div>${show.map(e=>`<div class="mpi"><b>${esc(e.rank+' – '+e.name)}</b> <span class="xs mut">${esc(e.time)}</span><div>${mentionHTML(e.text||'(attachment)')}</div></div>`).join('')}
   <div style="display:flex;gap:8px;margin-top:10px"><button class="ghost" id="mpx" style="flex:1">Close</button><button id="mpo" style="flex:2">Open chat</button></div></div>`;
  $('#mpop').classList.add('show');$('#mpx').onclick=()=>$('#mpop').classList.remove('show');$('#mpo').onclick=()=>{$('#mpop').classList.remove('show');go('chat')}}
-function afterSync(){updChatBadge();checkMentions();refreshChat()}
+function afterSync(){if(noChat())dropChats();updChatBadge();checkMentions();refreshChat()}
+/* Vessel Manager / Superintendent: no chat kept on their phone */
+async function dropChats(){const L=S.entries.filter(e=>e.kind==='chat');if(!L.length)return;for(const e of L){for(const f of (e.files||[]))await DB.del('blobs',f.fid).catch(()=>{});await DB.del('entries',e.id)}S.entries=S.entries.filter(e=>e.kind!=='chat')}
 /* poll every 15 s while the app is open – fetches only when something new is on the server */
 async function chatPoll(){if(!S.user||!D||document.visibilityState!=='visible'||!navigator.onLine||!CFG.SERVER_URL||S.syncing)return;
  if(pending()){sendReceive(false);return}
@@ -1215,7 +1228,7 @@ function readOth(){const L=[];document.querySelectorAll('#oth .othr').forEach(r=
 function bindOth(){const b=()=>{$('#oth').innerHTML=othHTML();bindOth()};$('#oadd').onclick=()=>{readOth();OF.site.other.push({d:'',n:''});b()};document.querySelectorAll('[data-orm]').forEach(x=>x.onclick=()=>{readOth();OF.site.other.splice(+x.dataset.orm,1);b()})}
 /* ================= service reports (documents under DD jobs) ================= */
 let SRP={q:'',add:false,job:null,title:'',files:[],sel:{},from:'',to:'',show:40};
-const SRMAX=10*1024*1024;
+const SRMAX=5*1024*1024;
 const srs=()=>S.entries.filter(e=>e.kind==='sreport'&&!e.deleted).sort((a,b)=>String(b.ts).localeCompare(String(a.ts)));
 const srOf=id=>srs().filter(e=>(e.job||'GEN')===id);
 const srJobName=id=>id==='GEN'?'General – no DD job':(J[id]?J[id].title:id);
@@ -1276,8 +1289,9 @@ function renderSrAdd(){const id=SRP.job;if(!id){go('sreports');return}
  <input type="file" id="srIc" accept="image/*" capture="environment" class="hidden"><input type="file" id="srIf" multiple class="hidden">`,
  {back:()=>{go('sreports')},foot:`<div class="foot"><button class="ghost" id="srx" style="flex:1">Cancel</button><button id="srsv" style="flex:2">✔ Save report</button></div>`});
  $('#srti').oninput=e=>{SRP.title=e.target.value};
- const add=async inp=>{for(const f of [...inp.files]){if(f.size>SRMAX){toast(`${f.name} is ${fmtMB(f.size)} – maximum is 10 MB per file`,5000);continue}
-   const fid='s'+uid();await DB.put('blobs',f,fid);let name=f.name||('photo_'+nowTime().replace(':','')+'.jpg');if(!/\.[A-Za-z0-9]{1,5}$/.test(name))name+=/^image\//.test(f.type)?'.jpg':'';
+ const add=async inp=>{for(const f0 of [...inp.files]){let f=f0;if(isPhoto(f0)&&f0.size>SRMAX){f=await fit5(f0);if(!f){toast(`${f0.name} – photo could not be made under 5 MB, skipped`,5000);continue}toast('Photo made smaller to fit 5 MB',2500)}
+   else if(f.size>SRMAX){toast(`${f.name} is ${fmtMB(f.size)} – maximum is 5 MB per file`,5000);continue}
+   const fid='s'+uid();await DB.put('blobs',f,fid);let name=f0.name||('photo_'+nowTime().replace(':','')+'.jpg');if(f!==f0)name=name.replace(/\.[A-Za-z0-9]{1,5}$/,'')+'.jpg';if(!/\.[A-Za-z0-9]{1,5}$/.test(name))name+=/^image\//.test(f.type)?'.jpg':'';
    SRP.files.push({fid,name,mime:f.type||'application/octet-stream',size:f.size})}inp.value='';renderSrAdd()};
  $('#srcam').onclick=()=>{const i=$('#srIc');i.onchange=()=>add(i);i.click()};$('#srfile').onclick=()=>{const i=$('#srIf');i.onchange=()=>add(i);i.click()};
  $('#app').querySelectorAll('[data-srrm]').forEach(b=>b.onclick=async()=>{await DB.del('blobs',b.dataset.srrm);SRP.files=SRP.files.filter(f=>f.fid!==b.dataset.srrm);renderSrAdd()});
