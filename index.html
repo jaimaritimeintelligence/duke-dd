@@ -85,6 +85,7 @@ body.chatview main{padding-bottom:150px}#cl{display:flex;flex-direction:column;g
 .cfoot{position:fixed;left:0;right:0;bottom:0;z-index:11;background:var(--card);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom))}
 .crow{display:flex;gap:6px;align-items:flex-end}.crow textarea{flex:1;min-height:42px;max-height:120px;resize:none;padding:10px 12px;border-radius:21px;font-size:16px}.cbtn{width:44px;height:44px;padding:0;border-radius:22px;font-size:19px;flex:0 0 auto}.cbtn.rec{background:var(--bad);color:#fff}
 .cmen{display:flex;flex-wrap:wrap;gap:6px;max-height:150px;overflow:auto;padding-bottom:8px}.cmen button{padding:7px 11px;font-size:13.5px;border-radius:99px;background:var(--chip);color:var(--ink)}
+#navq{display:none;position:fixed;inset:0;z-index:300;background:rgba(5,20,35,.55);align-items:center;justify-content:center;padding:20px}#navq.show{display:flex}.nq{background:var(--card,#fff);border-radius:16px;padding:18px;max-width:380px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.3)}.nqb{display:flex;gap:10px;margin-top:14px}.nqb button{flex:1}
 .catt{display:flex;gap:6px;padding-bottom:8px}.ca.cadoc{width:130px;font-size:20px;padding:0 24px 0 6px}.cadoc span{display:flex;flex-direction:column;align-items:center;min-width:0;width:100%}.cadoc small{font-size:10.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ca{position:relative;width:60px;height:60px;border-radius:10px;overflow:hidden;background:#0b2942;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px}.ca img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}.ca .x{position:absolute;top:2px;right:2px;width:22px;height:22px;padding:0;border-radius:11px;font-size:12px;background:rgba(0,0,0,.6);color:#fff}
 .mpop{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.45);display:none;align-items:flex-start;justify-content:center;padding:70px 16px 16px}.mpop.show{display:flex}
 .mp{background:var(--card);color:var(--ink);border-radius:16px;padding:14px 16px;width:100%;max-width:460px;border:3px solid #f0a020;box-shadow:0 10px 40px rgba(0,0,0,.35)}.mph{font-weight:800;font-size:17px;margin-bottom:8px;color:#c25e00}.mpi{border-top:1px solid var(--line);padding:7px 0}
@@ -209,7 +210,7 @@ async function instDiag(){const el=$('#instDiag');if(!el)return;const row=(ok,t,
  $('#dcopy').onclick=()=>{const t=rep+'\n'+el.innerText.replace('Copy this check for Chief','');try{navigator.clipboard.writeText(t);toast('Copied – paste it in WhatsApp to the Chief')}catch(e){toast('Copy not allowed on this phone')}}}
 "use strict";
 /* ================= constants ================= */
-const VERSION='2.4.2';
+const VERSION='2.4.3';
 const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
 const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
 const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager'];
@@ -351,17 +352,35 @@ async function fillMinis(root){for(const m of root.querySelectorAll('[data-fid]'
   else{m.textContent=(/^video/.test(f.mime)?'🎬 ':/^audio/.test(f.mime)?'🎙️ ':'📄 ')+f.name.slice(0,14);m.onclick=async()=>{const u=await fileURL(f);if(u)window.open(u,'_blank');else toast('Sync first to download')}}}}
 function viewImg(u){$('#vimg').src=u;$('#viewer').classList.add('show');navSync()}
 $('#vclose').onclick=()=>{$('#viewer').classList.remove('show');navSync()};
-/* ---------- Android back button: 1st back → app home, 2nd back (on app home) → leaves the app ---------- */
-const NAV={skip:false,t:0};
-const navInner=()=>!!(S.user&&D)&&(S.view!=='home'||!!ED||$('#sheet').classList.contains('show')||$('#viewer').classList.contains('show'));
+/* ---------- Android back button: each Back = previous screen, until app home; Back on app home leaves the app ---------- */
+const NAV={skip:false,t:0,stack:[],depth:0,popping:false};
+const isShow=id=>{const e=document.getElementById(id);return !!e&&e.classList.contains('show')};
+const navInner=()=>!!(S.user&&D)&&(S.view!=='home'||NAV.stack.length>0||!!ED||isShow('sheet')||isShow('viewer')||isShow('navq'));
 function navSync(){if(NAV.t)return;NAV.t=setTimeout(()=>{NAV.t=0;try{const inn=history.state&&history.state.app==='inner';
  if(navInner()&&!inn)history.pushState({app:'inner'},'');else if(!navInner()&&inn){NAV.skip=true;history.back()}}catch(e){}},0)}
 try{if(!history.state||history.state.app!=='inner')history.replaceState({app:'home'},'')}catch(e){}
+const delBlobs=L=>(L||[]).forEach(f=>DB.del('blobs',f.fid).catch(()=>{}));
+/* screens that ask "Would you like to save the changes?" when something is filled but not sent */
+const GUARD={
+ update:{dirty:()=>UPD.step>0&&!!(UPD.files.length||UPD.sec||UPD.job||UPD.order||UPD.stc||UPD.sub||(UPD.text||'').trim()||(($('#tx')||{}).value||'').trim()),discard:()=>{delBlobs(UPD.files);UPD={step:0}}},
+ meeting:{dirty:()=>!!MT&&!!(MT.files.length||(MT.text||'').trim()||(($('#mtx')||{}).value||'').trim()),discard:()=>{delBlobs(MT&&MT.files);MT=null}},
+ sradd:{dirty:()=>!!((SRP.title||'').trim()||SRP.files.length),discard:()=>{delBlobs(SRP.files);SRP.title='';SRP.files=[]}},
+ office:{dirty:()=>!!OF&&OF.step!=='date',discard:()=>{OF=null}}};
+function navAsk(onNo){let d=$('#navq');if(!d){d=document.createElement('div');d.id='navq';document.body.appendChild(d)}
+ d.innerHTML=`<div class="nq"><div class="h2" style="margin-top:0">Would you like to save the changes?</div><div class="s mut">This is not sent yet.<br><b>Yes</b> = stay here, nothing is changed or sent.<br><b>No</b> = go back, nothing is saved.</div><div class="nqb"><button id="nqy">Yes</button><button class="ghost" id="nqn">No</button></div></div>`;
+ d.classList.add('show');navSync();
+ $('#nqy').onclick=()=>{d.classList.remove('show');toast('Cannot save until it is sent – finish it and press Send / Save',4500);navSync()};
+ $('#nqn').onclick=()=>{d.classList.remove('show');onNo()}}
+function navPush(){if(S.view&&S.user){NAV.stack.push(S.view);if(NAV.stack.length>30)NAV.stack.shift()}}
+function navBack(){const prev=NAV.stack.pop()||'home';NAV.popping=true;try{go(prev)}finally{NAV.popping=false}navSync()}
 window.addEventListener('popstate',()=>{if(NAV.skip){NAV.skip=false;navSync();return}
  if(!navInner())return;
- $('#viewer').classList.remove('show');closeSheet();
- if(ED){cancelEdit();if(ED){navSync();return}}
- if(S.view!=='home')go('home');else render();navSync()});
+ if(isShow('navq')){$('#navq').classList.remove('show');toast('Cannot save until it is sent – finish it and press Send / Save',4500);navSync();return}
+ if(isShow('viewer')){$('#viewer').classList.remove('show');navSync();return}
+ if(isShow('sheet')){closeSheet();return}
+ if(ED){cancelEdit();navSync();return}
+ const g=GUARD[S.view];if(g&&g.dirty()){navAsk(()=>{g.discard();navBack()});return}
+ navBack()});
 /* speech recognition (live text) */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 function startDictation(onText,onEnd,continuous){if(!SR)return null;const r=new SR();r.lang='en-IN';r.interimResults=true;r.continuous=!!continuous;let stopped=false,finals='';
@@ -392,7 +411,8 @@ function shell(title,sub,body,opts){opts=opts||{};const p=pending();document.bod
 function renderTop(){const b=$('#sr');if(b)b.innerHTML=S.syncing?'⟳ Syncing…':'⇅ Send / Receive'+(pending()?` <span class="badge">${pending()}</span>`:'')}
 function navBar(){const n=[['home','🏠','Home'],['timeline','🕒','Timeline'],['update','➕','Update'],['jobs','🔧','Jobs'],['reports','📄','Reports']];
  return `<nav>${n.map(([k,i,l])=>`<button data-go="${k}" class="${S.view===k?'on':''}"><b>${i}</b>${l}</button>`).join('')}</nav>`}
-function go(v){if(v==='chat'&&noChat())v='home';S.view=v;if(v==='update'&&UPD.step===0)resetUpd();render();window.scrollTo(0,0)}
+function go(v){if(v==='chat'&&noChat())v='home';const outer=!NAV.depth,prev=S.view;NAV.depth++;try{S.view=v;if(v==='update'&&UPD.step===0)resetUpd();render();window.scrollTo(0,0)}finally{NAV.depth--}
+ if(outer&&!NAV.popping){if(S.view==='home')NAV.stack=[];else if(prev&&prev!==S.view&&S.user){NAV.stack.push(prev);if(NAV.stack.length>30)NAV.stack.shift()}}}
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){e.preventDefault();go(g.dataset.go)}const j=e.target.closest('[data-job]');if(j){e.preventDefault();openJob(j.dataset.job)}const o=e.target.closest('[data-order]');if(o){e.preventDefault();openOrder(o.dataset.order)}});
 function sheet(html){$('#sheetIn').innerHTML='<div style="text-align:right"><button class="ghost sm" id="shx">✕ Close</button></div>'+html;$('#sheet').classList.add('show');$('#shx').onclick=closeSheet;$('#sheetIn').scrollTop=0;navSync()}
 function closeSheet(){$('#sheet').classList.remove('show');navSync()}
@@ -671,7 +691,7 @@ function openJob(id){const j=J[id];if(!j)return;const st=jobState(id);const lo=D
  ${(()=>{const ms=D.msgs.filter(m=>m.jobs.includes(id)).sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));return ms.length?`<div class="h2" style="font-size:16px;margin-top:14px">Mail discussions (${ms.length})</div>`+evHtml(ms.map(m=>({k:'mail',date:m.date,who:m.frm,src:'Mail – '+m.subj,text:snip(m.text,[id]),mi:msgIdx(m)}))):''})()}
  <details><summary class="s" style="font-weight:700;padding:8px 0">Full spec scope</summary><pre class="scope">${esc(j.scope)}</pre></details>`);
  bindEntryButtons($('#sheetIn'));fillMinis($('#sheetIn'));
- $('#jup').onclick=()=>{closeSheet();resetUpd();UPD.dept=j.dept;UPD.perf=j.perf==='Ship Staff'||j.perf==='Yard'||j.perf==='Service Engineer'?j.perf:'';UPD.job=j.id;UPD.jobTitle=j.title;UPD.step=1;S.view='update';render()}}
+ $('#jup').onclick=()=>{closeSheet();resetUpd();UPD.dept=j.dept;UPD.perf=j.perf==='Ship Staff'||j.perf==='Yard'||j.perf==='Service Engineer'?j.perf:'';UPD.job=j.id;UPD.jobTitle=j.title;UPD.step=1;navPush();S.view='update';render()}}
 /* ---------- spares ---------- */
 let SF={q:'',f:''};
 function renderSpares(){let L=SF.q?search(SF.q,'orders',300).map(x=>x.r):D.orders.slice();if(SF.f)L=L.filter(o=>orderStatus(o).cls===SF.f);
@@ -705,7 +725,7 @@ function openOrder(no){const o=O[no];if(!o)return;PIT='';const s=orderStatus(o);
  <div style="margin-top:12px">${ents.map(entryCard).join('')}</div>
  <button style="width:100%;margin-top:12px" id="orc">📦 Mark received onboard (+ delivery note photo)</button>`);bindEntryButtons($('#sheetIn'));fillMinis($('#sheetIn'));piBind(o);
  $('#orc').onclick=()=>{closeSheet();resetUpd();UPD.kind='spares';UPD.order=o.no;UPD.dept=/-(D|DO|B)(-\d)?$/.test(o.no)?'Deck':'Engine';UPD.perf='Ship Staff';UPD.text='Received onboard: '+o.no+' '+o.name;
-  const lj=o.jobs[0];if(lj&&J[lj.id]){UPD.job=lj.id;UPD.jobTitle=J[lj.id].title}UPD.step=3;S.view='update';render()}}
+  const lj=o.jobs[0];if(lj&&J[lj.id]){UPD.job=lj.id;UPD.jobTitle=J[lj.id].title}UPD.step=3;navPush();S.view='update';render()}}
 /* ---------- P.O / Invoice tabs (files in Drive › PO and › INVOICES + files added in the app) ---------- */
 let PI=null,PIT='';const PIMAX=5*1024*1024;
 const pkey=s=>{const m=/FDU-(\d{4})-\d{4}-[A-Z]+(-\d)?/i.exec(String(s||''));return m?m[1]+(m[2]||''):''};
@@ -936,9 +956,9 @@ function renderSettings(){const all=S.entries.length;
    b.disabled=true;b.textContent='Deleting…';try{await sendReceive(false);const r=await api('purgeTest',{},300000);if(PI){PI.time=0;DB.put('kv',PI,'poinv').catch(()=>{})}for(const e of S.entries.filter(x=>x.test||r.ids.includes(x.id))){for(const f of (e.files||[]))await DB.del('blobs',f.fid);await DB.del('entries',e.id)}
     S.entries=await DB.all('entries');rebuildEntryIdx();S.testMode=false;await DB.put('kv',false,'testMode');toast(`✅ Deleted ${r.deleted} test entries and ${r.files} files. App is now LIVE.`,5000,true);renderSettings()}catch(e){toast(e.message);b.disabled=false}}}
  $('#app').querySelectorAll('[data-th]').forEach(b=>b.onclick=async()=>{const v=b.dataset.th;if(v)document.documentElement.setAttribute('data-theme',v);else document.documentElement.removeAttribute('data-theme');await DB.put('kv',v,'theme')});
- $('#rr').onclick=()=>{S.view='home';fetchRecords()};if($('#edl2'))$('#edl2').onclick=startEdit;$('#ihelp').onclick=doInstall;if($('#otsb'))$('#otsb').onclick=openTsEdit;$('#ishare').onclick=async()=>{const u=location.href.split('#')[0].split('?')[0];const t='Front Duke DD 2026 crew app. Open in Chrome (Android) or Safari (iPhone), then tap 📲 Install: '+u;try{if(navigator.share){await navigator.share({title:'Duke DD app',text:t,url:u});return}}catch(e){return}try{await navigator.clipboard.writeText(t);toast('Link copied – paste it in WhatsApp')}catch(e){toast(u,8000)}};
+ $('#rr').onclick=()=>{NAV.stack=[];S.view='home';fetchRecords()};if($('#edl2'))$('#edl2').onclick=startEdit;$('#ihelp').onclick=doInstall;if($('#otsb'))$('#otsb').onclick=openTsEdit;$('#ishare').onclick=async()=>{const u=location.href.split('#')[0].split('?')[0];const t='Front Duke DD 2026 crew app. Open in Chrome (Android) or Safari (iPhone), then tap 📲 Install: '+u;try{if(navigator.share){await navigator.share({title:'Duke DD app',text:t,url:u});return}}catch(e){return}try{await navigator.clipboard.writeText(t);toast('Link copied – paste it in WhatsApp')}catch(e){toast(u,8000)}};
  $('#bk2').onclick=()=>downloadBlob(new Blob([JSON.stringify({exported:new Date().toISOString(),user:{rank:S.user.rank,name:S.user.name},entries:S.entries},null,1)],{type:'application/json'}),'FrontDuke_DD2026_backup_'+today()+'.json');
- $('#lo').onclick=async()=>{if(pending()){toast('Send / Receive first – '+pending()+' update(s) not sent',4000);return}if(!$('#lo').dataset.c){$('#lo').dataset.c=1;$('#lo').textContent='Tap again to log out';return}await DB.del('kv','user');S.user=null;ED=null;render()}}
+ $('#lo').onclick=async()=>{if(pending()){toast('Send / Receive first – '+pending()+' update(s) not sent',4000);return}if(!$('#lo').dataset.c){$('#lo').dataset.c=1;$('#lo').textContent='Tap again to log out';return}await DB.del('kv','user');S.user=null;NAV.stack=[];ED=null;render()}}
 /* ================= home-screen layout (Chief edits, all phones get it) ================= */
 const LDEF={photo:'duke.jpg',px:50,py:50,zoom:1,photoH:230,order:['chat','sreports','meeting','timeline','spares','jobs','reports','photos','settings'],hidden:[],tileSize:'m',cols:3,textScale:100,creditSize:10.5,creditAlign:'right',swapBig:false,names:{}};
 const BUILTIN=[['ship1.jpg','Side view'],['duke.jpg','Bow quarter'],['ship3.jpg','Bow-on']];
@@ -992,7 +1012,7 @@ function drawCover(ctx,img,S2,px,py,z){const s0=Math.max(S2/img.naturalWidth,S2/
 async function pngBytes(img,size,st){const c=document.createElement('canvas');c.width=c.height=size;const x=c.getContext('2d');x.imageSmoothingQuality='high';drawCover(x,img,size,st.px,st.py,st.zoom);
  const b=await new Promise(r=>c.toBlob(r,'image/png'));return new Uint8Array(await b.arrayBuffer())}
 /* --- the editor --- */
-function startEdit(){if(!isChief())return;ED={L:JSON.parse(JSON.stringify(lay())),dirty:false};S.view='home';render();window.scrollTo(0,0)}
+function startEdit(){if(!isChief())return;NAV.stack=[];ED={L:JSON.parse(JSON.stringify(lay())),dirty:false};S.view='home';render();window.scrollTo(0,0)}
 function renderEditHome(){const L=ED.L;applyScale(L);
  shell('Edit home screen','Chief only · seen on all phones after Save',`
  <div class="banner info">✏️ Edit mode. Nothing changes on other phones until you tap <b>Save for all phones</b>.</div>
