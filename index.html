@@ -209,7 +209,7 @@ async function instDiag(){const el=$('#instDiag');if(!el)return;const row=(ok,t,
  $('#dcopy').onclick=()=>{const t=rep+'\n'+el.innerText.replace('Copy this check for Chief','');try{navigator.clipboard.writeText(t);toast('Copied – paste it in WhatsApp to the Chief')}catch(e){toast('Copy not allowed on this phone')}}}
 "use strict";
 /* ================= constants ================= */
-const VERSION='2.4.0';
+const VERSION='2.4.1';
 const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
 const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
 const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager'];
@@ -932,27 +932,28 @@ function renderSettings(){const all=S.entries.length;
 const LDEF={photo:'duke.jpg',px:50,py:50,zoom:1,photoH:230,order:['chat','sreports','meeting','timeline','spares','jobs','reports','photos','settings'],hidden:[],tileSize:'m',cols:3,textScale:100,creditSize:10.5,creditAlign:'right',swapBig:false,names:{}};
 const BUILTIN=[['ship1.jpg','Side view'],['duke.jpg','Bow quarter'],['ship3.jpg','Bow-on']];
 const BIGDEF={ask:'Ask me anything',askSub:'Jobs, spares, who does what',upd:'Update',updSub:'Voice or text + photos'};
-const NMAX={askSub:50,updSub:50};
+const TXTDEF={heroT:'MT Front Duke',heroS:'Second Special Survey · COSCO Zhoushan',cred1:'Conceptualized by CE',cred2:'Powered by Team Front Duke 2026'};
+const NMAX={askSub:50,updSub:50,heroT:40,heroS:60,cred1:50,cred2:50};
 const TILEDEF={chat:['💬','Chat',()=>!noChat()],sreports:['📑','Service reports'],meeting:['🎙️','Daily meeting',()=>canMeeting()],timeline:['🕒','Timeline'],spares:['📦','Spares'],jobs:['🔧','Jobs'],reports:['📄','Reports'],photos:['🗂️','Extract photos',()=>canExtract()],settings:['⚙️','Settings']};
 let ED=null,IC=null;
 function lay(){const L=Object.assign({},LDEF,S.layout||{});const known=Object.keys(TILEDEF);
  L.order=(L.order||[]).filter(k=>known.includes(k));known.forEach(k=>{if(!L.order.includes(k))L.order.push(k)});
  L.hidden=(L.hidden||[]).filter(k=>k!=='settings');L.px=Number.isFinite(+L.px)?clamp(+L.px,0,100):50;L.py=Number.isFinite(+L.py)?clamp(+L.py,0,100):50;L.zoom=clamp(+L.zoom||1,1,4);L.photoH=clamp(+L.photoH||230,150,420);
- if(!['s','m','l'].includes(L.tileSize))L.tileSize='m';if(!['left','center','right'].includes(L.creditAlign))L.creditAlign='right';const nm0=L.names&&typeof L.names==='object'?L.names:{};L.names={};Object.keys(nm0).forEach(k=>{if((TILEDEF[k]||BIGDEF[k])&&typeof nm0[k]==='string'){const v=nm0[k].trim().slice(0,NMAX[k]||30);if(v)L.names[k]=v}});
+ if(!['s','m','l'].includes(L.tileSize))L.tileSize='m';if(!['left','center','right'].includes(L.creditAlign))L.creditAlign='right';const nm0=L.names&&typeof L.names==='object'?L.names:{};L.names={};Object.keys(nm0).forEach(k=>{if((TILEDEF[k]||BIGDEF[k]||k in TXTDEF)&&typeof nm0[k]==='string'){const v=nm0[k].trim().slice(0,NMAX[k]||30);if(v||k in TXTDEF)L.names[k]=v}});
  if(typeof L.photo!=='string'||!(/^data:image\//.test(L.photo)||BUILTIN.some(b=>b[0]===L.photo)))L.photo='duke.jpg';return L}
-const tName=(L,k)=>(L.names&&L.names[k])||(TILEDEF[k]?TILEDEF[k][1]:BIGDEF[k]);
+const tName=(L,k)=>k in TXTDEF?(L.names&&k in L.names?L.names[k]:TXTDEF[k]):(L.names&&L.names[k])||(TILEDEF[k]?TILEDEF[k][1]:BIGDEF[k]);
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 function applyScale(L){document.documentElement.style.setProperty('--z',String(clamp(+L.textScale||100,80,140)/100))}
 function imgStyle(L){return `object-position:${L.px}% ${L.py}%;transform:scale(${L.zoom});transform-origin:${L.px}% ${L.py}%`}
 function heroHTML(L,edit){return `<div class="hero${edit?' editing':''}" id="hero" style="min-height:0;height:${L.photoH}px"><img id="heroimg" src="${esc(L.photo||'duke.jpg')}" alt="MT Front Duke" style="${imgStyle(L)}" onload="this.parentNode.classList.add('hasimg')" onerror="this.remove()"><svg class="ship" viewBox="0 0 400 90" aria-hidden="true"><path fill="#fff" d="M8 52h300l18-14h40l10 14h16l-22 30H40z"/><rect x="300" y="18" width="34" height="22" fill="#fff"/><rect x="314" y="6" width="8" height="12" fill="#fff"/></svg><div class="shade"></div>
- <div class="txt"><h1>MT Front Duke</h1><p>Second Special Survey · COSCO Zhoushan</p></div>${edit?'<div class="edhint">☝ Drag to move · pinch or slider to zoom</div>':''}</div>`}
+ <div class="txt">${tName(L,'heroT')?`<h1>${esc(tName(L,'heroT'))}</h1>`:''}${tName(L,'heroS')?`<p>${esc(tName(L,'heroS'))}</p>`:''}</div>${edit?'<div class="edhint">☝ Drag to move · pinch or slider to zoom</div>':''}</div>`}
 function bigHTML(L,edit){const at=edit?' data-ren="ask"':' data-go="ask"',ut=edit?' data-ren="upd"':' data-go="update"',pen=edit?'<span class="ren">✏️</span>':'';
  const a=`<button class="bigbtn ask"${at}><span class="ic">💬</span><span>${esc(tName(L,'ask'))}<small>${esc(tName(L,'askSub'))}</small></span>${pen}</button>`,u=`<button class="bigbtn upd"${ut}><span class="ic">➕</span><span>${esc(tName(L,'upd'))}<small>${esc(tName(L,'updSub'))}</small></span>${pen}</button>`;
  return `<div class="big2">${L.swapBig?u+a:a+u}</div>`}
 function tilesHTML(L,edit){const it=L.order.filter(k=>{const d=TILEDEF[k];return !d[2]||d[2]()}).filter(k=>edit||!L.hidden.includes(k));
  return `<div class="tiles ts-${L.tileSize}${edit?' editing':''}" id="tiles" style="grid-template-columns:repeat(${clamp(+L.cols||3,2,4)},1fr)">${it.map(k=>{const i=TILEDEF[k][0],l=esc(tName(L,k));const hid=L.hidden.includes(k);
   return edit?`<div class="tile${hid?' hid':''}" data-tid="${k}"><b>${i}</b>${l}${k==='settings'?'<span class="eye lock" title="Always shown">🔒</span>':`<span class="eye" data-eye="${k}">${hid?'🚫':'👁'}</span>`}<span class="ren">✏️</span></div>`:`<button class="tile" data-go="${k}"><b>${i}</b>${l}${k==='chat'?'<span class="tbadge" data-chatbadge style="display:none"></span>':''}</button>`}).join('')}</div>`}
-function creditHTML(L){return `<div class="credit" style="font-size:${clamp(+L.creditSize||10.5,8,18)}px;text-align:${L.creditAlign||'right'}">Conceptualized by CE<br>Powered by Team Front Duke 2026</div>`}
+function creditHTML(L){const a=tName(L,'cred1'),b=tName(L,'cred2');if(!a&&!b)return '';return `<div class="credit" style="font-size:${clamp(+L.creditSize||10.5,8,18)}px;text-align:${L.creditAlign||'right'}">${esc(a)}${a&&b?'<br>':''}${esc(b)}</div>`}
 async function fetchLayout(){const r=await api('getLayout',{},60000);S.layout=r.layout||null;await DB.put('kv',S.layout,'layout');await DB.put('kv',r.layoutStamp||0,'layoutStamp');applyScale(lay())}
 /* --- pan / pinch helper --- */
 function panZoom(el,get,set,done){const P=new Map();let st=null;
@@ -989,7 +990,7 @@ function renderEditHome(){const L=ED.L;applyScale(L);
   <div class="pick">${BUILTIN.map(([f,l])=>`<button class="pk${L.photo===f?' on':''}" data-pk="${f}"><img src="${f}" alt=""><span>${l}</span></button>`).join('')}<label class="pk${/^data:/.test(L.photo)?' on':''}"><input type="file" accept="image/*" id="pgal" hidden><span class="gal">🖼️</span><span>Gallery</span></label></div>
   <label class="l">Zoom <span id="zv">${L.zoom.toFixed(1)}×</span></label><input type="range" id="pz" min="1" max="4" step="0.05" value="${L.zoom}">
   <label class="l">Photo height <span id="hv">${L.photoH}px</span></label><input type="range" id="ph" min="150" max="420" step="5" value="${L.photoH}">
-  <button class="ghost sm" id="pc" style="margin-top:8px">Centre photo</button></div>
+  <div style="display:flex;gap:8px;margin-top:8px"><button class="ghost sm" id="pc">Centre photo</button><button class="ghost sm" id="ptx">✏️ Edit text on photo</button></div></div>
  ${bigHTML(L,true)}<div style="text-align:right;margin:-6px 0 12px"><button class="ghost sm" id="swp">⇄ Swap Ask / Update</button></div>
  <div class="xs mut" style="margin:0 2px 6px">☝ Tap a tile or big button to rename it. Press and drag a tile to move it. 👁 = shown, 🚫 = hidden on all phones.</div>
  ${tilesHTML(L,true)}
@@ -998,7 +999,7 @@ function renderEditHome(){const L=ED.L;applyScale(L);
  <div class="card"><b>🔠 Text size (whole app)</b><label class="l">Size <span id="tv">${L.textScale}%</span></label><input type="range" id="ts" min="80" max="140" step="5" value="${L.textScale}"><div class="xs mut">Text, buttons and boxes grow together, on every screen.</div></div>
  <div class="card"><b>✍️ Credit line</b><label class="l">Size <span id="cv">${L.creditSize}px</span></label><input type="range" id="cs" min="8" max="18" step="0.5" value="${L.creditSize}">
   <label class="l">Position</label><div class="seg">${[['left','Left'],['center','Centre'],['right','Right']].map(([v,l])=>`<button data-cal="${v}" class="${L.creditAlign===v?'on':''}">${l}</button>`).join('')}</div>
-  ${creditHTML(L)}</div>
+  ${creditHTML(L)||'<div class="xs mut">(credit line empty – hidden)</div>'}<button class="ghost sm" id="ctx" style="margin-top:8px">✏️ Edit credit text</button></div>
  <div class="card"><b>📱 Phone app icon</b><div class="s mut">Makes the 3 icon files for GitHub. Not part of Save.</div><button class="ghost" id="icb" style="width:100%;margin-top:8px">Make app icon files…</button></div>
  <button class="ghost" id="rst" style="width:100%;margin-bottom:12px">↺ Back to standard layout</button>`,
  {back:cancelEdit,foot:`<div class="foot"><button class="ghost" id="edc" style="flex:1">Cancel</button><button id="eds" style="flex:2">💾 Save for all phones</button></div>`});
@@ -1012,6 +1013,7 @@ function renderEditHome(){const L=ED.L;applyScale(L);
  $('#swp').onclick=()=>{L.swapBig=!L.swapBig;mark();renderEditHome()};
  tileDrag($('#tiles'),ids=>{L.order=ids;mark()},k=>openRename(k));
  $('#app').querySelectorAll('[data-ren]').forEach(b=>b.onclick=()=>openRename(b.dataset.ren));
+ $('#ptx').onclick=()=>openTxt(['heroT','heroS'],'Text on the photo',['Big name','Small line']);$('#ctx').onclick=()=>openTxt(['cred1','cred2'],'Credit line',['Line 1','Line 2']);
  $('#app').querySelectorAll('[data-eye]').forEach(s=>s.onclick=e=>{e.stopPropagation();const k=s.dataset.eye;L.hidden=L.hidden.includes(k)?L.hidden.filter(x=>x!==k):L.hidden.concat(k);mark();renderEditHome()});
  $('#app').querySelectorAll('[data-tsz]').forEach(b=>b.onclick=()=>{L.tileSize=b.dataset.tsz;mark();renderEditHome()});
  $('#app').querySelectorAll('[data-tcol]').forEach(b=>b.onclick=()=>{L.cols=+b.dataset.tcol;mark();renderEditHome()});
@@ -1030,6 +1032,13 @@ function openRename(k){if(!ED)return;const L=ED.L,big=!!BIGDEF[k],sk=k+'Sub';
  const put=(key,v)=>{v=String(v||'').trim();const def=TILEDEF[key]?TILEDEF[key][1]:BIGDEF[key];if(!v||v===def)delete L.names[key];else L.names[key]=v.slice(0,NMAX[key]||30)};
  $('#rnd').onclick=()=>{delete L.names[k];if(big)delete L.names[sk];ED.dirty=true;closeSheet();renderEditHome()};
  $('#rno').onclick=()=>{L.names=L.names||{};put(k,$('#rnv').value);if(big)put(sk,$('#rns').value);ED.dirty=true;closeSheet();renderEditHome()}}
+function openTxt(keys,title,labs){if(!ED)return;const L=ED.L;L.names=L.names||{};
+ sheet(`<div class="h2">✏️ ${esc(title)}</div>${keys.map((k,i)=>`<label class="l">${labs[i]} (max ${NMAX[k]} letters)</label><input id="tx_${k}" maxlength="${NMAX[k]}" value="${esc(tName(L,k))}"><div class="xs mut">Standard: ${esc(TXTDEF[k])}</div>`).join('')}
+ <div class="xs mut" style="margin-top:6px">Leave a box empty to hide that line.</div>
+ <div style="display:flex;gap:8px;margin-top:14px"><button class="ghost" id="txd" style="flex:1">↺ Standard</button><button id="txo" style="flex:2">✔ Done</button></div>
+ <div class="xs mut" style="margin-top:8px">Other phones see it after you tap 💾 Save for all phones.</div>`);
+ $('#txd').onclick=()=>{keys.forEach(k=>delete L.names[k]);ED.dirty=true;closeSheet();renderEditHome()};
+ $('#txo').onclick=()=>{keys.forEach(k=>{const v=$('#tx_'+k).value.trim().slice(0,NMAX[k]);if(v===TXTDEF[k])delete L.names[k];else L.names[k]=v});ED.dirty=true;closeSheet();renderEditHome()}}
 function cancelEdit(){if(ED&&ED.dirty&&!cancelEdit.c){cancelEdit.c=1;toast('Changes not saved – tap Cancel again to throw them away',3500);setTimeout(()=>cancelEdit.c=0,3500);return}
  cancelEdit.c=0;ED=null;applyScale(lay());render()}
 async function saveLayout(){const b=$('#eds');if(!navigator.onLine){toast('Needs internet to save the layout for all phones. Your edits stay here – try again when online.',4500);return}
