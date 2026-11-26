@@ -209,7 +209,7 @@ async function instDiag(){const el=$('#instDiag');if(!el)return;const row=(ok,t,
  $('#dcopy').onclick=()=>{const t=rep+'\n'+el.innerText.replace('Copy this check for Chief','');try{navigator.clipboard.writeText(t);toast('Copied – paste it in WhatsApp to the Chief')}catch(e){toast('Copy not allowed on this phone')}}}
 "use strict";
 /* ================= constants ================= */
-const VERSION='2.4.1';
+const VERSION='2.4.2';
 const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
 const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
 const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager'];
@@ -349,8 +349,19 @@ async function fileURL(f){if(urlCache[f.fid])return urlCache[f.fid];let b=await 
 async function fillMinis(root){for(const m of root.querySelectorAll('[data-fid]')){const e=S.entries.find(x=>x.id===m.dataset.e)||UPD.temp;const f=(e&&e.files||[]).find(x=>x.fid===m.dataset.fid);if(!f)continue;
   if(/^image/.test(f.mime)){const u=await fileURL(f);if(u){m.innerHTML='<img alt="" src="'+u+'">';m.onclick=()=>viewImg(u)}else m.textContent='📷 tap Sync'}
   else{m.textContent=(/^video/.test(f.mime)?'🎬 ':/^audio/.test(f.mime)?'🎙️ ':'📄 ')+f.name.slice(0,14);m.onclick=async()=>{const u=await fileURL(f);if(u)window.open(u,'_blank');else toast('Sync first to download')}}}}
-function viewImg(u){$('#vimg').src=u;$('#viewer').classList.add('show')}
-$('#vclose').onclick=()=>$('#viewer').classList.remove('show');
+function viewImg(u){$('#vimg').src=u;$('#viewer').classList.add('show');navSync()}
+$('#vclose').onclick=()=>{$('#viewer').classList.remove('show');navSync()};
+/* ---------- Android back button: 1st back → app home, 2nd back (on app home) → leaves the app ---------- */
+const NAV={skip:false,t:0};
+const navInner=()=>!!(S.user&&D)&&(S.view!=='home'||!!ED||$('#sheet').classList.contains('show')||$('#viewer').classList.contains('show'));
+function navSync(){if(NAV.t)return;NAV.t=setTimeout(()=>{NAV.t=0;try{const inn=history.state&&history.state.app==='inner';
+ if(navInner()&&!inn)history.pushState({app:'inner'},'');else if(!navInner()&&inn){NAV.skip=true;history.back()}}catch(e){}},0)}
+try{if(!history.state||history.state.app!=='inner')history.replaceState({app:'home'},'')}catch(e){}
+window.addEventListener('popstate',()=>{if(NAV.skip){NAV.skip=false;navSync();return}
+ if(!navInner())return;
+ $('#viewer').classList.remove('show');closeSheet();
+ if(ED){cancelEdit();if(ED){navSync();return}}
+ if(S.view!=='home')go('home');else render();navSync()});
 /* speech recognition (live text) */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 function startDictation(onText,onEnd,continuous){if(!SR)return null;const r=new SR();r.lang='en-IN';r.interimResults=true;r.continuous=!!continuous;let stopped=false,finals='';
@@ -373,7 +384,7 @@ function isChief(){return role()==='chief'}
 function editAny(){return ['chief','master','vm'].includes(role())}
 function canEdit(e){return editAny()||(e.device===S.user.device&&e.date===today())}
 function canMeeting(){return ['chief','master'].includes(role())}
-function render(){if(!S.user||!D){renderLogin();return}({home:renderHome,ask:renderAsk,update:renderUpdate,meeting:renderMeeting,photos:renderPhotos,timeline:renderTimeline,jobs:renderJobs,spares:renderSpares,reports:renderReports,settings:renderSettings,progress:renderProgress,chat:renderChat,office:renderOffice,sreports:renderSreports,sradd:renderSrAdd})[S.view]()}
+function render(){if(!S.user||!D){renderLogin();return}({home:renderHome,ask:renderAsk,update:renderUpdate,meeting:renderMeeting,photos:renderPhotos,timeline:renderTimeline,jobs:renderJobs,spares:renderSpares,reports:renderReports,settings:renderSettings,progress:renderProgress,chat:renderChat,office:renderOffice,sreports:renderSreports,sradd:renderSrAdd})[S.view]();navSync()}
 function shell(title,sub,body,opts){opts=opts||{};const p=pending();document.body.classList.remove('chatview');
  $('#app').innerHTML=`<div class="top">${opts.back?'<button id="bk" aria-label="Back">←</button>':''}<div class="t">${esc(title)}<small>${esc(sub||'')}</small></div><button class="sync" id="sr">${S.syncing?'⟳ Syncing…':'⇅ Send / Receive'}${p?` <span class="badge">${p}</span>`:''}</button></div>
  <main>${S.testMode?'<div class="banner test">🧪 TEST MODE – everything entered now is test data and will be deleted by the Chief Engineer</div>':''}${body}</main>${opts.foot||navBar()}`;
@@ -383,8 +394,8 @@ function navBar(){const n=[['home','🏠','Home'],['timeline','🕒','Timeline']
  return `<nav>${n.map(([k,i,l])=>`<button data-go="${k}" class="${S.view===k?'on':''}"><b>${i}</b>${l}</button>`).join('')}</nav>`}
 function go(v){if(v==='chat'&&noChat())v='home';S.view=v;if(v==='update'&&UPD.step===0)resetUpd();render();window.scrollTo(0,0)}
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){e.preventDefault();go(g.dataset.go)}const j=e.target.closest('[data-job]');if(j){e.preventDefault();openJob(j.dataset.job)}const o=e.target.closest('[data-order]');if(o){e.preventDefault();openOrder(o.dataset.order)}});
-function sheet(html){$('#sheetIn').innerHTML='<div style="text-align:right"><button class="ghost sm" id="shx">✕ Close</button></div>'+html;$('#sheet').classList.add('show');$('#shx').onclick=closeSheet;$('#sheetIn').scrollTop=0}
-function closeSheet(){$('#sheet').classList.remove('show')}
+function sheet(html){$('#sheetIn').innerHTML='<div style="text-align:right"><button class="ghost sm" id="shx">✕ Close</button></div>'+html;$('#sheet').classList.add('show');$('#shx').onclick=closeSheet;$('#sheetIn').scrollTop=0;navSync()}
+function closeSheet(){$('#sheet').classList.remove('show');navSync()}
 $('#sheet').onclick=e=>{if(e.target.id==='sheet')closeSheet()};
 /* ---------- login ---------- */
 let LG='o';
@@ -1039,7 +1050,7 @@ function openTxt(keys,title,labs){if(!ED)return;const L=ED.L;L.names=L.names||{}
  <div class="xs mut" style="margin-top:8px">Other phones see it after you tap 💾 Save for all phones.</div>`);
  $('#txd').onclick=()=>{keys.forEach(k=>delete L.names[k]);ED.dirty=true;closeSheet();renderEditHome()};
  $('#txo').onclick=()=>{keys.forEach(k=>{const v=$('#tx_'+k).value.trim().slice(0,NMAX[k]);if(v===TXTDEF[k])delete L.names[k];else L.names[k]=v});ED.dirty=true;closeSheet();renderEditHome()}}
-function cancelEdit(){if(ED&&ED.dirty&&!cancelEdit.c){cancelEdit.c=1;toast('Changes not saved – tap Cancel again to throw them away',3500);setTimeout(()=>cancelEdit.c=0,3500);return}
+function cancelEdit(){if(ED&&ED.dirty&&!cancelEdit.c){cancelEdit.c=1;toast('Changes not saved – tap Cancel (or Back) again to throw them away',3500);setTimeout(()=>cancelEdit.c=0,3500);return}
  cancelEdit.c=0;ED=null;applyScale(lay());render()}
 async function saveLayout(){const b=$('#eds');if(!navigator.onLine){toast('Needs internet to save the layout for all phones. Your edits stay here – try again when online.',4500);return}
  b.disabled=true;b.textContent='Saving…';
