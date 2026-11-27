@@ -100,7 +100,7 @@ a.btn{display:block;text-align:center;text-decoration:none;border-radius:12px;pa
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tv,:root:not([data-theme="light"]) .t-v{--c:#5fd0d8;--cb:#0f2e31}}
 .atabs button{font-size:11.5px!important;padding:7px 1px!important}
 .srr{border-top:1px solid var(--line);padding:9px 0}.srj .srr:first-of-type{border-top:0}.srjh{cursor:pointer;margin-bottom:4px}.srt{font-size:15px}
-.pitabs{grid-template-columns:1fr 1fr;margin:10px 0 4px}.pitabs.one{grid-template-columns:1fr}.pitabs button{font-size:14px!important;padding:10px 4px!important}.pitabs button.miss i{background:#c0392b}.picx{background:#fbe9e7;color:#a8261b;border:1.5px solid #e3a59d;border-radius:10px;padding:8px 10px;font-weight:800;margin:8px 0;text-align:center}
+.pitabs{grid-template-columns:1fr 1fr;margin:10px 0 4px}.pitabs.one{grid-template-columns:1fr}.pitabs button{font-size:14px!important;padding:10px 4px!important}.pitabs button.miss i{background:#c0392b;color:#fff!important}.pitabs button i{white-space:nowrap}.picx{background:#fbe9e7;color:#a8261b;border:1.5px solid #e3a59d;border-radius:10px;padding:8px 10px;font-weight:800;margin:8px 0;text-align:center}
 .srf{display:flex;gap:8px;align-items:center;background:var(--chip);border-radius:10px;padding:8px 10px;margin-top:6px;cursor:pointer}.srf b{font-size:22px}.srf span{flex:1;font-size:13.5px;font-weight:600;overflow-wrap:anywhere}.srf small{display:block;font-weight:400;color:var(--mut)}.srdel{margin-top:6px}
 .hero .txt{position:relative}.hero h1{margin:0;font-size:24px;letter-spacing:.3px}.hero p{margin:2px 0 0;opacity:.85;font-size:13.5px}
 .big2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
@@ -212,7 +212,7 @@ async function instDiag(){const el=$('#instDiag');if(!el)return;const row=(ok,t,
  $('#dcopy').onclick=()=>{const t=rep+'\n'+el.innerText.replace('Copy this check for Chief','');try{navigator.clipboard.writeText(t);toast('Copied – paste it in WhatsApp to the Chief')}catch(e){toast('Copy not allowed on this phone')}}}
 "use strict";
 /* ================= constants ================= */
-const VERSION='2.5.1';
+const VERSION='2.5.2';
 const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
 const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
 const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager'];
@@ -742,12 +742,6 @@ async function piDownloadAll(btn,quiet){await piLoad();if(!navigator.onLine){if(
   if(!have){try{const r=await api('file',{driveId:x.id},120000);await DB.put('blobs',b64ToBlob(r.b64,r.mime),fid);got++}catch(e){fail++}}
   done++;if(btn)btn.textContent=`⏳ ${done} / ${L.length} files…`;if(quiet&&$('#pibar'))$('#pibar').textContent=`⬇ P.O & invoices to this phone: ${done} / ${L.length}`}
  if(btn)btn.textContent='⬇ Keep all P.O & invoices on this phone';if(quiet&&$('#pibar'))$('#pibar').remove();toast(`✅ ${L.length-fail} of ${L.length} P.O / invoice files are on this phone (${fmtMB(tot)})${fail?' · '+fail+' failed – '+(quiet?'will finish next time the app opens':'try again'):''}`,6000,true);return {fail,total:L.length}}
-/* one time only (this update): every phone pulls all present P.O / invoice PDFs; later files download on tap */
-const PIB={run:false};
-async function piBulkOnce(){if(PIB.run||!S.user||!D||!navigator.onLine||!CFG.SERVER_URL)return;PIB.run=true;
- try{if(await DB.get('kv','pibulk1'))return;await piLoad();if(!PI.time)await piRefresh(true);if(!PI.time||!PI.files.length)return;
-  let b=$('#pibar');if(!b){b=document.createElement('div');b.id='pibar';document.body.appendChild(b)}b.textContent='⬇ P.O & invoices to this phone: starting…';
-  const r=await piDownloadAll(null,true);if(r&&r.fail===0)await DB.put('kv',Date.now(),'pibulk1')}catch(e){}finally{PIB.run=false;const b=$('#pibar');if(b)b.remove()}}
 async function piRefresh(force){if(!navigator.onLine||!CFG.SERVER_URL)return false;try{const r=await api('poinv',force?{fresh:1}:{},60000);PI={files:r.files||[],time:Date.now()};await DB.put('kv',PI,'poinv');return true}catch(e){return false}}
 const piMime=n=>/\.pdf$/i.test(n)?'application/pdf':/\.jpe?g$/i.test(n)?'image/jpeg':/\.png$/i.test(n)?'image/png':/\.heic$/i.test(n)?'image/heic':'application/octet-stream';
 function piDocs(o,k){const key=pkey(o.no),out=[],seen=new Set();
@@ -756,13 +750,14 @@ function piDocs(o,k){const key=pkey(o.no),out=[],seen=new Set();
  return out.sort((a,b)=>b.t-a.t)}
 const piNeedInv=o=>o.type!=='SERVICE';
 const piRcv=o=>{const t=orderStatus(o).txt;return /RECEIVED/i.test(t)&&!/NOT RECEIVED/i.test(t)};
-function piTabsHtml(o){const np=piDocs(o,'P').length,ni=piDocs(o,'I').length,inv=piNeedInv(o);const ld=!!(PI&&PI.time);const iw=ni?ni:o.cancelled?'–':!ld?'…':piRcv(o)?'missing':'not yet',im=ld&&!ni&&!o.cancelled&&piRcv(o);
- return `<div class="atabs pitabs${inv?'':' one'}" id="pitabs"><button class="t-c${np||!ld?'':' miss'}${PIT==='P'?' on':''}" data-pit="P">📄 P.O <i>${np||(ld?'missing':'…')}</i></button>${inv?`<button class="t-s${im?' miss':''}${PIT==='I'?' on':''}" data-pit="I">🧾 Invoice <i>${iw}</i></button>`:''}</div>
+function piTabsHtml(o){const np=piDocs(o,'P').length,ni=piDocs(o,'I').length,inv=piNeedInv(o);const ld=!!(PI&&PI.time);const lab=n=>n?`(${n})`:ld?'(Nil avbl)':'(…)';const im=ld&&!ni&&!o.cancelled&&piRcv(o);
+ return `<div class="atabs pitabs${inv?'':' one'}" id="pitabs"><button class="t-c${np||!ld?'':' miss'}${PIT==='P'?' on':''}" data-pit="P">📄 P.O <i>${lab(np)}</i></button>${inv?`<button class="t-s${im?' miss':''}${PIT==='I'?' on':''}" data-pit="I">🧾 Invoice <i>${lab(ni)}</i></button>`:''}</div>
  <div class="apane ${PIT==='I'?'t-s':'t-c'}" id="pipane">${PIT&&(PIT==='P'||inv)?piPane(o,PIT):''}</div>
- <div class="atabs pitabs${inv?'':' one'}" style="margin-top:8px"><button class="t-c" data-piadd="P">➕ Add P.O</button>${inv?'<button class="t-s" data-piadd="I">➕ Add Invoice</button>':''}</div><input type="file" id="pifile" accept="application/pdf,image/*" multiple hidden>${inv?'':'<div class="xs mut">Service requisition – P.O only, no invoice needed</div>'}`}
+ ${PIT&&(PIT==='P'||inv)?'':`<div class="atabs pitabs${inv?'':' one'}" style="margin-top:8px"><button class="t-c" data-piadd="P">➕ Add P.O</button>${inv?'<button class="t-s" data-piadd="I">➕ Add Invoice</button>':''}</div>`}<input type="file" id="pifile" accept="application/pdf,image/*" multiple hidden>${inv?'':'<div class="xs mut">Service requisition – P.O only, no invoice needed</div>'}`}
 function piPane(o,k){const L=piDocs(o,k),nm=k==='P'?'P.O':'Invoice';
- const empty=k==='I'&&o.cancelled?'Cancelled by office – no invoice expected.':k==='I'&&!piRcv(o)?'No invoice yet – spares not received yet. Add it when it comes.':k==='I'?'Spares received but invoice missing – please add it.':`No ${nm} in the folder yet – use ➕ Add ${nm} below.`;
+ const empty=k==='I'&&o.cancelled?'Cancelled by office – no invoice expected.':k==='I'&&!piRcv(o)?'No invoice yet – spares not received yet. Add it when it comes.':k==='I'?'Spares received but invoice missing – please add it.':`No ${nm} in the folder yet.`;
  return `${L.map(d=>`<div class="srf" data-pif="${esc(d.f.fid)}"><b>${/^image\//.test(d.f.mime)?'🖼️':'📕'}</b><span>${esc(d.f.name)}<small>${fmtMB(d.f.size)}${d.t?' · '+esc(longD(new Date(d.t).toISOString().slice(0,10))):''}${d.by?' · added by '+esc(d.by):''}${d.pend?' · 🕓 waiting to send':''} · <em class="pist">tap to open</em></small></span></div>`).join('')||`<div class="s mut" style="padding:4px 2px">${esc(empty)}</div>`}
+ <button class="ghost" style="width:100%;margin-top:8px" data-piadd="${k}">➕ Add ${nm}</button>
  <div class="xs mut" style="margin-top:6px">${PI&&PI.time?'Folder list checked '+esc(longD(new Date(PI.time).toISOString().slice(0,10)))+' '+new Date(PI.time).toTimeString().slice(0,5):'Folder list not loaded yet – needs internet once'} · opened files stay on this phone for offline</div>`}
 function piRedraw(o){const w=$("#piw");if(!w||w.dataset.no!==o.no||!$('#sheet').classList.contains('show'))return;w.innerHTML=piTabsHtml(o);piBind(o,true)}
 async function piBind(o,noFetch){await piLoad();if(!$('#pitabs'))return;
@@ -982,7 +977,7 @@ function renderSettings(){const all=S.entries.length;
  ${isChief()||role()==='master'?`<div class="card"><b>📋 Office report – time sheet</b><div class="s mut">Correct EOSP / Moored / Dock-in / Dock-out / Unmoored / COSP (local time). Needs internet.</div><button class="ghost" id="otsb" style="width:100%;margin-top:8px">Correct time sheet</button></div>`:''}
  <div class="card"><b>📲 Install / share the app</b><div class="s mut">${ENV.standalone?'This phone uses the installed app.':'Not installed on this phone yet.'}</div><div style="display:flex;gap:8px;margin-top:8px"><button id="ihelp" style="flex:1">Install help</button><button class="ghost" id="ishare" style="flex:1">Share app link</button></div></div>
  <div class="card"><b>Appearance</b><div class="seg">${[['','Auto'],['light','Light'],['dark','Dark']].map(([v,l])=>`<button data-th="${v}">${l}</button>`).join('')}</div></div>
- <div class="card"><button class="ghost" id="rr" style="width:100%">⟳ Re-download drydock records</button><button class="ghost" id="pidl" style="width:100%;margin-top:8px">⬇ Keep all P.O & invoices on this phone</button><div class="xs mut" style="margin-top:4px">All present P.O / invoices came to this phone once with this update. New ones download when you tap them. This button keeps every PDF on the phone now (about 30–50 MB).</div><button class="ghost" id="bk2" style="width:100%;margin-top:8px">⬇ Backup my entries (file)</button>
+ <div class="card"><button class="ghost" id="rr" style="width:100%">⟳ Re-download drydock records</button><button class="ghost" id="pidl" style="width:100%;margin-top:8px">⬇ Keep all P.O & invoices on this phone</button><div class="xs mut" style="margin-top:4px">Each reqn shows how many P.O / invoices are in Drive; a PDF downloads when you tap it. This button keeps every PDF on the phone now (about 30–50 MB) – only if you want them all offline.</div><button class="ghost" id="bk2" style="width:100%;margin-top:8px">⬇ Backup my entries (file)</button>
  <button class="danger" id="lo" style="width:100%;margin-top:8px">Log out of this phone</button><div class="xs mut" style="margin-top:6px">Log out is blocked while updates are not sent.</div></div>`,{back:()=>go('home')});
  if($('#rhs'))$('#rhs').onclick=async()=>{try{const r=await api('settings',{reportHour:+$('#rh').value});S.reportHour=r.reportHour;await DB.put('kv',S.reportHour,'reportHour');toast('Daily email set to '+pad(r.reportHour)+':00 ✔')}catch(e){toast(e.message)}};
  if($('#tmon')){const setTM=async on=>{try{const r=await api('settings',{testMode:on});S.testMode=r.testMode;await DB.put('kv',S.testMode,'testMode');toast('Test mode '+(on?'ON':'OFF')+' ✔');renderSettings()}catch(e){toast(e.message)}};$('#tmon').onclick=()=>setTM(true);$('#tmoff').onclick=()=>setTM(false);
@@ -1215,7 +1210,7 @@ async function checkMentions(){if(!S.user||!D||noChat())return;let seen=await DB
  const show=L.slice(-3);$('#mpop').innerHTML=`<div class="mp"><div class="mph">🔔 You were mentioned${L.length>1?' ('+L.length+')':''}</div>${show.map(e=>`<div class="mpi"><b>${esc(e.rank+' – '+e.name)}</b> <span class="xs mut">${esc(e.time)}</span><div>${mentionHTML(e.text||'(attachment)')}</div></div>`).join('')}
   <div style="display:flex;gap:8px;margin-top:10px"><button class="ghost" id="mpx" style="flex:1">Close</button><button id="mpo" style="flex:2">Open chat</button></div></div>`;
  $('#mpop').classList.add('show');$('#mpx').onclick=()=>$('#mpop').classList.remove('show');$('#mpo').onclick=()=>{$('#mpop').classList.remove('show');go('chat')}}
-function afterSync(){piAuto();setTimeout(piBulkOnce,1500);if(noChat())dropChats();updChatBadge();checkMentions();refreshChat()}
+function afterSync(){piAuto();if(noChat())dropChats();updChatBadge();checkMentions();refreshChat()}
 /* Vessel Manager / Superintendent: no chat kept on their phone */
 async function dropChats(){const L=S.entries.filter(e=>e.kind==='chat');if(!L.length)return;for(const e of L){for(const f of (e.files||[]))await DB.del('blobs',f.fid).catch(()=>{});await DB.del('entries',e.id)}S.entries=S.entries.filter(e=>e.kind!=='chat')}
 /* poll every 15 s while the app is open – fetches only when something new is on the server */
