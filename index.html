@@ -53,6 +53,7 @@ main{zoom:var(--z,1)}
 .tiles.editing .tile.hid{opacity:.4}.tile .eye{position:absolute;top:3px;right:4px;font-size:15px;cursor:pointer;padding:2px}.tile .eye.lock{cursor:default;opacity:.6}.ren{position:absolute;bottom:3px;right:5px;font-size:12px;opacity:.75;pointer-events:none}.bigbtn{position:relative}
 .icbox{position:relative;width:min(260px,70vw);aspect-ratio:1;margin:8px auto 0;border-radius:22%;overflow:hidden;touch-action:none;cursor:grab;background:#0b2942}.icbox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .icsafe{position:absolute;inset:10%;border:2px dashed rgba(255,255,255,.85);border-radius:50%;pointer-events:none}
+.ar{background:var(--sky);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;cursor:pointer}.art{font-size:15px;line-height:1.35}
 .aj{border-top:1px solid var(--line);padding:12px 0 10px}.aj:first-of-type{border-top:0}.ajt{cursor:pointer;font-size:15.5px;line-height:1.35}.ajb{font-size:13.5px;color:var(--mut);margin:4px 0 8px;line-height:1.4}
 .atabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.atabs button{padding:8px 2px;font-size:12.5px;font-weight:700;border-radius:10px;border:1.5px solid var(--c);background:var(--cb);color:var(--c);min-height:40px;line-height:1.15}
 .atabs button i{font-style:normal;display:inline-block;min-width:18px;padding:0 4px;border-radius:9px;background:var(--c);color:#fff;font-size:11px;margin-left:2px}.atabs button.on{background:var(--c);color:#fff}.atabs button.on i{background:#fff;color:var(--c)}
@@ -86,6 +87,7 @@ body.chatview main{padding-bottom:150px}#cl{display:flex;flex-direction:column;g
 .crow{display:flex;gap:6px;align-items:flex-end}.crow textarea{flex:1;min-height:42px;max-height:120px;resize:none;padding:10px 12px;border-radius:21px;font-size:16px}.cbtn{width:44px;height:44px;padding:0;border-radius:22px;font-size:19px;flex:0 0 auto}.cbtn.rec{background:var(--bad);color:#fff}
 .cmen{display:flex;flex-wrap:wrap;gap:6px;max-height:150px;overflow:auto;padding-bottom:8px}.cmen button{padding:7px 11px;font-size:13.5px;border-radius:99px;background:var(--chip);color:var(--ink)}
 #navq{display:none;position:fixed;inset:0;z-index:300;background:rgba(5,20,35,.55);align-items:center;justify-content:center;padding:20px}#navq.show{display:flex}.nq{background:var(--card,#fff);border-radius:16px;padding:18px;max-width:380px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.3)}.nqb{display:flex;gap:10px;margin-top:14px}.nqb button{flex:1}
+#pibar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(74px + env(safe-area-inset-bottom));z-index:250;background:var(--navy);color:#fff;font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap;pointer-events:none}
 .catt{display:flex;gap:6px;padding-bottom:8px}.ca.cadoc{width:130px;font-size:20px;padding:0 24px 0 6px}.cadoc span{display:flex;flex-direction:column;align-items:center;min-width:0;width:100%}.cadoc small{font-size:10.5px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ca{position:relative;width:60px;height:60px;border-radius:10px;overflow:hidden;background:#0b2942;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px}.ca img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}.ca .x{position:absolute;top:2px;right:2px;width:22px;height:22px;padding:0;border-radius:11px;font-size:12px;background:rgba(0,0,0,.6);color:#fff}
 .mpop{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.45);display:none;align-items:flex-start;justify-content:center;padding:70px 16px 16px}.mpop.show{display:flex}
 .mp{background:var(--card);color:var(--ink);border-radius:16px;padding:14px 16px;width:100%;max-width:460px;border:3px solid #f0a020;box-shadow:0 10px 40px rgba(0,0,0,.35)}.mph{font-weight:800;font-size:17px;margin-bottom:8px;color:#c25e00}.mpi{border-top:1px solid var(--line);padding:7px 0}
@@ -210,7 +212,7 @@ async function instDiag(){const el=$('#instDiag');if(!el)return;const row=(ok,t,
  $('#dcopy').onclick=()=>{const t=rep+'\n'+el.innerText.replace('Copy this check for Chief','');try{navigator.clipboard.writeText(t);toast('Copied – paste it in WhatsApp to the Chief')}catch(e){toast('Copy not allowed on this phone')}}}
 "use strict";
 /* ================= constants ================= */
-const VERSION='2.4.3';
+const VERSION='2.5.1';
 const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
 const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
 const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager'];
@@ -245,7 +247,7 @@ const DB={db:null,
 let S={user:null,data:null,entries:[],lastSync:0,since:0,syncing:false,reportHour:18,view:'home'};
 let D=null,J={},O={},IDX=null;
 async function loadState(){await DB.open();S.user=await DB.get('kv','user')||null;S.lastSync=await DB.get('kv','lastSync')||0;S.since=await DB.get('kv','since')||0;S.reportHour=await DB.get('kv','reportHour')||18;S.testMode=!!(await DB.get('kv','testMode'));S.layout=await DB.get('kv','layout')||null;applyScale(lay());
- const raw=await DB.get('kv','records');if(raw)setData(raw);S.entries=await DB.all('entries');
+ const raw=await DB.get('kv','records');if(raw)setData(raw);piLoad();S.entries=await DB.all('entries');
  const th=await DB.get('kv','theme');if(th)document.documentElement.setAttribute('data-theme',th)}
 function setData(raw){D=typeof raw==='string'?JSON.parse(raw):raw;J={};O={};D.jobs.forEach(j=>J[j.id]=j);D.orders.forEach(o=>O[o.no]=o);
  IDX={jobs:D.jobs.map(j=>({r:j,f:[[norm(j.id+' '+j.title),6],[norm(j.comp+' '+j.group+' '+(j.components||[]).join(' ')),4],[norm(j.brief+' '+j.sname),3],[norm(j.scope),1]]})),
@@ -731,6 +733,21 @@ let PI=null,PIT='';const PIMAX=5*1024*1024;
 const pkey=s=>{const m=/FDU-(\d{4})-\d{4}-[A-Z]+(-\d)?/i.exec(String(s||''));return m?m[1]+(m[2]||''):''};
 function okey(k){if(!O.__pk){const m={};Object.keys(O).forEach(n=>{if(n!=='__pk')m[pkey(n)]=1});Object.defineProperty(O,'__pk',{value:m,enumerable:false,configurable:true})}return O.__pk[k]||!O.__pk[k.slice(0,4)]?k:k.slice(0,4)}
 async function piLoad(){if(!PI){try{PI=await DB.get('kv','poinv')}catch(e){}PI=PI||{files:[],time:0}}return PI}
+/* P.O / invoice folder list comes with every Send / Receive (names only, a few KB) */
+function piAuto(){piLoad().then(()=>{if(Date.now()-(PI.time||0)>10*60*1000)piRefresh().then(ok=>{const o=$('#piw')&&O[$('#piw').dataset.no];if(ok&&o)piRedraw(o)})})}
+/* optional: keep every P.O / invoice PDF on this phone for offline */
+async function piDownloadAll(btn,quiet){await piLoad();if(!navigator.onLine){if(!quiet)toast('Needs internet');return {fail:1}}if(!PI.time)await piRefresh(true);
+ const L=PI.files.slice(),tot=L.reduce((a,x)=>a+(x.s||0),0);let done=0,got=0,fail=0;
+ for(const x of L){const fid='drv_'+x.id;let have=false;try{have=!!(await DB.get('blobs',fid))}catch(e){}
+  if(!have){try{const r=await api('file',{driveId:x.id},120000);await DB.put('blobs',b64ToBlob(r.b64,r.mime),fid);got++}catch(e){fail++}}
+  done++;if(btn)btn.textContent=`⏳ ${done} / ${L.length} files…`;if(quiet&&$('#pibar'))$('#pibar').textContent=`⬇ P.O & invoices to this phone: ${done} / ${L.length}`}
+ if(btn)btn.textContent='⬇ Keep all P.O & invoices on this phone';if(quiet&&$('#pibar'))$('#pibar').remove();toast(`✅ ${L.length-fail} of ${L.length} P.O / invoice files are on this phone (${fmtMB(tot)})${fail?' · '+fail+' failed – '+(quiet?'will finish next time the app opens':'try again'):''}`,6000,true);return {fail,total:L.length}}
+/* one time only (this update): every phone pulls all present P.O / invoice PDFs; later files download on tap */
+const PIB={run:false};
+async function piBulkOnce(){if(PIB.run||!S.user||!D||!navigator.onLine||!CFG.SERVER_URL)return;PIB.run=true;
+ try{if(await DB.get('kv','pibulk1'))return;await piLoad();if(!PI.time)await piRefresh(true);if(!PI.time||!PI.files.length)return;
+  let b=$('#pibar');if(!b){b=document.createElement('div');b.id='pibar';document.body.appendChild(b)}b.textContent='⬇ P.O & invoices to this phone: starting…';
+  const r=await piDownloadAll(null,true);if(r&&r.fail===0)await DB.put('kv',Date.now(),'pibulk1')}catch(e){}finally{PIB.run=false;const b=$('#pibar');if(b)b.remove()}}
 async function piRefresh(force){if(!navigator.onLine||!CFG.SERVER_URL)return false;try{const r=await api('poinv',force?{fresh:1}:{},60000);PI={files:r.files||[],time:Date.now()};await DB.put('kv',PI,'poinv');return true}catch(e){return false}}
 const piMime=n=>/\.pdf$/i.test(n)?'application/pdf':/\.jpe?g$/i.test(n)?'image/jpeg':/\.png$/i.test(n)?'image/png':/\.heic$/i.test(n)?'image/heic':'application/octet-stream';
 function piDocs(o,k){const key=pkey(o.no),out=[],seen=new Set();
@@ -739,8 +756,8 @@ function piDocs(o,k){const key=pkey(o.no),out=[],seen=new Set();
  return out.sort((a,b)=>b.t-a.t)}
 const piNeedInv=o=>o.type!=='SERVICE';
 const piRcv=o=>{const t=orderStatus(o).txt;return /RECEIVED/i.test(t)&&!/NOT RECEIVED/i.test(t)};
-function piTabsHtml(o){const np=piDocs(o,'P').length,ni=piDocs(o,'I').length,inv=piNeedInv(o);const iw=ni?ni:o.cancelled?'–':piRcv(o)?'missing':'not yet',im=!ni&&!o.cancelled&&piRcv(o);
- return `<div class="atabs pitabs${inv?'':' one'}" id="pitabs"><button class="t-c${np?'':' miss'}${PIT==='P'?' on':''}" data-pit="P">📄 P.O <i>${np||'missing'}</i></button>${inv?`<button class="t-s${im?' miss':''}${PIT==='I'?' on':''}" data-pit="I">🧾 Invoice <i>${iw}</i></button>`:''}</div>
+function piTabsHtml(o){const np=piDocs(o,'P').length,ni=piDocs(o,'I').length,inv=piNeedInv(o);const ld=!!(PI&&PI.time);const iw=ni?ni:o.cancelled?'–':!ld?'…':piRcv(o)?'missing':'not yet',im=ld&&!ni&&!o.cancelled&&piRcv(o);
+ return `<div class="atabs pitabs${inv?'':' one'}" id="pitabs"><button class="t-c${np||!ld?'':' miss'}${PIT==='P'?' on':''}" data-pit="P">📄 P.O <i>${np||(ld?'missing':'…')}</i></button>${inv?`<button class="t-s${im?' miss':''}${PIT==='I'?' on':''}" data-pit="I">🧾 Invoice <i>${iw}</i></button>`:''}</div>
  <div class="apane ${PIT==='I'?'t-s':'t-c'}" id="pipane">${PIT&&(PIT==='P'||inv)?piPane(o,PIT):''}</div>
  <div class="atabs pitabs${inv?'':' one'}" style="margin-top:8px"><button class="t-c" data-piadd="P">➕ Add P.O</button>${inv?'<button class="t-s" data-piadd="I">➕ Add Invoice</button>':''}</div><input type="file" id="pifile" accept="application/pdf,image/*" multiple hidden>${inv?'':'<div class="xs mut">Service requisition – P.O only, no invoice needed</div>'}`}
 function piPane(o,k){const L=piDocs(o,k),nm=k==='P'?'P.O':'Invoice';
@@ -772,7 +789,7 @@ async function piAdd(o,k,inp){const list=[...inp.files];inp.value='';if(!list.le
 let CHAT=[];
 const ASK_EX=['ER vent fans VFD','main engine fuel pump','stern tube seal','M/E air cooler','sea chest','turbocharger','steering gear','EGCS'];
 function renderAsk(){shell('Ask me anything','DD spec jobs · answers only from the records',`
- <div style="display:flex;gap:8px"><input id="aq" placeholder="e.g. ER vent fans, 630.13, FDU-0231" enterkeyhint="search"><button id="amic" class="ghost" style="padding:0 14px">🎤</button><button id="ago">Ask</button></div>
+ <div style="display:flex;gap:8px"><input id="aq" placeholder="e.g. ER vent fans, 630.13, 600, 0178" enterkeyhint="search"><button id="amic" class="ghost" style="padding:0 14px">🎤</button><button id="ago">Ask</button></div>
  ${CHAT.length?'':`<div style="margin-top:10px">${ASK_EX.map(x=>`<span class="chip" data-ex="${esc(x)}" style="cursor:pointer">${esc(x)}</span>`).join('')}</div>`}
  <div id="chat" style="margin-top:12px">${CHAT.slice().reverse().map((c,ci)=>askBlock(c,CHAT.length-1-ci)).join('')}</div>`);
  const ask=()=>{const q=$('#aq').value.trim();if(!q)return;CHAT.push(Object.assign({q,show:12},answer(q)));renderAsk()};
@@ -787,26 +804,43 @@ function ajClick(e){const t=e.target.closest('[data-tab]');if(!t)return;const ca
   card.dataset.open=tab;t.classList.add('on');pane.className='apane t-'+tab;pane.innerHTML=tabHTML(id,tab);bindEntryButtons(pane);fillMinis(pane);bindSr(pane);pane.querySelectorAll('[data-sradd]').forEach(b=>b.onclick=()=>{closeSheet();SRP.job=b.dataset.sradd;SRP.title='';SRP.files=[];go('sradd')})}
 function updBlock(e){return `<div class="aupd"><div class="d">${esc(longD(e.date))} · ${esc(e.rank)}${e.test?' <span class="chip test">TEST</span>':''}</div>${e.job&&JST[e.jst]?`<div><span class="chip ${JST[e.jst][1]}">${esc(stText(e))}</span></div>`:''}<div class="mt">${esc(e.text||'')}</div>${e.stc?`<div class="s stc"><b>${stLabel(e)}:</b> ${esc(e.stc)}</div>`:''}
    ${miniHTML(e)}</div>`}
-function askBlock(c,ci){const L=c.jobs.slice(0,c.show);
+function askBlock(c,ci){const L=c.jobs.slice(0,c.show);const RQ=(c.reqs||[]).filter(n=>O[n]);
  return `<div class="card askq"><div class="xs mut">You asked</div><b>${esc(c.q)}</b><div class="s mut" style="margin:6px 0 4px">${esc(c.sum)}</div>
- ${L.map(id=>ajCard(J[id])).join('')}${c.jobs.length>c.show?`<button class="ghost" data-more="${ci}" style="width:100%;margin-top:8px">Show more (${c.jobs.length-c.show} more)</button>`:''}</div>`}
+ ${RQ.map(n=>arCard(O[n])).join('')}${L.map(id=>ajCard(J[id])).join('')}${c.jobs.length>c.show?`<button class="ghost" data-more="${ci}" style="width:100%;margin-top:8px">Show more (${c.jobs.length-c.show} more)</button>`:''}</div>`}
 function ajCard(j){const nr=jobOrders(j.id).length,nm=jobMails(j.id).length,nu=jobUpdates(j.id).length;
  return `<div class="aj" data-id="${j.id}" data-open=""><div class="ajt" data-job="${j.id}"><span class="jid">${j.id}</span> <b>${esc(j.title)}</b></div>
  <div class="ajb">${esc(j.brief||'')}</div>
  <div class="atabs"><button data-tab="r" class="tr">📦 Reqns <i>${nr}</i></button><button data-tab="c" class="tc">✉️ Mails <i>${nm}</i></button><button data-tab="s" class="ts">📋 Spec</button><button data-tab="u" class="tu">🕒 Updates <i>${nu}</i></button><button data-tab="v" class="tv">📑 Svc rpts <i>${srOf(j.id).length}</i></button></div>
  <div class="apane"></div></div>`}
 /* matching */
-function answer(q){
- const ids=[...new Set((q.match(/\b\d{3}\.\d{2}\b/g)||[]).filter(x=>J[x]))];
- const pos=[...new Set((q.toUpperCase().match(/FDU-?\d{4}/g)||[]).flatMap(p=>{const n=p.replace(/\D/g,'');return D.orders.filter(o=>o.no.startsWith('FDU-'+n)).map(o=>o.no)}))];
- let rest=q.replace(/\b\d{3}\.\d{2}\b/g,' ').replace(/FDU-?\d{4}(-2026-[A-Z]{1,2}(-\d)?)?/gi,' ').trim();
- const viaPo=pos.flatMap(p=>O[p].jobs.map(x=>x.id)).filter(x=>J[x]);
- const qq=rest.replace(/\b(spares?|requisitions?|reqns?|status|jobs?|who does|who|does|what|about|for|the)\b/gi,' ').trim();
+/* numbers typed: reqn (0178 · 178 · FDU0178 · fdu-0178-2026-m) and jobs (600.40 · 600 40 · 60040 · 600.4 · 600) – caps, dots, commas ignored */
+function askNums(q){let s=' '+String(q||'').toLowerCase().replace(/[,;:!?'"()\[\]{}#*]/g,' ')+' ';const R=[],Jx=[],ser=[];
+ const addR=(n,suf)=>{const k=String(+n).padStart(4,'0');const L=D.orders.filter(o=>o.no.slice(4,8)===k);
+  if(suf){L.sort((a,b)=>(b.no.endsWith('-'+suf)?1:0)-(a.no.endsWith('-'+suf)?1:0))}L.forEach(o=>R.push(o.no));return L.length};
+ s=s.replace(/f\s*\.?\s*d\s*\.?\s*u[\s\-_.\/]*(\d{1,4})(?!\d)(?:[\s\-_.\/]*2026(?:[\s\-_.]*([a-z]{1,2})(?![a-z])(?:[\s\-_.]*(\d)(?!\d))?)?)?/g,(m,n,l,suf)=>{addR(n,suf);return ' '});
+ s=s.replace(/(^|[^\d.])(\d{3})(?:\s*[.\-_]\s*|\s+)(\d{1,2})(?![\d.])/g,(m,pre,a,b)=>{const ids=D.jobs.filter(j=>b.length===2?j.id===a+'.'+b:j.id.startsWith(a+'.'+b)).map(j=>j.id);if(!ids.length)return m;Jx.push(...ids);return pre+' '});
+ s=s.replace(/(^|[^\d.])(\d{3})(\d{2})(?![\d.])/g,(m,pre,a,b)=>{if(!J[a+'.'+b])return m;Jx.push(a+'.'+b);return pre+' '});
+ const words=/[a-z]{2,}/.test(s.replace(/\b(fdu|reqn|requisition|job|jobs|no|nr|number)\b/g,''));
+ s=s.replace(/(^|[^\d.])(\d{1,4})(?![\d.])/g,(m,pre,n)=>{let used=false;
+  if(n.length===3){const L=D.jobs.filter(j=>j.id.startsWith(n+'.')).map(j=>j.id);if(L.length){ser.push(...L);used=true}}
+  if(n!=='2026'&&(n.length>=3||!words)&&addR(n))used=true;return used?pre+' ':m});
+ return {reqs:[...new Set(R)],ids:[...new Set(Jx)],ser:[...new Set(ser)],rest:s.replace(/\s+/g,' ').trim()}}
+function answer(q){const N=askNums(q);
+ const viaPo=N.reqs.flatMap(p=>O[p].jobs.map(x=>x.id)).filter(x=>J[x]);
+ const qq=N.rest.replace(/[.\-_\/\\]/g,' ').replace(/\b(spares?|requisitions?|reqns?|status|jobs?|who does|who|does|what|about|for|the|fdu|no|nr|number)\b/gi,' ').replace(/\s+/g,' ').trim();
  const found=qq?search(qq,'jobs',120).map(x=>x.r.id):[];
- const jobs=[...new Set(ids.concat(viaPo,found))].filter(x=>J[x]);
- const notes=[];pos.forEach(p=>{if(!O[p].jobs.some(x=>J[x.id]))notes.push(p+' is not linked to any DD spec job')});
- const sum=jobs.length?`${jobs.length} job(s) – closest match first. Tap a tab to open it.`:'No DD spec job matches – try other words or a job number like 630.13.';
- return {jobs,sum:sum+(notes.length?' · '+notes.join(' · '):'')}}
+ const jobs=[...new Set(N.ids.concat(viaPo,N.ser,found))].filter(x=>J[x]);
+ const jset=new Set(jobs);
+ const tR=qq?search(qq,'orders',40).map(x=>x.r.no).filter(no=>!O[no].jobs.some(x=>jset.has(x.id))).slice(0,6):[];
+ const reqs=[...new Set(N.reqs.concat(tR))];
+ const parts=[];if(reqs.length)parts.push(reqs.length+' requisition(s)');if(jobs.length)parts.push(jobs.length+' job(s) – closest match first');
+ const sum=parts.length?parts.join(' · ')+'. Tap a reqn to open it, or a tab to open a job.':'Nothing matches – try other words, a job number like 630.13 or a reqn number like 0178.';
+ return {reqs,jobs,sum}}
+function arCard(o){const st=orderStatus(o);const lj=o.jobs.filter(x=>J[x.id]).map(x=>x.id);const sup=(o.suppliers||[]).map(x=>x.name).filter(Boolean).join(', ');const up=(o.updates||[]).slice(-1)[0];
+ return `<div class="ar" data-order="${esc(o.no)}"><div class="art"><span class="jid">📦 ${esc(o.no)}</span> <b>${esc(o.name)}</b></div>
+ <div style="margin:5px 0 2px"><span class="chip ${esc(st.cls||'')}">${esc(st.txt)}</span>${o.type?` <span class="chip">${esc(o.type)}</span>`:''}</div>
+ ${sup?`<div class="xs mut">Supplier: ${esc(sup)}</div>`:''}${up?`<div class="xs mut">${esc(longD(up.date))}: ${esc(up.txt)}</div>`:''}
+ <div class="xs" style="margin-top:3px">${lj.length?'DD job: '+lj.map(x=>`<b>${x}</b>`).join(', ')+' (below)':'<span class="mut">Not linked to a DD spec job</span>'} · <span class="mut">tap to open (P.O / Invoice)</span></div></div>`}
 const jobOrders=id=>D.orders.filter(o=>o.jobs.some(x=>x.id===id));
 function jobUpdates(id){const re=new RegExp('(^|[^\\d.])'+id.replace('.','\\.')+'(?![\\d])');
  return live().filter(e=>e.kind!=='meeting'&&(e.job===id||re.test(String(e.text||'')))).sort((a,b)=>String(b.ts).localeCompare(String(a.ts)))}
@@ -948,7 +982,7 @@ function renderSettings(){const all=S.entries.length;
  ${isChief()||role()==='master'?`<div class="card"><b>📋 Office report – time sheet</b><div class="s mut">Correct EOSP / Moored / Dock-in / Dock-out / Unmoored / COSP (local time). Needs internet.</div><button class="ghost" id="otsb" style="width:100%;margin-top:8px">Correct time sheet</button></div>`:''}
  <div class="card"><b>📲 Install / share the app</b><div class="s mut">${ENV.standalone?'This phone uses the installed app.':'Not installed on this phone yet.'}</div><div style="display:flex;gap:8px;margin-top:8px"><button id="ihelp" style="flex:1">Install help</button><button class="ghost" id="ishare" style="flex:1">Share app link</button></div></div>
  <div class="card"><b>Appearance</b><div class="seg">${[['','Auto'],['light','Light'],['dark','Dark']].map(([v,l])=>`<button data-th="${v}">${l}</button>`).join('')}</div></div>
- <div class="card"><button class="ghost" id="rr" style="width:100%">⟳ Re-download drydock records</button><button class="ghost" id="bk2" style="width:100%;margin-top:8px">⬇ Backup my entries (file)</button>
+ <div class="card"><button class="ghost" id="rr" style="width:100%">⟳ Re-download drydock records</button><button class="ghost" id="pidl" style="width:100%;margin-top:8px">⬇ Keep all P.O & invoices on this phone</button><div class="xs mut" style="margin-top:4px">All present P.O / invoices came to this phone once with this update. New ones download when you tap them. This button keeps every PDF on the phone now (about 30–50 MB).</div><button class="ghost" id="bk2" style="width:100%;margin-top:8px">⬇ Backup my entries (file)</button>
  <button class="danger" id="lo" style="width:100%;margin-top:8px">Log out of this phone</button><div class="xs mut" style="margin-top:6px">Log out is blocked while updates are not sent.</div></div>`,{back:()=>go('home')});
  if($('#rhs'))$('#rhs').onclick=async()=>{try{const r=await api('settings',{reportHour:+$('#rh').value});S.reportHour=r.reportHour;await DB.put('kv',S.reportHour,'reportHour');toast('Daily email set to '+pad(r.reportHour)+':00 ✔')}catch(e){toast(e.message)}};
  if($('#tmon')){const setTM=async on=>{try{const r=await api('settings',{testMode:on});S.testMode=r.testMode;await DB.put('kv',S.testMode,'testMode');toast('Test mode '+(on?'ON':'OFF')+' ✔');renderSettings()}catch(e){toast(e.message)}};$('#tmon').onclick=()=>setTM(true);$('#tmoff').onclick=()=>setTM(false);
@@ -956,7 +990,7 @@ function renderSettings(){const all=S.entries.length;
    b.disabled=true;b.textContent='Deleting…';try{await sendReceive(false);const r=await api('purgeTest',{},300000);if(PI){PI.time=0;DB.put('kv',PI,'poinv').catch(()=>{})}for(const e of S.entries.filter(x=>x.test||r.ids.includes(x.id))){for(const f of (e.files||[]))await DB.del('blobs',f.fid);await DB.del('entries',e.id)}
     S.entries=await DB.all('entries');rebuildEntryIdx();S.testMode=false;await DB.put('kv',false,'testMode');toast(`✅ Deleted ${r.deleted} test entries and ${r.files} files. App is now LIVE.`,5000,true);renderSettings()}catch(e){toast(e.message);b.disabled=false}}}
  $('#app').querySelectorAll('[data-th]').forEach(b=>b.onclick=async()=>{const v=b.dataset.th;if(v)document.documentElement.setAttribute('data-theme',v);else document.documentElement.removeAttribute('data-theme');await DB.put('kv',v,'theme')});
- $('#rr').onclick=()=>{NAV.stack=[];S.view='home';fetchRecords()};if($('#edl2'))$('#edl2').onclick=startEdit;$('#ihelp').onclick=doInstall;if($('#otsb'))$('#otsb').onclick=openTsEdit;$('#ishare').onclick=async()=>{const u=location.href.split('#')[0].split('?')[0];const t='Front Duke DD 2026 crew app. Open in Chrome (Android) or Safari (iPhone), then tap 📲 Install: '+u;try{if(navigator.share){await navigator.share({title:'Duke DD app',text:t,url:u});return}}catch(e){return}try{await navigator.clipboard.writeText(t);toast('Link copied – paste it in WhatsApp')}catch(e){toast(u,8000)}};
+ $('#rr').onclick=()=>{NAV.stack=[];S.view='home';fetchRecords()};$('#pidl').onclick=e=>{const b=e.currentTarget;if(b.dataset.busy)return;b.dataset.busy=1;piDownloadAll(b).finally(()=>delete b.dataset.busy)};if($('#edl2'))$('#edl2').onclick=startEdit;$('#ihelp').onclick=doInstall;if($('#otsb'))$('#otsb').onclick=openTsEdit;$('#ishare').onclick=async()=>{const u=location.href.split('#')[0].split('?')[0];const t='Front Duke DD 2026 crew app. Open in Chrome (Android) or Safari (iPhone), then tap 📲 Install: '+u;try{if(navigator.share){await navigator.share({title:'Duke DD app',text:t,url:u});return}}catch(e){return}try{await navigator.clipboard.writeText(t);toast('Link copied – paste it in WhatsApp')}catch(e){toast(u,8000)}};
  $('#bk2').onclick=()=>downloadBlob(new Blob([JSON.stringify({exported:new Date().toISOString(),user:{rank:S.user.rank,name:S.user.name},entries:S.entries},null,1)],{type:'application/json'}),'FrontDuke_DD2026_backup_'+today()+'.json');
  $('#lo').onclick=async()=>{if(pending()){toast('Send / Receive first – '+pending()+' update(s) not sent',4000);return}if(!$('#lo').dataset.c){$('#lo').dataset.c=1;$('#lo').textContent='Tap again to log out';return}await DB.del('kv','user');S.user=null;NAV.stack=[];ED=null;render()}}
 /* ================= home-screen layout (Chief edits, all phones get it) ================= */
@@ -1181,7 +1215,7 @@ async function checkMentions(){if(!S.user||!D||noChat())return;let seen=await DB
  const show=L.slice(-3);$('#mpop').innerHTML=`<div class="mp"><div class="mph">🔔 You were mentioned${L.length>1?' ('+L.length+')':''}</div>${show.map(e=>`<div class="mpi"><b>${esc(e.rank+' – '+e.name)}</b> <span class="xs mut">${esc(e.time)}</span><div>${mentionHTML(e.text||'(attachment)')}</div></div>`).join('')}
   <div style="display:flex;gap:8px;margin-top:10px"><button class="ghost" id="mpx" style="flex:1">Close</button><button id="mpo" style="flex:2">Open chat</button></div></div>`;
  $('#mpop').classList.add('show');$('#mpx').onclick=()=>$('#mpop').classList.remove('show');$('#mpo').onclick=()=>{$('#mpop').classList.remove('show');go('chat')}}
-function afterSync(){if(noChat())dropChats();updChatBadge();checkMentions();refreshChat()}
+function afterSync(){piAuto();setTimeout(piBulkOnce,1500);if(noChat())dropChats();updChatBadge();checkMentions();refreshChat()}
 /* Vessel Manager / Superintendent: no chat kept on their phone */
 async function dropChats(){const L=S.entries.filter(e=>e.kind==='chat');if(!L.length)return;for(const e of L){for(const f of (e.files||[]))await DB.del('blobs',f.fid).catch(()=>{});await DB.del('entries',e.id)}S.entries=S.entries.filter(e=>e.kind!=='chat')}
 /* poll every 15 s while the app is open – fetches only when something new is on the server */
