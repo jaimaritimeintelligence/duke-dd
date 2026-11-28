@@ -212,11 +212,12 @@ async function instDiag(){const el=$('#instDiag');if(!el)return;const row=(ok,t,
  $('#dcopy').onclick=()=>{const t=rep+'\n'+el.innerText.replace('Copy this check for Chief','');try{navigator.clipboard.writeText(t);toast('Copied – paste it in WhatsApp to the Chief')}catch(e){toast('Copy not allowed on this phone')}}}
 "use strict";
 /* ================= constants ================= */
-const VERSION='2.5.2';
+const VERSION='2.6.0';
 const CFG=Object.assign({SERVER_URL:'',VESSEL:'MT Front Duke'},window.APP_CONFIG||{});
-const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['Superintendent','Office'],['Yard visitor','Office']];
-const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager'];
-const EXTRACT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager'];
+const RANKS=[['Master','Deck'],['Chief Officer','Deck'],['Second Officer','Deck'],['Third Officer','Deck'],['Deck Cadet','Deck'],['Chief Engineer','Engine'],['Second Engineer','Engine'],['Third Engineer','Engine'],['Fourth Engineer','Engine'],['Electrical Engineer','Engine'],['ECR','Engine'],['CCR','Deck'],['Superintendent','Office'],['Yard visitor','Office']];
+const REPORT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager','ECR','CCR'];
+const STATION=['ECR','CCR'];const isStation=()=>!!S.user&&STATION.includes(S.user.rank);
+const EXTRACT_RANKS=['Chief Engineer','Master','Chief Officer','Second Engineer','Electrical Engineer','Vessel Manager','ECR','CCR'];
 const JST={ns:['Not started',''],ip:['In progress','warn'],co:['Completed','ok'],ca:['Cancelled','bad']};
 const SUBS=['Dis-assembly in progress','Given to Yard','Received from Yard','Assembly in progress','Testing in progress','Service Engineer work in progress'];
 function stText(e){if(!e||!JST[e.jst])return '';const L=JST[e.jst][0];if(e.jst==='ip')return L+(e.sub?' – '+e.sub:'');if(e.jst==='co')return L+(e.cdate?' on '+longD(e.cdate):'');if(e.jst==='ca')return L+' – VM/Owner approval: '+(e.appr||'—');return L}
@@ -421,7 +422,7 @@ function closeSheet(){$('#sheet').classList.remove('show');navSync()}
 $('#sheet').onclick=e=>{if(e.target.id==='sheet')closeSheet()};
 /* ---------- login ---------- */
 let LG='o';
-const pinLabel=r=>r==='Chief Engineer'?'Chief Engineer PIN':r==='Master'?'Master PIN':r==='Vessel Manager'?'Vessel Manager PIN':'Vessel PIN';
+const pinLabel=r=>r==='Chief Engineer'?'Chief Engineer PIN':r==='Master'?'Master PIN':r==='Vessel Manager'?'Vessel Manager PIN':r==='ECR'?'ECR PIN':r==='CCR'?'CCR PIN':'Vessel PIN';
 function renderLogin(){const needData=S.user&&!D;
  $('#app').innerHTML=`<div class="login"><div style="font-size:13px;opacity:.8;letter-spacing:1.5px">MT FRONT DUKE · IMO 9771339</div><h1 style="font-size:30px;margin:6px 0 2px">Dry Dock 2026</h1><div style="opacity:.85">COSCO Zhoushan · crew app</div>
  <div class="card"><div class="h2" style="margin-top:0">${needData?'Finish setup':'One-time login'}</div>
@@ -430,12 +431,12 @@ function renderLogin(){const needData=S.user&&!D;
  ${LG==='o'?`<label class="l" for="rk">Rank</label><select id="rk"><option value="">Select your rank…</option>${RANKS.map(r=>`<option>${r[0]}</option>`).join('')}</select>`:LG==='g'?'<div class="s mut" style="margin-top:12px">For Bosun, Pumpman, Fitter, ratings and others. You can add updates and photos and see everything. No rank is shown – entries appear as Guest.</div><input id="rk" type="hidden" value="Guest">':'<div class="s mut" style="margin-top:12px">Vessel Manager: view everything, add and edit updates, make reports and extract photos. Uses the Vessel Manager PIN.</div><input id="rk" type="hidden" value="Vessel Manager">'}
  <label class="l" for="nm">Name</label><input id="nm" autocomplete="name" placeholder="Your full name">
  <label class="l" for="pin" id="pinl">${pinLabel(LG==='v'?'Vessel Manager':'')}</label><input id="pin" type="password" inputmode="numeric" placeholder="PIN">
- <div class="xs mut" style="margin-top:6px">Chief Engineer, Master and Vessel Manager use their own PIN. Everyone else uses the vessel PIN.</div>
+ <div class="xs mut" style="margin-top:6px">Chief Engineer, Master, Vessel Manager, ECR and CCR use their own PIN. Everyone else uses the vessel PIN.</div>
  <button id="li" style="width:100%;margin-top:18px">Log in</button>`}
  <p class="xs mut" id="lmsg" style="margin:10px 0 0">${CFG.SERVER_URL?'Login is needed once on this phone. After that the app works without internet.':'⚠ Server link not set in config.js – see setup guide.'}</p></div>${instBanner()}</div>`;bindInst($('#app'));
  if(needData){$('#dl').onclick=()=>fetchRecords();return}
  $('#tO').onclick=()=>{LG='o';renderLogin()};$('#tG').onclick=()=>{LG='g';renderLogin()};$('#tV').onclick=()=>{LG='v';renderLogin()};
- if(LG==='o')$('#rk').onchange=()=>{$('#pinl').textContent=pinLabel($('#rk').value)};
+ if(LG==='o')$('#rk').onchange=()=>{const v=$('#rk').value;$('#pinl').textContent=pinLabel(v);const st=['ECR','CCR'].includes(v),nm=$('#nm');if(st){nm.value=v;nm.readOnly=true}else if(nm.readOnly){nm.value='';nm.readOnly=false}};
  $('#li').onclick=async()=>{const rank=$('#rk').value,name=$('#nm').value.trim(),pin=$('#pin').value.trim();
   if(!rank||name.length<2||!pin){$('#lmsg').textContent='Please choose rank, type your name and the PIN.';return}
   $('#li').disabled=true;$('#li').textContent='Checking…';
@@ -974,7 +975,7 @@ function renderSettings(){const all=S.entries.length;
  <button class="danger" id="purge" style="width:100%;margin-top:10px">🗑 Delete ALL test entries and their photos</button><div class="xs mut" style="margin-top:4px">Removes them from Google Sheet, Drive and every phone, and switches Test mode OFF. Cannot be undone.</div></div>`:''}
  ${isChief()?`<div class="card"><b>Daily email time (ship time)</b><div style="display:flex;gap:8px;margin-top:8px"><select id="rh">${[...Array(24).keys()].map(h=>`<option value="${h}" ${h===S.reportHour?'selected':''}>${pad(h)}:00</option>`).join('')}</select><button id="rhs">Save</button></div></div>`:''}
  ${isChief()?'<div class="card"><b>✏️ Home screen layout</b><div class="s mut">Ship photo, tile order and size, text size, credit line, app icon. Saved for all phones.</div><button id="edl2" style="width:100%;margin-top:8px">Edit home screen</button></div>':''}
- ${isChief()||role()==='master'?`<div class="card"><b>📋 Office report – time sheet</b><div class="s mut">Correct EOSP / Moored / Dock-in / Dock-out / Unmoored / COSP (local time). Needs internet.</div><button class="ghost" id="otsb" style="width:100%;margin-top:8px">Correct time sheet</button></div>`:''}
+ ${isChief()||role()==='master'||isStation()?`<div class="card"><b>📋 Office report – time sheet</b><div class="s mut">Correct EOSP / Moored / Dock-in / Dock-out / Unmoored / COSP (local time). Needs internet.</div><button class="ghost" id="otsb" style="width:100%;margin-top:8px">Correct time sheet</button></div>`:''}
  <div class="card"><b>📲 Install / share the app</b><div class="s mut">${ENV.standalone?'This phone uses the installed app.':'Not installed on this phone yet.'}</div><div style="display:flex;gap:8px;margin-top:8px"><button id="ihelp" style="flex:1">Install help</button><button class="ghost" id="ishare" style="flex:1">Share app link</button></div></div>
  <div class="card"><b>Appearance</b><div class="seg">${[['','Auto'],['light','Light'],['dark','Dark']].map(([v,l])=>`<button data-th="${v}">${l}</button>`).join('')}</div></div>
  <div class="card"><button class="ghost" id="rr" style="width:100%">⟳ Re-download drydock records</button><button class="ghost" id="pidl" style="width:100%;margin-top:8px">⬇ Keep all P.O & invoices on this phone</button><div class="xs mut" style="margin-top:4px">Each reqn shows how many P.O / invoices are in Drive; a PDF downloads when you tap it. This button keeps every PDF on the phone now (about 30–50 MB) – only if you want them all offline.</div><button class="ghost" id="bk2" style="width:100%;margin-top:8px">⬇ Backup my entries (file)</button>
